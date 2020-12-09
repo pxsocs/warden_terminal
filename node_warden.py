@@ -1,11 +1,14 @@
 import configparser
 import logging
 import os
+import time
 
 from logging.handlers import RotatingFileHandler
 
 from connections import test_tor
 from welcome import logo
+from dashboard import main_dashboard
+
 from ansi_management import (warning, success, error, info, clear_screen, bold)
 from dependencies.yaspin import yaspin
 
@@ -14,11 +17,15 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 debug_file = os.path.join(basedir, 'debug.log')
 
 
-def load_config():
+def load_config(quiet=False):
     # Load Config
+    config_file = os.path.join(basedir, 'config.ini')
+    CONFIG = configparser.ConfigParser()
+    if quiet:
+        CONFIG.read(config_file)
+        return (CONFIG)
+
     with yaspin(text="Loading config.ini", color="cyan") as spinner:
-        config_file = os.path.join(basedir, 'config.ini')
-        CONFIG = configparser.ConfigParser()
 
         # Check that config file exists
         if os.path.isfile(config_file):
@@ -31,7 +38,7 @@ def load_config():
             spinner.fail("💥 ")
             spinner.write(
                 warning("    Config file could not be loaded [ERROR]"))
-            print(error("WARden requires config.ini to run. Quitting..."))
+            print(error("    WARden requires config.ini to run. Quitting..."))
             exit()
 
 
@@ -68,7 +75,7 @@ def create_tor():
             spinner.write(warning("    Tor NOT connected [ERROR]"))
             print(
                 error(
-                    "Could not connect to Tor. WARden requires Tor to run. Quitting..."
+                    "    Could not connect to Tor. WARden requires Tor to run. Quitting..."
                 ))
             exit()
 
@@ -81,3 +88,4 @@ if __name__ == '__main__':
     config = load_config()
     tor = create_tor()
     print(info("Launching Dashboard..."))
+    main_dashboard(config, tor)

@@ -62,3 +62,43 @@ def test_tor():
         "port": "failed"
     }
     return response
+
+
+def tor_request(url, tor_only=True, method="get"):
+    # Tor requests takes arguments:
+    # url:       url to get or post
+    # tor_only:  request will only be executed if tor is available
+    # method:    'get or' 'post'
+    # Store TOR Status here to avoid having to check on all http requests
+    TOR = test_tor()
+    if TOR["status"] is True:
+        try:
+            # Activate TOR proxies
+            session = requests.session()
+            session.proxies = {
+                "http": "socks5h://localhost:" + TOR['port'],
+                "https": "socks5h://localhost:" + TOR['port'],
+            }
+            if method == "get":
+                request = session.get(url, timeout=15)
+            if method == "post":
+                request = session.post(url, timeout=15)
+
+        except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout,
+        ) as e:
+            return "ConnectionError"
+    else:
+        if tor_only:
+            return "Tor not available"
+        try:
+            if method == "get":
+                request = requests.get(url, timeout=10)
+            if method == "post":
+                request = requests.post(url, timeout=10)
+
+        except requests.exceptions.ConnectionError:
+            return "ConnectionError"
+
+    return request
