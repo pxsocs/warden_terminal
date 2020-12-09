@@ -87,5 +87,6 @@ if __name__ == '__main__':
     launch_logger()
     config = load_config()
     tor = create_tor()
-    print(info("Launching Dashboard..."))
-    main_dashboard(config, tor)
+    with yaspin(text="Launching Dashboard. Please Wait...",
+                color="cyan") as spinner:
+        main_dashboard(config, tor, spinner)

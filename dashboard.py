@@ -2,11 +2,11 @@ import keyboard
 
 from time import sleep, time
 from ansi_management import (warning, success, error, info, clear_screen, bold)
-from data import data_tor, data_btc_price
+from data import data_tor, data_btc_price, data_login
 from dashing import HSplit, VSplit, Text, Log
 
 
-def main_dashboard(config, tor):
+def main_dashboard(config, tor, spinner):
 
     while True:
 
@@ -20,6 +20,9 @@ def main_dashboard(config, tor):
 
         log = ui.items[1].items[1]
         log.append("0 -----")
+
+        spinner.ok("✅ ")
+        spinner.write(success("    Application Running"))
 
         ui.display()
 
@@ -37,15 +40,16 @@ def tor_widget(tor):
 
 
 def btc_price_widget():
-    return_widget = Log(title='₿ Powered by NGU Tech', color=7, border_color=7)
+    return_widget = Log(title='Bitcoin Realtime Prices',
+                        color=7,
+                        border_color=7)
     return_widget = data_btc_price(return_widget)
     return (return_widget)
 
 
 def ssh_widget():
-    return_widget = Log(title='SSH Logins to this computer',
+    return_widget = Log(title='Users Currently Logged in',
                         color=7,
                         border_color=7)
-    ssh_data = f"Time / User / Success"
-    return_widget.append(ssh_data)
+    return_widget = data_login(return_widget)
     return (return_widget)
