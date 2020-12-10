@@ -1,3 +1,4 @@
 ansi
 keyboard
 dashing
+emoji
