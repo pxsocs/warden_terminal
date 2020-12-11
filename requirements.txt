@@ -2,3 +2,4 @@ ansi
 keyboard
 dashing
 emoji
+tabulate

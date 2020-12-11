@@ -2,6 +2,7 @@ import ast
 import subprocess
 import emoji
 import dashing
+from tabulate import tabulate
 
 from datetime import datetime, timedelta
 from dateutil import parser
@@ -64,7 +65,6 @@ def data_login(return_widget):
 
 
 def data_btc_price():
-    return_widget = []
     from node_warden import load_config
     config = load_config(quiet=True)
     updt = muted(f"Last Update: {datetime.now().strftime('%H:%M:%S')}")
@@ -74,31 +74,33 @@ def data_btc_price():
     price_data = multiple_price_grab('BTC', ','.join(currencies))
 
     # Get prices in different currencies
+    tabs = []
     for fx in currencies:
         try:
             price_str = price_data['DISPLAY']['BTC'][fx]['PRICE']
+            chg_str = price_data['DISPLAY']['BTC'][fx]['CHANGEPCTDAY']
+            high = price_data['DISPLAY']['BTC'][fx]['HIGHDAY']
+            low = price_data['DISPLAY']['BTC'][fx]['LOWDAY']
+            try:
+                chg = float(chg_str)
+                if chg > 0:
+                    chg_str = success(chg_str + ' %')
+                elif chg < 0:
+                    chg_str = error(chg_str + ' %')
+            except Exception:
+                chg_str = muted(chg_str + ' %')
+
             if fx == primary_fx:
-                chg_str = price_data['DISPLAY']['BTC'][fx]['CHANGEPCTDAY']
-                try:
-                    chg = float(chg_str)
-                    if chg > 0:
-                        chg_str = success(chg_str + ' %')
-                    elif chg < 0:
-                        chg_str = error(chg_str + ' %')
-                except Exception:
-                    chg_str = muted(chg_str + ' %')
+                fx = info(fx)
+            tabs.append(['  ' + fx, price_str, chg_str, low + ' - ' + high])
 
-                return_widget.append(f"   ({fx})       24hr Change")
-                return_widget.append(f"   {price_str}   {chg_str}")
-                return_widget.append(f"   --------------------")
-            else:
-                return_widget.append(f"   {price_str}")
         except Exception as e:
-            return_widget.append(f'   Error on realtime data for {fx}: {e}')
+            tabs.append([fx, 'error', e])
 
-    return_widget = '\n'.join(return_widget)
-
-    return_widget = dashing.Text(return_widget,
+    tabs = tabulate(tabs,
+                    headers=['fx', 'Price', '% change', '24h Range'],
+                    colalign=["center", "right", "right", "right"])
+    return_widget = dashing.Text(tabs,
                                  title=f'   ₿ Realtime Prices ({updt})  ',
                                  color=7,
                                  border_color=7)

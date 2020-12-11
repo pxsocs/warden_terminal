@@ -14,7 +14,7 @@ def warning(s):
 
 
 def info(s):
-    return (fg.white(s))
+    return (fg.boldblue(s))
 
 
 def muted(s):
