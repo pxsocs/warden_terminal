@@ -40,10 +40,7 @@ def tor_widget(tor):
 
 
 def btc_price_widget():
-    return_widget = Log(title='Bitcoin Realtime Prices',
-                        color=7,
-                        border_color=7)
-    return_widget = data_btc_price(return_widget)
+    return_widget = data_btc_price()
     return (return_widget)
 
 
