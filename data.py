@@ -68,18 +68,33 @@ def data_btc_price():
     from node_warden import load_config
     config = load_config(quiet=True)
     updt = muted(f"Last Update: {datetime.now().strftime('%H:%M:%S')}")
-    return_widget.append("")
-    currencies = ast.literal_eval(config.items("CURRENCIES")[0][1])
-
+    fx_config = config['CURRENCIES']
+    currencies = ast.literal_eval(fx_config.get('fx_list'))
+    primary_fx = ast.literal_eval(fx_config.get('primary_fx'))
     price_data = multiple_price_grab('BTC', ','.join(currencies))
 
     # Get prices in different currencies
     for fx in currencies:
         try:
             price_str = price_data['DISPLAY']['BTC'][fx]['PRICE']
-            return_widget.append(f"   {price_str}")
+            if fx == primary_fx:
+                chg_str = price_data['DISPLAY']['BTC'][fx]['CHANGEPCTDAY']
+                try:
+                    chg = float(chg_str)
+                    if chg > 0:
+                        chg_str = success(chg_str + ' %')
+                    elif chg < 0:
+                        chg_str = error(chg_str + ' %')
+                except Exception:
+                    chg_str = muted(chg_str + ' %')
+
+                return_widget.append(f"   ({fx})       24hr Change")
+                return_widget.append(f"   {price_str}   {chg_str}")
+                return_widget.append(f"   --------------------")
+            else:
+                return_widget.append(f"   {price_str}")
         except Exception as e:
-            return_widget.append(f'Error on realtime data for {fx}: {e}')
+            return_widget.append(f'   Error on realtime data for {fx}: {e}')
 
     return_widget = '\n'.join(return_widget)
 
