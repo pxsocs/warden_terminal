@@ -1,4 +1,4 @@
-# Welcome to WARden implementation for Specter Server
+# Welcome to WARden Terminal
 
 [![Powered by NGU](https://img.shields.io/badge/Powered%20by-NGU%20Technology-orange.svg)](https://bitcoin.org)
 
