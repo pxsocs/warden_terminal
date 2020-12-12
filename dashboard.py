@@ -2,7 +2,7 @@ import urwid
 import subprocess
 from datetime import datetime
 from ansi_management import (warning, success, error, info, clear_screen, bold)
-from data import data_tor, data_btc_price, data_login
+from data import data_tor, data_btc_price, data_login, data_mempool
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -23,6 +23,10 @@ def main_dashboard(config, tor, spinner):
             'pipe': None
         },
         'login': {
+            'workers': 0,
+            'pipe': None
+        },
+        'mp': {
             'workers': 0,
             'pipe': None
         }
@@ -72,15 +76,15 @@ def main_dashboard(config, tor, spinner):
     login_box = urwid.LineBox(login_padding)
 
     # Create TMP Box
-    tmp_text = urwid.Text('Debug window (temp)')
-    tmp_filler = urwid.Filler(tmp_text, valign='top', top=1, bottom=1)
-    tmp_padding = urwid.Padding(tmp_filler, left=1, right=1)
-    tmp_box = urwid.LineBox(tmp_padding)
+    mp_text = urwid.Text('Loading Mempool...')
+    mp_filler = urwid.Filler(mp_text, valign='top', top=1, bottom=1)
+    mp_padding = urwid.Padding(mp_filler, left=1, right=1)
+    mp_box = urwid.LineBox(mp_padding)
 
     # Assemble the widgets
     header = 'Loading...'
-    log_tor = urwid.Columns([login_box, tor_box])
-    body_widget = urwid.Pile([quote_box, log_tor, tmp_box])
+    log_tor = urwid.Columns([mp_box, urwid.Pile([login_box, tor_box])])
+    body_widget = urwid.Pile([quote_box, log_tor])
 
     layout = urwid.Frame(header=header, body=body_widget, footer=menu)
     update_header(layout)
@@ -133,11 +137,19 @@ def main_dashboard(config, tor, spinner):
                 stdout=tor_stdout,
                 stderr=tor_stderr)
 
-        tmp_box.base_widget.set_text(str(running_jobs))
+        if running_jobs['mp']['workers'] < max_workers:
+            running_jobs['mp']['workers'] += 1
+            tor_stdout = main_loop.watch_pipe(update_mp)
+            tor_stderr = main_loop.watch_pipe(update_mp)
+            running_jobs['mp']['pipe'] = subprocess.Popen(
+                'python3 data.py data_mempool',
+                shell=True,
+                stdout=tor_stdout,
+                stderr=tor_stderr)
+
         main_loop.set_alarm_in(refresh_interval, refresh)
 
     def update_btc(read_data):
-        global btc_running
         read_data = translate_text_for_urwid(read_data)
         quote_box.base_widget.set_text(read_data)
         main_loop.remove_watch_pipe = True
@@ -155,6 +167,13 @@ def main_dashboard(config, tor, spinner):
         login_box.base_widget.set_text(read_data)
         running_jobs['login']['workers'] = 0
         running_jobs['login']['pipe'].kill()
+
+    def update_mp(read_data):
+        read_data = translate_text_for_urwid(read_data)
+        mp_box.base_widget.set_text(read_data)
+        main_loop.remove_watch_pipe = True
+        running_jobs['mp']['workers'] = 0
+        running_jobs['mp']['pipe'].kill()
 
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
 

@@ -7,9 +7,9 @@ from tabulate import tabulate
 from datetime import datetime, timedelta
 from dateutil import parser
 
-from connections import test_tor
+from connections import test_tor, tor_request
 from ansi_management import (warning, success, error, info, clear_screen, bold,
-                             jformat, muted)
+                             jformat, muted, time_ago)
 
 from pricing_engine import multiple_price_grab
 
@@ -56,7 +56,9 @@ def data_login():
             ])
         except Exception:
             tabs.append([f"  {process}"])
-    tabs = tabulate(tabs, headers=['Users Logged in'], colalign=["left"])
+    tabs = tabulate(tabs,
+                    headers=['Users Logged in to this computer'],
+                    colalign=["left"])
 
     return (tabs)
 
@@ -105,6 +107,44 @@ def data_btc_price():
     return tabs
 
 
+def data_mempool():
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    mp_config = config['MEMPOOL']
+    url = mp_config.get('url')
+    tabs = []
+
+    # Get recommended fees
+
+    mp_fee = tor_request(url + '/api/v1/fees/recommended').json()
+    tabs = list(mp_fee.values())
+    tabs = [[str(x) + ' sats/Vb' for x in tabs]]
+    tabs = tabulate(tabs,
+                    headers=["Fastest Fee", "30 min fee", "1 hour fee"],
+                    colalign=["center", "center", "center"])
+    block_height = tor_request(url + '/api/blocks/tip/height').json()
+    block_txt = success(f' Block Height: {block_height}\n\n')
+    tabs = block_txt + info(' Mempool Fee Estimates: \n') + tabs
+
+    mp_blocks = tor_request(url + '/api/blocks').json()
+
+    mp_tabs = []
+    for block in mp_blocks:
+        mp_tabs.append([
+            time_ago(block['timestamp']),
+            jformat(block['height'], 0),
+            jformat(block['tx_count'], 0),
+            jformat(block['size'], 2, 1000000) + ' MB'
+        ])
+
+    mp_tabs = tabulate(mp_tabs,
+                       headers=[" Time", "Height", "Tx Count", "Size"],
+                       colalign=["right", "center", "center", "right"])
+    tabs += info('\n\n Latest Blocks: \n') + mp_tabs
+    tabs += muted(f"\n\n Source: {url}  {success('[Tor Request]')}\n")
+    return tabs
+
+
 def main():
     arg = sys.argv[1]
     if arg == 'data_btc_price':
@@ -113,6 +153,8 @@ def main():
         print(data_tor())
     if arg == 'data_login':
         print(data_login())
+    if arg == 'data_mempool':
+        print(data_mempool())
 
 
 if __name__ == "__main__":
