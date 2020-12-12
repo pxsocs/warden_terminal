@@ -1,7 +1,7 @@
 import ast
+import sys
 import subprocess
 import emoji
-import dashing
 from tabulate import tabulate
 
 from datetime import datetime, timedelta
@@ -19,26 +19,23 @@ def data_tor(tor=None):
         tor = test_tor()
 
     tor_string = f"""
-   {success("Running on port")} {info(bold(tor['port']))}
-
-   Tor  IP Address {tor['post_proxy']['origin']}
-   Ping Time {tor['post_proxy_ping']}
-
-   Real IP Address {tor['pre_proxy']['origin']}
-   Ping Time {tor['pre_proxy_ping']}
-
-        """
+ Tor  IP Address {tor['post_proxy']['origin']}
+ Ping Time {tor['post_proxy_ping']}
+ {success("Running on port")} {info(bold(tor['port']))}
+ Real IP Address {muted(tor['pre_proxy']['origin'])}
+ Ping Time {muted(tor['pre_proxy_ping'])}"""
     return (tor_string)
 
 
-def data_login(return_widget):
-
-    return_widget.append("")
+def data_login():
+    tabs = []
     processes = subprocess.check_output("last")
     processes = list(processes.splitlines())
     for process in processes:
         try:
             process = process.decode("utf-8")
+            if 'still logged in' not in process:
+                continue
             user = process.split()[0]
             process = process.replace(user, '')
             console = process.split()[0]
@@ -49,25 +46,24 @@ def data_login(return_widget):
             too_soon = datetime.now() - timedelta(minutes=expiration)
             if date_str > too_soon:
                 warn = warning(emoji.emojize(':warning:'))
-                return_widget.append(
-                    error(
-                        f" {warn} {error(f'User Recently Logged in (last {expiration} min)')}:"
-                    ))
-            return_widget.append(
+                tabs.append([
+                    f" {warn} {error(f'Recent Login (last {expiration} min)')}:"
+                ])
+            tabs.append([
                 f"   {warning(user)} at {muted(console)} " + bold(
                     f"logged on {success(date_str.strftime('%H:%M (%b-%d)' ))}"
-                ))
-        except Exception as e:
-            return_widget.append(f"  {process}")
-            return_widget.append(f"  {e}")
+                )
+            ])
+        except Exception:
+            tabs.append([f"  {process}"])
+    tabs = tabulate(tabs, headers=['Users Logged in'], colalign=["left"])
 
-    return (return_widget)
+    return (tabs)
 
 
 def data_btc_price():
     from node_warden import load_config
     config = load_config(quiet=True)
-    updt = muted(f"Last Update: {datetime.now().strftime('%H:%M:%S')}")
     fx_config = config['CURRENCIES']
     currencies = ast.literal_eval(fx_config.get('fx_list'))
     primary_fx = ast.literal_eval(fx_config.get('primary_fx'))
@@ -81,6 +77,7 @@ def data_btc_price():
             chg_str = price_data['DISPLAY']['BTC'][fx]['CHANGEPCTDAY']
             high = price_data['DISPLAY']['BTC'][fx]['HIGHDAY']
             low = price_data['DISPLAY']['BTC'][fx]['LOWDAY']
+            market = muted(price_data['DISPLAY']['BTC'][fx]['LASTMARKET'])
             try:
                 chg = float(chg_str)
                 if chg > 0:
@@ -92,17 +89,31 @@ def data_btc_price():
 
             if fx == primary_fx:
                 fx = info(fx)
-            tabs.append(['  ' + fx, price_str, chg_str, low + ' - ' + high])
+            tabs.append(
+                [u'  ' + fx, price_str, chg_str, low + ' - ' + high, market])
 
         except Exception as e:
-            tabs.append([fx, 'error', e])
+            tabs.append(['error: ' + str(e)])
 
-    tabs = tabulate(tabs,
-                    headers=['fx', 'Price', '% change', '24h Range'],
-                    colalign=["center", "right", "right", "right"])
-    return_widget = dashing.Text(tabs,
-                                 title=f'   ₿ Realtime Prices ({updt})  ',
-                                 color=7,
-                                 border_color=7)
+    tabs = tabulate(
+        tabs,
+        headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
+        colalign=["center", "right", "right", "center", "right"])
 
-    return return_widget
+    tabs += (
+        f"\n\n Last Refresh on: {info(datetime.now().strftime('%H:%M:%S'))}")
+    return tabs
+
+
+def main():
+    arg = sys.argv[1]
+    if arg == 'data_btc_price':
+        print(data_btc_price())
+    if arg == 'data_tor':
+        print(data_tor())
+    if arg == 'data_login':
+        print(data_login())
+
+
+if __name__ == "__main__":
+    main()
