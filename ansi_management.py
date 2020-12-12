@@ -94,3 +94,15 @@ def time_ago(time=False):
     if day_diff < 365:
         return str(int(day_diff / 30)) + " months ago"
     return str(int(day_diff / 365)) + " years ago"
+
+
+def cleanfloat(text):  # Function to clean CSV fields - leave only digits and .
+    if text is None:
+        return (0)
+    acceptable = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "-"]
+    str = ""
+    for char in text:
+        if char in acceptable:
+            str = str + char
+    str = float(str)
+    return (str)

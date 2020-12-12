@@ -9,21 +9,25 @@ from dateutil import parser
 
 from connections import test_tor, tor_request
 from ansi_management import (warning, success, error, info, clear_screen, bold,
-                             jformat, muted, time_ago)
+                             jformat, muted, time_ago, cleanfloat)
 
-from pricing_engine import multiple_price_grab
+from pricing_engine import multiple_price_grab, GBTC_premium
 
 
 def data_tor(tor=None):
     if not tor:
         tor = test_tor()
 
-    tor_string = f"""
- Tor  IP Address {tor['post_proxy']['origin']}
+    import socket
+    local_ip = socket.gethostbyname(socket.gethostname())
+    tor_string = f""" ✅ {success('TOR Connected')}
+ Running on port {info(bold(tor['port']))}
+ Tor IP Address {warning(tor['post_proxy']['origin'])}
  Ping Time {tor['post_proxy_ping']}
- {success("Running on port")} {info(bold(tor['port']))}
- Real IP Address {muted(tor['pre_proxy']['origin'])}
- Ping Time {muted(tor['pre_proxy_ping'])}"""
+ Global IP Address {warning(tor['pre_proxy']['origin'])}
+ Ping Time {muted(tor['pre_proxy_ping'])}
+ Local IP Address {warning(local_ip)}
+ """
     return (tor_string)
 
 
@@ -73,6 +77,7 @@ def data_btc_price():
 
     # Get prices in different currencies
     tabs = []
+    btc_usd_price = 0
     for fx in currencies:
         try:
             price_str = price_data['DISPLAY']['BTC'][fx]['PRICE']
@@ -83,11 +88,14 @@ def data_btc_price():
             try:
                 chg = float(chg_str)
                 if chg > 0:
-                    chg_str = success(chg_str + ' %')
+                    chg_str = success('+' + chg_str + ' %')
                 elif chg < 0:
                     chg_str = error(chg_str + ' %')
             except Exception:
                 chg_str = muted(chg_str + ' %')
+
+            if fx == 'USD':
+                btc_usd_price = cleanfloat(price_str)
 
             if fx == primary_fx:
                 fx = info(fx)
@@ -102,9 +110,67 @@ def data_btc_price():
         headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
         colalign=["center", "right", "right", "center", "right"])
 
+    # GBTC
+    gbtc_config = config['STOCKS']
+    try:
+        if gbtc_config.getboolean('GBTC_enabled'):
+            tabs += '\n\n'
+            gbtc_url = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=GBTC&apikey=DDC232JDH'
+            gbtc_data = tor_request(gbtc_url).json()['Global Quote']
+            gbtc_tabs = []
+            GBTC_shares = gbtc_config.getfloat('gbtc_shares')
+            fairvalue, premium = (GBTC_premium(float(gbtc_data['05. price']),
+                                               btc_usd_price, GBTC_shares))
+
+            if premium * 1 > 0:
+                premium = success('+' + jformat(premium, 2, 0.01) + '%')
+            elif premium * 1 < 0:
+                premium = error(jformat(premium, 2, 0.01) + '%')
+
+            fairvalue = jformat(fairvalue, 2)
+
+            chg_str = gbtc_data['10. change percent']
+            try:
+                chg = cleanfloat(chg_str)
+                if chg > 0:
+                    chg_str = success('+' + jformat(chg, 2) + ' %')
+                elif chg < 0:
+                    chg_str = error(jformat(chg, 2) + ' %')
+            except Exception:
+                chg_str = muted(chg_str)
+
+            gbtc_tabs.append([
+                'GBTC', gbtc_data['05. price'], chg_str,
+                gbtc_data['04. low'] + ' - ' + gbtc_data['03. high'], premium,
+                fairvalue, gbtc_data['07. latest trading day']
+            ])
+            gbtc_tabs = tabulate(gbtc_tabs,
+                                 headers=[
+                                     'Ticker', 'Price', '% change',
+                                     '24h Range', 'Premium', 'Fair Value',
+                                     'Last Update'
+                                 ],
+                                 colalign=[
+                                     "center", "right", "right", "center",
+                                     "right", "right", "right"
+                                 ])
+            tabs += gbtc_tabs
+
+    except Exception as e:
+        er_st = error(f' Error getting GBTC data: {e}')
+        tabs += er_st
+
     tabs += (
         f"\n\n Last Refresh on: {info(datetime.now().strftime('%H:%M:%S'))}")
     return tabs
+
+
+def data_news():
+    pass
+
+
+def data_quotes():
+    pass
 
 
 def data_mempool():
@@ -123,12 +189,13 @@ def data_mempool():
                     headers=["Fastest Fee", "30 min fee", "1 hour fee"],
                     colalign=["center", "center", "center"])
     block_height = tor_request(url + '/api/blocks/tip/height').json()
-    block_txt = success(f' Block Height: {block_height}\n\n')
+    block_txt = success(f' Block Height: {jformat(block_height, 0)}\n\n')
     tabs = block_txt + info(' Mempool Fee Estimates: \n') + tabs
 
     mp_blocks = tor_request(url + '/api/blocks').json()
 
     mp_tabs = []
+    gradient_color = 0
     for block in mp_blocks:
         mp_tabs.append([
             time_ago(block['timestamp']),
@@ -136,6 +203,7 @@ def data_mempool():
             jformat(block['tx_count'], 0),
             jformat(block['size'], 2, 1000000) + ' MB'
         ])
+        gradient_color += 1
 
     mp_tabs = tabulate(mp_tabs,
                        headers=[" Time", "Height", "Tx Count", "Size"],

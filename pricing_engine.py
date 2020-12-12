@@ -21,7 +21,9 @@ def home_path():
 
 
 def GBTC_premium(price, btc, shares):
-    fairvalue = btc * SHARES
+    if btc == 0:
+        return 0, 0
+    fairvalue = btc * shares
     premium = (price / fairvalue) - 1
     return fairvalue, premium
 

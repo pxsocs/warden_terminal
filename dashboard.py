@@ -48,7 +48,7 @@ def main_dashboard(config, tor, spinner):
         refresh_time = datetime.now().strftime('%H:%M:%S')
         txt = u' WARden Node Version          Last Update on: ' + refresh_time
         if message:
-            txt += '    ' + str(message)
+            txt += '    ' + warning(str(message))
         header_text = urwid.Text(txt)
         header = urwid.AttrMap(header_text, 'titlebar')
         layout.header = header
@@ -178,4 +178,8 @@ def main_dashboard(config, tor, spinner):
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
 
     main_loop.set_alarm_in(0, refresh)
-    main_loop.run()
+    try:
+        main_loop.run()
+    except Exception:  # Catch some timeouts - only once
+        update_header(layout, message='   Something went Wrong... Relaunched.')
+        main_loop.run()
