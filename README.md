@@ -21,6 +21,8 @@ pip3 install -r requirements.txt
 python3 node_warden.py
 ```
 
+You need Tor Running for the app to work. Instructions [here](https://2019.www.torproject.org/docs/debian.html.en).
+
 The `config.ini` file can be edited with:
 
 ```bash
