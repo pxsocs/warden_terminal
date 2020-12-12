@@ -17,6 +17,7 @@ Then run:
 
 ```bash
 cd warden_terminal
+pip3 install -r requirements.txt
 python3 node_warden.py
 ```
 
