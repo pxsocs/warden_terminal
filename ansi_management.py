@@ -1,4 +1,4 @@
-from dependencies.ansi.colour import fg, fx
+from ansi.colour import fg, fx
 from datetime import datetime
 
 
@@ -11,6 +11,10 @@ def error(s):
 
 
 def warning(s):
+    return (fg.yellow(s))
+
+
+def yellow(s):
     return (fg.yellow(s))
 
 

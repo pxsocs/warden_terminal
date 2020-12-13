@@ -2,6 +2,7 @@ import configparser
 import logging
 import os
 import time
+import pyttsx3
 
 from logging.handlers import RotatingFileHandler
 
@@ -9,8 +10,9 @@ from connections import test_tor
 from welcome import logo
 from dashboard import main_dashboard
 
-from ansi_management import (warning, success, error, info, clear_screen, bold)
-from dependencies.yaspin import yaspin
+from ansi_management import (warning, success, error, info, clear_screen, bold,
+                             muted)
+from yaspin import yaspin
 
 # Main Variables
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -44,17 +46,16 @@ def load_config(quiet=False):
 
 def launch_logger():
     # Config of Logging
-    formatter = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    formatter = "[%(asctime)s] %(message)s"
     logging.basicConfig(handlers=[
         RotatingFileHandler(filename=debug_file,
                             mode='w',
-                            maxBytes=120000,
+                            maxBytes=120,
                             backupCount=0)
     ],
                         level=logging.INFO,
                         format=formatter,
                         datefmt='%m/%d/%Y %I:%M:%S %p')
-    logging.info("Starting main program...")
 
 
 def create_tor():
@@ -64,20 +65,40 @@ def create_tor():
     with yaspin(text="Testing Tor", color="cyan") as spinner:
         tor = test_tor()
         if tor['status']:
-            logging.info("Tor Connected")
+            logging.info(success("Tor Connected"))
             spinner.ok("✅ ")
             spinner.write(success("    Tor Connected [Success]"))
             print("")
             return (tor)
         else:
-            logging.error("Could not connect to Tor")
+            logging.error(error("Could not connect to Tor"))
             spinner.fail("💥 ")
             spinner.write(warning("    Tor NOT connected [ERROR]"))
             print(
                 error(
                     "    Could not connect to Tor. WARden requires Tor to run. Quitting..."
                 ))
+            print(
+                info(
+                    "    Download Tor at: https://www.torproject.org/download/"
+                ))
+            print("")
             exit()
+
+
+def greetings():
+    # Welcome Sound
+    if config['MAIN'].getboolean('welcome_sound'):
+        with yaspin(text=config['MAIN'].get('welcome_text'),
+                    color="cyan") as spinner:
+            from yaspin.spinners import Spinners
+            spinner.spinner = Spinners.moon
+            engine = pyttsx3.init()
+            engine.setProperty('rate', 270)
+            engine.say(config['MAIN'].get('welcome_text'))
+            engine.runAndWait()
+            spinner.stop()
+            spinner.write("")
 
 
 if __name__ == '__main__':
@@ -85,8 +106,11 @@ if __name__ == '__main__':
     logo()
     print("")
     launch_logger()
+    logging.info(muted("-------------------------------------------"))
+    logging.info(muted("Starting main program..."))
     config = load_config()
     tor = create_tor()
+    greetings()
     with yaspin(text="Launching Dashboard. Please Wait...",
                 color="cyan") as spinner:
         main_dashboard(config, tor, spinner)

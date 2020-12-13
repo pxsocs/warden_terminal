@@ -1,5 +1,5 @@
 import emoji
-from dependencies.ansi.colour import fg
+from ansi.colour import fg
 
 
 def logo():
