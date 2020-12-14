@@ -2,3 +2,4 @@
 [10:20:55 AM] [32mTor Connected[0m
 [10:21:20 AM] [1;34m[MEMPOOL] [0m[32mA new Bitcoin Block was just found. [0m[33m'Tick. Tock. Next block.'[0m
 [10:25:47 AM] [1;34m[MEMPOOL] [0m[32mA new Bitcoin Block was just found. [0m[33m'Tick. Tock. Next block.'[0m
+[10:35:48 AM] [1;34m[MAIN] [0m[37mError: [0m[33mfiledescriptor out of range in select()[0m

@@ -71,7 +71,9 @@ def data_login():
                         headers=['Users Logged in to this computer'],
                         colalign=["left"])
     else:
-        tabs = error('[!] Could not retrieve log information')
+        tabs = muted(
+            'Login Information is empty.\nEither no outside users are logged in\nor login info is not available.'
+        )
 
     return (tabs)
 
