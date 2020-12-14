@@ -113,15 +113,12 @@ def check_version():
             import click
             if click.confirm(warning('    [?] Would you like to upgrade?'),
                              default=True):
-                with yaspin(text=f"    Upgrading from GitHub: ",
-                            color="green") as upgrade_spinner:
-                    import subprocess
-                    subprocess.run("git fetch --all", shell=True)
-                    upgrade_spinner.ok("    ")
-                    subprocess.run("git reset --hard origin/master",
-                                   shell=True)
-                    upgrade_spinner.ok("    ")
-                    upgrade_spinner.write(success("  ✅ Done Upgrading"))
+                print(" ---------------------------------------")
+                print(f"    Upgrading from GitHub: "),
+                import subprocess
+                subprocess.run("git fetch --all", shell=True)
+                subprocess.run("git reset --hard origin/master", shell=True)=
+                print(success("  ✅ Done Upgrading"))
 
         print("")
 
