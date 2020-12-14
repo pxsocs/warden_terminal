@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-current_version = '0.0.0.1'
+current_version = '0.0.0.2'
 
 with open("version.txt", "w") as text_file:
     print(f"{current_version}", file=text_file)

@@ -205,10 +205,13 @@ def data_mempool():
     if (saved_block != block_height) and (
             config['MEMPOOL'].getboolean('block_found_sound')):
         # Block found play sound
-        engine = pyttsx3.init()
-        engine.setProperty('rate', 270)
-        engine.say(config['MEMPOOL'].get('block_found_txt'))
-        engine.runAndWait()
+        try:
+            engine = pyttsx3.init()
+            engine.setProperty('rate', 270)
+            engine.say(config['MEMPOOL'].get('block_found_txt'))
+            engine.runAndWait()
+        except Exception:
+            pass
         logging.info(
             info('[MEMPOOL] ') +
             success("A new Bitcoin Block was just found. ") +

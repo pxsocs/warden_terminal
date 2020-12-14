@@ -93,10 +93,13 @@ def greetings():
                     color="cyan") as spinner:
             from yaspin.spinners import Spinners
             spinner.spinner = Spinners.moon
-            engine = pyttsx3.init()
-            engine.setProperty('rate', 270)
-            engine.say(config['MAIN'].get('welcome_text'))
-            engine.runAndWait()
+            try:
+                engine = pyttsx3.init()
+                engine.setProperty('rate', 270)
+                engine.say(config['MAIN'].get('welcome_text'))
+                engine.runAndWait()
+            except Exception:
+                pass
             spinner.stop()
             spinner.write("")
 

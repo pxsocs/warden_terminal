@@ -12,6 +12,17 @@ from data import (btc_price_data, data_tor, data_btc_price, data_login,
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
+def version():
+    version_file = 'version.txt'
+    # Get Version
+    try:
+        with open(version_file, 'r') as file:
+            version = file.read().replace('\n', '')
+    except Exception:
+        version = 'unknown'
+    return (version)
+
+
 def main_dashboard(config, tor, spinner):
 
     try:
@@ -56,7 +67,8 @@ def main_dashboard(config, tor, spinner):
     def update_header(layout, message=None, message_type=None):
         # Create Header
         refresh_time = datetime.now().strftime('%H:%M:%S')
-        txt = u' WARden Node Version          Last Update on: ' + refresh_time
+        txt = u' WARden Node Edition (Version: ' + version(
+        ) + ') | Last Refresh on: ' + refresh_time
         if message:
             txt += ' | ' + message
         header_text = urwid.Text(txt)
