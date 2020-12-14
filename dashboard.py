@@ -160,20 +160,23 @@ def main_dashboard(config, tor, spinner):
             raise urwid.ExitMainLoop()
 
     def check_for_pump(_loop, _data):
-        btc = btc_price_data()
-        btc_price = btc['DISPLAY']['BTC']['USD']['PRICE']
-        chg_str = btc['DISPLAY']['BTC']['USD']['CHANGEPCTDAY']
-        chg = cleanfloat(chg_str)
-        if chg > 5:
-            logging.info(
-                info("[NGU] ") + muted(f"Looks like Bitcoin is pumping ") +
-                emoji.emojize(":rocket:") + yellow(f' {btc_price}') +
-                success(f' +{chg_str}%'))
-        if chg < -5:
-            logging.info(
-                info("[NGU] ") + muted(
-                    f"Looks like Bitcoin is dropping. Time to stack some sats. "
-                ) + yellow(f' {btc_price}') + error(f' {chg_str}%'))
+        try:
+            btc = btc_price_data()
+            btc_price = btc['DISPLAY']['BTC']['USD']['PRICE']
+            chg_str = btc['DISPLAY']['BTC']['USD']['CHANGEPCTDAY']
+            chg = cleanfloat(chg_str)
+            if chg > 5:
+                logging.info(
+                    info("[NGU] ") + muted(f"Looks like Bitcoin is pumping ") +
+                    emoji.emojize(":rocket:") + yellow(f' {btc_price}') +
+                    success(f' +{chg_str}%'))
+            if chg < -5:
+                logging.info(
+                    info("[NGU] ") + muted(
+                        f"Looks like Bitcoin is dropping. Time to stack some sats. "
+                    ) + yellow(f' {btc_price}') + error(f' {chg_str}%'))
+        except Exception:
+            pass
 
         main_loop.set_alarm_in(300, check_for_pump)
 
@@ -289,4 +292,4 @@ def main_dashboard(config, tor, spinner):
     except Exception as e:  # Catch some timeouts - only once
         logging.error(info('[MAIN] ') + muted('Error: ') + yellow(str(e)))
         update_header(layout, message=f'Error: {e}')
-        main_loop.run()
+        main_dashboard(config, tor, spinner)
