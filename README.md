@@ -5,6 +5,8 @@
 > warden (wɔːʳdən )
 > A warden is responsible for making sure that the laws or regulations are obeyed.
 
+![ScreenShot](/static/images/screen_shot.jpeg "App Screen Shot")
+
 ## Installation
 
 Clone the git repository into any directory:
