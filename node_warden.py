@@ -9,8 +9,7 @@ import time
 try:
     import pyttsx3
 except ModuleNotFoundError:
-    subprocess.check_call(
-        [sys.executable, "-m", "pip", "install -r requirements.txt"])
+    subprocess.run("pip3 install -r requirements.txt", shell=True)
 
 from logging.handlers import RotatingFileHandler
 
