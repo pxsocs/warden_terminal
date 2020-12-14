@@ -290,6 +290,8 @@ def main_dashboard(config, tor, spinner):
     try:
         main_loop.run()
     except Exception as e:  # Catch some timeouts - only once
+        import gc
+        gc.collect()
         logging.error(info('[MAIN] ') + muted('Error: ') + yellow(str(e)))
         update_header(layout, message=f'Error: {e}')
         main_dashboard(config, tor, spinner)
