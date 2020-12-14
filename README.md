@@ -29,7 +29,11 @@ The `config.ini` file can be edited with:
 nano config.ini
 ```
 
-There you can edit the currencies, etc.
+There you can edit the currencies, audio and other settings.
+
+### Screen Size
+
+When running on console (no GUI), decreasing the font size may lead to better viewing results. 6x12 runs really well on a 8 inch or bigger screen. Instructions [here](https://www.raspberrypi-spy.co.uk/2014/04/how-to-change-the-command-line-font-size/#:~:text=Using%20the%20up%2Fdown%20arrow%20keys%20select%20%E2%80%9C16%C3%9732,the%20size%20of%20the%20default.) for Debian.
 
 Enjoy
 

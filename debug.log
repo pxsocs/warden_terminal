@@ -1,3 +1,7 @@
 [11:46:34 AM] [37mStarting main program...[0m
 [11:47:04 AM] [32mTor Connected[0m
 [11:47:28 AM] [1;34m[MEMPOOL] [0m[32mA new Bitcoin Block was just found. [0m[33m'Tick. Tock. Next block.'[0m
+[11:49:37 AM] [1;34m[MAIN] [0m[37mError: [0m[33mNo weighted widgets found for Pile treated as a box widget[0m
+[11:49:37 AM] [1;34m[MAIN] [0m[37mError: [0m[33mNo weighted widgets found for Pile treated as a box widget[0m
+[11:49:51 AM] [1;34m[MAIN] [0m[37mError: [0m[33mNo weighted widgets found for Pile treated as a box widget[0m
+[11:50:05 AM] [1;34m[MEMPOOL] [0m[32mA new Bitcoin Block was just found. [0m[33m'Tick. Tock. Next block.'[0m
