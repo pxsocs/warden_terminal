@@ -2,7 +2,18 @@
 
 [![Powered by NGU](https://img.shields.io/badge/Powered%20by-NGU%20Technology-orange.svg)](https://bitcoin.org)
 
-A light weight text based Bitcoin Dashboard for Linux based systems. Returns price and onchain information + other info.
+A light weight text based Bitcoin Dashboard for Linux based systems.
+Displaying:
+
+- Bitcoin Price in several currencies (currency list can be edited at config.ini)
+- GBTC price and premium info
+- Mempool information (fees, blocks, txs)
+- Users currently logged in
+- Tor Status
+- Satoshi Quote Randomizer
+- Other info
+
+#### Screenshot
 
 ![ScreenShot](/static/images/screen_shot.jpeg "App Screen Shot")
 
