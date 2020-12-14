@@ -3,6 +3,7 @@ import emoji
 import urwid
 import subprocess
 import ast
+import gc
 import pyttsx3
 from datetime import datetime
 from ansi_management import (warning, success, error, info, clear_screen, bold,
@@ -203,6 +204,7 @@ def main_dashboard(config, tor, spinner):
             for pipe in running_jobs['btc']['pipe']:
                 if pipe != []:
                     pipe.kill()
+                    gc.collect()
 
         def update_tor(read_data):
             read_data = translate_text_for_urwid(read_data)
@@ -211,6 +213,7 @@ def main_dashboard(config, tor, spinner):
             for pipe in running_jobs['tor']['pipe']:
                 if pipe != []:
                     pipe.kill()
+                    gc.collect()
 
         def update_login(read_data):
             read_data = translate_text_for_urwid(read_data)
@@ -219,6 +222,7 @@ def main_dashboard(config, tor, spinner):
             for pipe in running_jobs['login']['pipe']:
                 if pipe != []:
                     pipe.kill()
+                    gc.collect()
 
         def update_mp(read_data):
             read_data = translate_text_for_urwid(read_data)
@@ -228,6 +232,7 @@ def main_dashboard(config, tor, spinner):
             for pipe in running_jobs['mp']['pipe']:
                 if pipe != []:
                     pipe.kill()
+                    gc.collect()
 
         def update_logger(read_data):
             read_data = translate_text_for_urwid(read_data)
@@ -237,6 +242,7 @@ def main_dashboard(config, tor, spinner):
             for pipe in running_jobs['logger']['pipe']:
                 if pipe != []:
                     pipe.kill()
+                    gc.collect()
 
         # Job List Dictionaty
         job_list = {
@@ -290,8 +296,6 @@ def main_dashboard(config, tor, spinner):
     try:
         main_loop.run()
     except Exception as e:  # Catch some timeouts - only once
-        import gc
-        gc.collect()
         logging.error(info('[MAIN] ') + muted('Error: ') + yellow(str(e)))
         update_header(layout, message=f'Error: {e}')
         main_dashboard(config, tor, spinner)

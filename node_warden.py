@@ -112,7 +112,7 @@ def check_version():
                 warning(f"    Update available - version: {remote_version}"))
             import click
             if click.confirm(warning('    [?] Would you like to upgrade?'),
-                             default=True):
+                             default=False):
                 print(" ---------------------------------------")
                 print(f"Upgrading from GitHub: "),
                 import subprocess
