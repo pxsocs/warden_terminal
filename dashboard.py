@@ -286,10 +286,9 @@ def main_dashboard(config, tor, spinner):
     main_loop.set_alarm_in(10, get_quote)
     main_loop.set_alarm_in(0, refresh)
 
-    main_loop.run()
-    # try:
-    #     main_loop.run()
-    # except Exception as e:  # Catch some timeouts - only once
-    #     logging.error(info('[MAIN] ') + muted('Error: ') + yellow(str(e)))
-    #     update_header(layout, message=f'Error: {e}')
-    #     main_dashboard(config, tor, spinner)
+    try:
+        main_loop.run()
+    except Exception as e:  # Catch some timeouts - only once
+        logging.error(info('[MAIN] ') + muted('Error: ') + yellow(str(e)))
+        update_header(layout, message=f'Error: {e}')
+        main_dashboard(config, tor, spinner)
