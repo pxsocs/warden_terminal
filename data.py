@@ -72,7 +72,7 @@ def data_login():
                         colalign=["left"])
     else:
         tabs = muted(
-            'Login Information is empty.\nEither no outside users are logged in\nor login info is not available.'
+            'List of users logged in to this computer is empty.\nEither no outside users are logged in or login info is not available.'
         )
 
     return (tabs)

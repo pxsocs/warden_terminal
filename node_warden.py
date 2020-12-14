@@ -1,8 +1,16 @@
 import configparser
 import logging
 import os
+import sys
+import subprocess
 import time
-import pyttsx3
+# Upon the first import of non standard libraries, if not found
+# Start pip install
+try:
+    import pyttsx3
+except ModuleNotFoundError:
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install -r requirements.txt"])
 
 from logging.handlers import RotatingFileHandler
 
