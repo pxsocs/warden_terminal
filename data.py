@@ -204,7 +204,7 @@ def data_mempool():
     try:
         block_height = tor_request(url + '/api/blocks/tip/height').json()
     except Exception:
-        return (error(f'  Error getting data from {url}'))
+        return (error(f' >> Error getting data from {url}. Retrying...'))
     # Save the latest block height
     saved_block = pickle_it(action='load', filename='block.pkl')
     if (saved_block != block_height) and (
