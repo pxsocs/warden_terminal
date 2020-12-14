@@ -44,7 +44,7 @@ def data_login():
     for process in processes:
         try:
             process = process.decode("utf-8")
-            if 'still' not in process:
+            if 'still' not in process or 'boot' in process:
                 continue
             user = process.split()[0]
             process = process.replace(user, '')
@@ -66,9 +66,12 @@ def data_login():
             ])
         except Exception:
             tabs.append([f"  {process}"])
-    tabs = tabulate(tabs,
-                    headers=['Users Logged in to this computer'],
-                    colalign=["left"])
+    if tabs != []:
+        tabs = tabulate(tabs,
+                        headers=['Users Logged in to this computer'],
+                        colalign=["left"])
+    else:
+        tabs = error('[!] Could not retrieve log information')
 
     return (tabs)
 
