@@ -18,6 +18,7 @@ def version():
     try:
         with open(version_file, 'r') as file:
             version = file.read().replace('\n', '')
+            file.close()
     except Exception:
         version = 'unknown'
     return (version)

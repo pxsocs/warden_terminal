@@ -309,12 +309,14 @@ def pickle_it(action='load', filename=None, data=None):
         try:
             with open(filename, 'rb') as handle:
                 ld = pickle.load(handle)
+                handle.close()
                 return (ld)
         except Exception:
             return ("file not found")
     else:
         with open(filename, 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            handle.close()
             return ("saved")
 
 
