@@ -227,7 +227,10 @@ def data_mempool():
     block_txt = success(f' Block Height: {jformat(block_height, 0)}\n\n')
     tabs = block_txt + info(' Mempool Fee Estimates: \n') + tabs
 
-    mp_blocks = tor_request(url + '/api/blocks').json()
+    try:
+        mp_blocks = tor_request(url + '/api/blocks').json()
+    except Exception:
+        return (error(" >> Error getting Mempool data. Retrying..."))
 
     mp_tabs = []
     gradient_color = 0
@@ -270,7 +273,10 @@ def data_random_satoshi():
     from node_warden import load_config
     config = load_config(quiet=True)
     url = config['QUOTES'].get('url')
-    quotes = tor_request(url).json()
+    try:
+        quotes = tor_request(url).json()
+    except Exception:
+        return (error(' >> Error contacting server. Retrying... '))
     quote = quotes[randrange(len(quotes))]
     return_str = info(f"Satoshi Quotes | Subject: {quote['category']}\n")
     return_str += muted(f"{quote['date']} on {quote['medium']}\n")

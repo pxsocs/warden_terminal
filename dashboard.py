@@ -32,24 +32,19 @@ def main_dashboard(config, tor, spinner):
 
     running_jobs = {
         'btc': {
-            'workers': 0,
-            'pipe': None
+            'workers': 0
         },
         'tor': {
-            'workers': 0,
-            'pipe': None
+            'workers': 0
         },
         'login': {
-            'workers': 0,
-            'pipe': None
+            'workers': 0
         },
         'mp': {
-            'workers': 0,
-            'pipe': None
+            'workers': 0
         },
         'logger': {
-            'workers': 0,
-            'pipe': None
+            'workers': 0
         }
     }
 
@@ -204,33 +199,43 @@ def main_dashboard(config, tor, spinner):
             quote_box.base_widget.set_text(read_data)
             main_loop.remove_watch_pipe = True
             running_jobs['btc']['workers'] = 0
-            running_jobs['btc']['pipe'].kill()
+            for pipe in running_jobs['btc']['pipe']:
+                if pipe != []:
+                    pipe.kill()
 
         def update_tor(read_data):
             read_data = translate_text_for_urwid(read_data)
             tor_box.base_widget.set_text(read_data)
             running_jobs['tor']['workers'] = 0
-            running_jobs['tor']['pipe'].kill()
+            for pipe in running_jobs['tor']['pipe']:
+                if pipe != []:
+                    pipe.kill()
 
         def update_login(read_data):
             read_data = translate_text_for_urwid(read_data)
             login_box.base_widget.set_text(read_data)
             running_jobs['login']['workers'] = 0
-            running_jobs['login']['pipe'].kill()
+            for pipe in running_jobs['login']['pipe']:
+                if pipe != []:
+                    pipe.kill()
 
         def update_mp(read_data):
             read_data = translate_text_for_urwid(read_data)
             mp_box.base_widget.set_text(read_data)
             main_loop.remove_watch_pipe = True
             running_jobs['mp']['workers'] = 0
-            running_jobs['mp']['pipe'].kill()
+            for pipe in running_jobs['mp']['pipe']:
+                if pipe != []:
+                    pipe.kill()
 
         def update_logger(read_data):
             read_data = translate_text_for_urwid(read_data)
             logger_box.base_widget.set_text(read_data)
             main_loop.remove_watch_pipe = True
             running_jobs['logger']['workers'] = 0
-            running_jobs['logger']['pipe'].kill()
+            for pipe in running_jobs['logger']['pipe']:
+                if pipe != []:
+                    pipe.kill()
 
         # Job List Dictionaty
         job_list = {
@@ -261,23 +266,17 @@ def main_dashboard(config, tor, spinner):
             }
         }
 
-        def job_updater(read_data):
-            read_data = translate_text_for_urwid(read_data)
-            job_list[job]['target'].base_widget.set_text(read_data)
-            main_loop.remove_watch_pipe = True
-            running_jobs[job]['workers'] = 0
-            running_jobs[job]['pipe'].kill()
-
         for job in job_list.keys():
             if running_jobs[job]['workers'] < job_list[job]['max_workers']:
                 running_jobs[job]['workers'] += 1
                 stdout = main_loop.watch_pipe(job_list[job]['updater'])
                 stderr = main_loop.watch_pipe(job_list[job]['updater'])
-                running_jobs[job]['pipe'] = subprocess.Popen(
-                    job_list[job]['subprocess'],
-                    shell=True,
-                    stdout=stdout,
-                    stderr=stderr)
+                launch_process = subprocess.Popen(job_list[job]['subprocess'],
+                                                  shell=True,
+                                                  stdout=stdout,
+                                                  stderr=stderr)
+                # Store or create a list to store
+                running_jobs[job].setdefault('pipe', []).append(launch_process)
 
         main_loop.set_alarm_in(refresh_interval, refresh)
 
@@ -287,9 +286,10 @@ def main_dashboard(config, tor, spinner):
     main_loop.set_alarm_in(10, get_quote)
     main_loop.set_alarm_in(0, refresh)
 
-    try:
-        main_loop.run()
-    except Exception as e:  # Catch some timeouts - only once
-        logging.error(info('[MAIN] ') + muted('Error: ') + yellow(str(e)))
-        update_header(layout, message=f'Error: {e}')
-        main_dashboard(config, tor, spinner)
+    main_loop.run()
+    # try:
+    #     main_loop.run()
+    # except Exception as e:  # Catch some timeouts - only once
+    #     logging.error(info('[MAIN] ') + muted('Error: ') + yellow(str(e)))
+    #     update_header(layout, message=f'Error: {e}')
+    #     main_dashboard(config, tor, spinner)
