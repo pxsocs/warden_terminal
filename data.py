@@ -8,6 +8,7 @@ import pickle
 import pyttsx3
 import logging
 from tabulate import tabulate
+from random import randrange
 
 from datetime import datetime, timedelta
 from dateutil import parser
@@ -257,6 +258,19 @@ def data_logger():
     return return_str
 
 
+def data_random_satoshi():
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    url = config['QUOTES'].get('url')
+    quotes = tor_request(url).json()
+    quote = quotes[randrange(len(quotes))]
+    return_str = info(f"Satoshi Quotes | Subject: {quote['category']}\n")
+    return_str += muted(f"{quote['date']} on {quote['medium']}\n")
+    return_str += yellow(f"{quote['text']} \n\n")
+    return_str += muted("Source: Nakamoto Institute")
+    return (return_str)
+
+
 def main():
     arg = sys.argv[1]
     if arg == 'data_btc_price':
@@ -269,6 +283,8 @@ def main():
         print(data_mempool())
     if arg == 'data_logger':
         print(data_logger())
+    if arg == 'data_random_satoshi':
+        print(data_random_satoshi())
 
 
 # HELPERS ------------------------------------------

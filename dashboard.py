@@ -7,7 +7,8 @@ import pyttsx3
 from datetime import datetime
 from ansi_management import (warning, success, error, info, clear_screen, bold,
                              yellow, muted, cleanfloat)
-from data import btc_price_data, data_tor, data_btc_price, data_login, data_mempool
+from data import (btc_price_data, data_tor, data_btc_price, data_login,
+                  data_mempool, data_random_satoshi)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -120,13 +121,20 @@ def main_dashboard(config, tor, spinner):
     logger_box = Box(loader_text='Loading Message Log...',
                      height=logger_box_size).line_box
 
+    # Create the Satoshi Quotes Box
+    satoshi_box_size = 20
+    satoshi_box = Box(loader_text='Loading Satoshi Wisdom...',
+                      height=satoshi_box_size).line_box
+
     # Assemble the widgets
     header = 'Loading...'
     log_tor = urwid.Columns([mp_box, urwid.Pile([login_box, tor_box])])
     log_tor_size = max(mp_box_size, login_box_size, tor_box_size)
+    bottom_box_size = max(satoshi_box_size, logger_box_size)
+    bottom_box = urwid.Columns([logger_box, satoshi_box])
     body_widget = urwid.Pile([(quote_box_size, quote_box),
                               (log_tor_size, log_tor),
-                              (logger_box_size, logger_box)])
+                              (bottom_box_size, bottom_box)])
 
     layout = urwid.Frame(header=header, body=body_widget, footer=menu)
     update_header(layout)
@@ -156,6 +164,11 @@ def main_dashboard(config, tor, spinner):
                 ) + yellow(f' {btc_price}') + error(f' {chg_str}%'))
 
         main_loop.set_alarm_in(300, check_for_pump)
+
+    def get_quote(_loop, _data):
+        quote = translate_text_for_urwid(data_random_satoshi())
+        satoshi_box.base_widget.set_text(quote)
+        main_loop.set_alarm_in(60, get_quote)
 
     def refresh(_loop, _data):
         # Add Background Tasks
@@ -256,6 +269,7 @@ def main_dashboard(config, tor, spinner):
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
 
     main_loop.set_alarm_in(30, check_for_pump)
+    main_loop.set_alarm_in(10, get_quote)
     main_loop.set_alarm_in(0, refresh)
 
     try:

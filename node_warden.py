@@ -55,7 +55,7 @@ def launch_logger():
     ],
                         level=logging.INFO,
                         format=formatter,
-                        datefmt='%m/%d/%Y %I:%M:%S %p')
+                        datefmt='%I:%M:%S %p')
 
 
 def create_tor():
