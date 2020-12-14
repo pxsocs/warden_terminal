@@ -44,7 +44,7 @@ def data_login():
     for process in processes:
         try:
             process = process.decode("utf-8")
-            if 'still logged in' not in process:
+            if 'still' not in process:
                 continue
             user = process.split()[0]
             process = process.replace(user, '')
