@@ -105,7 +105,7 @@ def data_btc_price():
             market = muted(price_data['DISPLAY']['BTC'][fx]['LASTMARKET'])
             try:
                 chg = float(chg_str)
-                if chg > 0:
+                if chg >= 0:
                     chg_str = success('+' + chg_str + '%')
                 elif chg < 0:
                     chg_str = error(chg_str + '%')

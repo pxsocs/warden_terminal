@@ -14,7 +14,7 @@ except ModuleNotFoundError:
 
 from logging.handlers import RotatingFileHandler
 
-from connections import test_tor
+from connections import test_tor, tor_request
 from welcome import logo
 from dashboard import main_dashboard
 
@@ -94,6 +94,37 @@ def create_tor():
             exit()
 
 
+def check_version():
+    from dashboard import version
+    current_version = version()
+    with yaspin(
+            text=f"Checking for updates. Running version: {current_version}",
+            color="green") as spinner:
+
+        url = 'https://raw.githubusercontent.com/pxsocs/warden_terminal/master/version.txt'
+        remote_version = tor_request(url).text
+        if str(remote_version).strip() == str(current_version).strip():
+            spinner.ok("✅ ")
+            spinner.write(success("    You are running latest version"))
+        else:
+            spinner.fail("💥 ")
+            spinner.write(
+                warning(f"    Update available - version: {remote_version}"))
+            import click
+            if click.confirm(warning('    [?] Would you like to upgrade?'),
+                             default=True):
+                with yaspin(text=f"Upgrading",
+                            color="green") as upgrade_spinner:
+
+                    import subprocess
+                    subprocess.run(["git", "fetch --all"])
+                    subprocess.run(["git", "reset --hard origin/master"])
+                    upgrade_spinner.ok(" ")
+                    upgrade_spinner.write(success("    Done Upgrading"))
+
+        print("")
+
+
 def greetings():
     # Welcome Sound
     if config['MAIN'].getboolean('welcome_sound'):
@@ -125,6 +156,7 @@ if __name__ == '__main__':
     logging.info(muted("Starting main program..."))
     config = load_config()
     tor = create_tor()
+    check_version()
     greetings()
     with yaspin(text="Launching Dashboard. Please Wait...",
                 color="cyan") as spinner:
