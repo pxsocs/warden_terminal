@@ -7,3 +7,4 @@ yaspin
 requests
 requests[socks]
 pysocks
+click
