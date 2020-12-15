@@ -164,5 +164,5 @@ if __name__ == '__main__':
     tor = create_tor()
     check_version()
     greetings()
-    sys.excpethook(exception_handler)
+    sys.excepthook(exception_handler)
     main_dashboard(config, tor)
