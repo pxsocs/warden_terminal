@@ -146,8 +146,7 @@ def greetings():
 def exception_handler(exctype, value, tb):
     logging.error(
         error(f'An error occured {exctype} : {value}\n    Restarting...'))
-    sys.argv.append('quiet')
-    os.execv(sys.argv[0], sys.argv)
+    os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
 
 
 if __name__ == '__main__':
@@ -166,6 +165,8 @@ if __name__ == '__main__':
         check_version()
         greetings()
     else:
+        launch_logger()
+        logging.info(muted("Starting main program [QUIET mode]..."))
         config = load_config(True)
         tor = {
             "pre_proxy": 'Restarting...',
