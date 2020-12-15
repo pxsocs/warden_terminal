@@ -8,3 +8,4 @@ requests
 requests[socks]
 pysocks
 click
+pyfiglet

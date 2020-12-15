@@ -4,6 +4,7 @@ import sys
 import subprocess
 import emoji
 import pickle
+import pyfiglet
 
 import pyttsx3
 import logging
@@ -81,6 +82,19 @@ def data_login():
 def btc_price_data():
     price_data = multiple_price_grab('BTC', 'USD')
     return (price_data)
+
+
+def data_large_price():
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    ft_config = config['MAIN']
+    font = ft_config.get('large_text_font')
+    btc = btc_price_data()
+    btc_price = btc['DISPLAY']['BTC']['USD']['PRICE']
+    custom_fig = pyfiglet.Figlet(font=font)
+    return_fig = custom_fig.renderText(btc_price)
+
+    return (return_fig)
 
 
 def data_btc_price():
@@ -307,6 +321,8 @@ def main():
         print(data_logger())
     if arg == 'data_random_satoshi':
         print(data_random_satoshi())
+    if arg == 'data_large_price':
+        print(data_large_price())
 
 
 # HELPERS ------------------------------------------

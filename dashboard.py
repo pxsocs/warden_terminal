@@ -9,7 +9,7 @@ from datetime import datetime
 from ansi_management import (warning, success, error, info, clear_screen, bold,
                              yellow, muted, cleanfloat)
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
-                  data_mempool, data_random_satoshi)
+                  data_mempool, data_random_satoshi, data_large_price)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -46,6 +46,9 @@ def main_dashboard(config, tor):
             'workers': 0
         },
         'logger': {
+            'workers': 0
+        },
+        'large_price': {
             'workers': 0
         }
     }
@@ -111,9 +114,15 @@ def main_dashboard(config, tor):
                     height=quote_box_size).line_box
 
     # Create the TOR Box
-    tor_box_size = 9
+    large_price_size = quote_box_size
+    large_price = (Box(loader_text='Getting BTC Price...',
+                       height=large_price_size).line_box)
+
+    # Create the Large Price Box
+    tor_box_size = 10
     tor_box = Box(loader_text='Checking Tor Status...',
-                  height=tor_box_size).line_box
+                  height=tor_box_size,
+                  valign='middle').line_box
 
     # Create user login Box
     login_box_size = 12
@@ -140,8 +149,9 @@ def main_dashboard(config, tor):
     log_tor_size = max(mp_box_size, login_box_size, tor_box_size)
     bottom_box_size = max(satoshi_box_size, logger_box_size)
     bottom_box = urwid.Columns([logger_box, satoshi_box])
-    body_widget = urwid.Pile([(quote_box_size, quote_box),
-                              (log_tor_size, log_tor),
+    top_box = urwid.Columns([quote_box, large_price])
+    top_box_size = max(large_price_size, quote_box_size)
+    body_widget = urwid.Pile([(top_box_size, top_box), (log_tor_size, log_tor),
                               (bottom_box_size, bottom_box)])
 
     layout = urwid.Frame(header=header, body=body_widget, footer=menu)
@@ -208,6 +218,15 @@ def main_dashboard(config, tor):
                     pipe.kill()
                     gc.collect()
 
+        def update_large_price(read_data):
+            read_data = translate_text_for_urwid(read_data)
+            large_price.base_widget.set_text(read_data)
+            running_jobs['large_price']['workers'] = 0
+            for pipe in running_jobs['large_price']['pipe']:
+                if pipe != []:
+                    pipe.kill()
+                    gc.collect()
+
         def update_login(read_data):
             read_data = translate_text_for_urwid(read_data)
             login_box.base_widget.set_text(read_data)
@@ -263,6 +282,11 @@ def main_dashboard(config, tor):
                 'max_workers': 1,
                 'subprocess': 'python3 data.py data_logger',
                 'updater': update_logger
+            },
+            'large_price': {
+                'max_workers': 1,
+                'subprocess': 'python3 data.py data_large_price',
+                'updater': update_large_price
             }
         }
 
