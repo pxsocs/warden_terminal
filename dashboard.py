@@ -67,8 +67,9 @@ def main_dashboard(config, tor):
     def update_header(layout, message=None, message_type=None):
         # Create Header
         refresh_time = datetime.now().strftime('%H:%M:%S')
-        txt = u' WARden Node Edition (Version: ' + version(
-        ) + ') | Last Refresh on: ' + refresh_time
+        txt = u' WARden Node Edition (Version: ' + version() + emoji.emojize(
+            ') | twitter :bird: @alphaazeta | Last Refresh on: '
+        ) + refresh_time
         if message:
             txt += ' | ' + message
         header_text = urwid.Text(txt, align='right')
