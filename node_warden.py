@@ -101,7 +101,12 @@ def check_version():
             color="green") as spinner:
 
         url = 'https://raw.githubusercontent.com/pxsocs/warden_terminal/master/version.txt'
-        remote_version = tor_request(url).text
+        try:
+            remote_version = tor_request(url).text
+        except Exception:
+            print(yellow("  [!] Could not reach GitHub to check for upgrades"))
+            return
+
         if str(remote_version).strip() == str(current_version).strip():
             spinner.ok("✅ ")
             spinner.write(success("    You are running latest version"))
