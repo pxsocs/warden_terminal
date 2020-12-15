@@ -6,3 +6,4 @@ pyttsx3
 yaspin
 requests
 requests[socks]
+pysocks

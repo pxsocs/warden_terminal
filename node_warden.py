@@ -116,6 +116,7 @@ def check_version():
                 import subprocess
                 subprocess.run("git fetch --all", shell=True)
                 subprocess.run("git reset --hard origin/master", shell=True)
+                subprocess.run("pip3 install -r requirements.txt", shell=True)
                 print(" ---------------------------------------")
                 print(success("  ✅ Done Upgrading"))
 
