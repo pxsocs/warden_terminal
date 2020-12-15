@@ -1,20 +1,2 @@
-[10:35:07 AM] [37mStarting main program...[0m
-[10:35:08 AM] [32mTor Connected[0m
-[10:35:39 AM] [1;34m[MEMPOOL] [0m[32mA new Bitcoin Block was just found. [0m[33m'Tick. Tock. Next block.'[0m
-[10:57:29 AM] [37mStarting main program [QUIET mode]...[0m
-[10:57:47 AM] [1;34m[MAIN] [0m[37mError: [0m[33mNo weighted widgets found for Pile treated as a box widget[0m
-[10:57:47 AM] [31mAn error occured <class 'urwid.container.PileError'> : No weighted widgets found for Pile treated as a box widget
-    Restarting...[0m
-[11:02:16 AM] [37mStarting main program [QUIET mode]...[0m
-[11:02:19 AM] [1;34m[MAIN] [0m[37mError: [0m[33mNo weighted widgets found for Pile treated as a box widget[0m
-[11:02:19 AM] [31mAn error occured <class 'urwid.container.PileError'> : No weighted widgets found for Pile treated as a box widget
-    Restarting...[0m
-[11:02:36 AM] [37mStarting main program [QUIET mode]...[0m
-[11:02:37 AM] [1;34m[MAIN] [0m[37mError: [0m[33mNo weighted widgets found for Pile treated as a box widget[0m
-[11:02:37 AM] [31mAn error occured <class 'urwid.container.PileError'> : No weighted widgets found for Pile treated as a box widget
-    Restarting...[0m
-[11:02:37 AM] [37mStarting main program [QUIET mode]...[0m
-[11:02:45 AM] [1;34m[MAIN] [0m[37mError: [0m[33mNo weighted widgets found for Pile treated as a box widget[0m
-[11:02:46 AM] [31mAn error occured <class 'urwid.container.PileError'> : No weighted widgets found for Pile treated as a box widget
-    Restarting...[0m
-[11:02:46 AM] [37mStarting main program [QUIET mode]...[0m
+[11:09:17 AM] [37mStarting main program...[0m
+[11:09:18 AM] [32mTor Connected[0m
