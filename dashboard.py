@@ -288,7 +288,9 @@ def main_dashboard(config, tor, spinner):
         main_loop.set_alarm_in(refresh_interval, refresh)
 
     try:
-        main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
+        main_loop = urwid.MainLoop(layout,
+                                   palette,
+                                   unhandled_input=handle_input)
         main_loop.set_alarm_in(30, check_for_pump)
         main_loop.set_alarm_in(10, get_quote)
         main_loop.set_alarm_in(0, refresh)
@@ -296,4 +298,7 @@ def main_dashboard(config, tor, spinner):
     except Exception as e:  # Catch some timeouts - only once
         logging.error(info('[MAIN] ') + muted('Error: ') + yellow(str(e)))
         update_header(layout, message=f'Error: {e}')
-        main_dashboard(config, tor, spinner)
+        main_loop = urwid.MainLoop(layout,
+                                   palette,
+                                   unhandled_input=handle_input)
+        main_loop.run()
