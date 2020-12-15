@@ -3,3 +3,4 @@
 [09:22:10 AM] [1;34m[MEMPOOL] [0m[32mA new Bitcoin Block was just found. [0m[33m'Tick. Tock. Next block.'[0m
 [09:25:31 AM] [1;34m[MEMPOOL] [0m[32mA new Bitcoin Block was just found. [0m[33m'Tick. Tock. Next block.'[0m
 [09:33:58 AM] [1;34m[MEMPOOL] [0m[32mA new Bitcoin Block was just found. [0m[33m'Tick. Tock. Next block.'[0m
+[09:35:33 AM] [1;34m[MAIN] [0m[37mError: [0m[33mfiledescriptor out of range in select()[0m

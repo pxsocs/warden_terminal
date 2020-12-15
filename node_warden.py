@@ -156,6 +156,8 @@ if __name__ == '__main__':
     tor = create_tor()
     check_version()
     greetings()
-    with yaspin(text="Launching Dashboard. Please Wait...",
-                color="cyan") as spinner:
-        main_dashboard(config, tor, spinner)
+
+    try:
+        main_dashboard(config, tor)
+    except Exception as e:
+        logging.error(error(f'An error occured: {e}\n    Restarting...'))

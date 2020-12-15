@@ -25,7 +25,7 @@ def version():
     return (version)
 
 
-def main_dashboard(config, tor, spinner):
+def main_dashboard(config, tor):
 
     try:
         refresh_interval = int(config['MAIN'].get('refresh'))
@@ -73,7 +73,6 @@ def main_dashboard(config, tor, spinner):
         layout.header = header
 
     # Draw empty dashboard
-    spinner.stop()
     menu = urwid.Text([u'Press (', ('quit button', u'Q'), u') to quit.'])
 
     # Class to Create URWID box window to receive data
@@ -150,11 +149,11 @@ def main_dashboard(config, tor, spinner):
 
     # Handle key presses
     def handle_input(key):
-        if key == 'R' or key == 'r':
-            refresh(main_loop, '')
-
         if key == 'Q' or key == 'q':
             raise urwid.ExitMainLoop()
+
+        else:
+            pass
 
     def check_for_pump(_loop, _data):
         try:
@@ -188,12 +187,6 @@ def main_dashboard(config, tor, spinner):
         main_loop.draw_screen()
 
         # Add Background Updates
-        max_workers = 1  # Max number of threads **KEEP AT 1***
-
-        # Beware of increasing the max_workers - need to make sure
-        # processes are killed for all workers - CODE IS NOT DOING THAT
-        # right now and will lead to CPU usage blowing up
-
         # UPDATER FUNCTIONS - ONE NEEDED PER UPDATE
         # These run on background as watch pipes
         def update_btc(read_data):
