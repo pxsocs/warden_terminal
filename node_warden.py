@@ -146,23 +146,35 @@ def greetings():
 def exception_handler(exctype, value, tb):
     logging.error(
         error(f'An error occured {exctype} : {value}\n    Restarting...'))
-    main_dashboard(config, tor)
+    sys.argv.append('quiet')
+    os.execv(sys.argv[0], sys.argv)
 
 
 if __name__ == '__main__':
-    clear_screen()
-    logo()
-    print("")
-    try:
-        os.remove(debug_file)
-    except Exception:
-        pass
-
-    launch_logger()
-    logging.info(muted("Starting main program..."))
-    config = load_config()
-    tor = create_tor()
-    check_version()
-    greetings()
+    if 'quiet' not in sys.argv:
+        clear_screen()
+        logo()
+        print("")
+        try:
+            os.remove(debug_file)
+        except Exception:
+            pass
+        launch_logger()
+        logging.info(muted("Starting main program..."))
+        config = load_config()
+        tor = create_tor()
+        check_version()
+        greetings()
+    else:
+        config = load_config(True)
+        tor = {
+            "pre_proxy": 'Restarting...',
+            "post_proxy": 'Restarting...',
+            "post_proxy_ping": 'Restarting...',
+            "pre_proxy_ping": 'Restarting...',
+            "difference": 'Restarting...',
+            "status": True,
+            "port": 'Restarting...'
+        }
     sys.excepthook = exception_handler
     main_dashboard(config, tor)
