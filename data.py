@@ -90,9 +90,12 @@ def data_large_price():
     ft_config = config['MAIN']
     font = ft_config.get('large_text_font')
     btc = btc_price_data()
-    btc_price = btc['DISPLAY']['BTC']['USD']['PRICE']
+    try:
+        btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
+    except Exception:
+        return (error(f' >> Error getting price data. Retrying...'))
     custom_fig = pyfiglet.Figlet(font=font)
-    return_fig = custom_fig.renderText(btc_price)
+    return_fig = custom_fig.renderText('$  ' + jformat(btc_price, 0))
 
     chg_str = btc['DISPLAY']['BTC']['USD']['CHANGEPCTDAY']
     chg = cleanfloat(chg_str)
@@ -108,7 +111,7 @@ def data_large_price():
         msg += error(f'24hr Change: {chg_str}%\n')
     if chg < -5:
         msg += muted(
-            f"Looks like Bitcoin is dropping. Time to stack some sats. ")
+            f"Bitcoin dropping? Buy the dip!\nTime to stack some sats. ")
 
     return_fig = muted(return_fig)
     return_fig += msg

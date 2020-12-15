@@ -192,7 +192,7 @@ def main_dashboard(config, tor):
     def get_quote(_loop, _data):
         quote = translate_text_for_urwid(data_random_satoshi())
         satoshi_box.base_widget.set_text(quote)
-        main_loop.set_alarm_in(60, get_quote)
+        main_loop.set_alarm_in(120, get_quote)
 
     def refresh(_loop, _data):
         # Add Background Tasks
