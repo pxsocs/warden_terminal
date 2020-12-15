@@ -1,13 +1,13 @@
 import configparser
 import logging
 import os
-import sys
 import subprocess
-import time
 # Upon the first import of non standard libraries, if not found
 # Start pip install
 try:
     import pyttsx3
+    import requests
+    from yaspin import yaspin
 except ModuleNotFoundError:
     subprocess.run("pip3 install -r requirements.txt", shell=True)
 
@@ -19,7 +19,6 @@ from dashboard import main_dashboard
 
 from ansi_management import (warning, success, error, info, clear_screen, bold,
                              muted)
-from yaspin import yaspin
 
 # Main Variables
 basedir = os.path.abspath(os.path.dirname(__file__))

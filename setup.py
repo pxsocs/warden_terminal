@@ -8,7 +8,10 @@ current_version = '0.0.0.2'
 with open("version.txt", "w") as text_file:
     print(f"{current_version}", file=text_file)
 
-reqs = ['ansi', 'urwid', 'emoji', 'tabulate', 'pyttsx3', 'yaspin']
+reqs = [
+    'ansi', 'urwid', 'emoji', 'tabulate', 'pyttsx3', 'yaspin', 'requests',
+    'requests[socks]'
+]
 
 setup(
     name="warden_terminal",

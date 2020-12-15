@@ -4,3 +4,5 @@ emoji
 tabulate
 pyttsx3
 yaspin
+requests
+requests[socks]
