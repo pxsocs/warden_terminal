@@ -94,6 +94,25 @@ def data_large_price():
     custom_fig = pyfiglet.Figlet(font=font)
     return_fig = custom_fig.renderText(btc_price)
 
+    chg_str = btc['DISPLAY']['BTC']['USD']['CHANGEPCTDAY']
+    chg = cleanfloat(chg_str)
+    msg = '\n'
+
+    if chg >= 0:
+        msg += success(f'24hr Change: +{chg_str}%\n')
+    if chg > 5:
+        msg += (info("[NGU] ") + muted(f"Looks like Bitcoin is pumping ") +
+                emoji.emojize(":rocket:"))
+
+    if chg < 0:
+        msg += error(f'24hr Change: {chg_str}%\n')
+    if chg < -5:
+        msg += muted(
+            f"Looks like Bitcoin is dropping. Time to stack some sats. ")
+
+    return_fig = muted(return_fig)
+    return_fig += msg
+
     return (return_fig)
 
 

@@ -1,2 +1,5 @@
 [03:30:23 PM] [37mStarting main program...[0m
 [03:30:25 PM] [32mTor Connected[0m
+[03:43:04 PM] [1;34m[MAIN] [0m[37mError: [0m[33mfiledescriptor out of range in select()[0m
+[03:45:43 PM] [1;34m[MEMPOOL] [0m[32mA new Bitcoin Block was just found. [0m[33m'Tick. Tock. Next block.'[0m
+[03:54:58 PM] [1;34m[MAIN] [0m[37mError: [0m[33mfiledescriptor out of range in select()[0m
