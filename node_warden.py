@@ -1,6 +1,7 @@
 import configparser
 import logging
 import os
+import sys
 import subprocess
 # Upon the first import of non standard libraries, if not found
 # Start pip install
@@ -18,7 +19,7 @@ from welcome import logo
 from dashboard import main_dashboard
 
 from ansi_management import (warning, success, error, info, clear_screen, bold,
-                             muted)
+                             muted, yellow)
 
 # Main Variables
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -112,10 +113,11 @@ def check_version():
             if click.confirm(warning('    [?] Would you like to upgrade?'),
                              default=False):
                 print(" ---------------------------------------")
-                print(f"Upgrading from GitHub: "),
+                print(yellow(f"Upgrading from GitHub: ")),
                 import subprocess
                 subprocess.run("git fetch --all", shell=True)
                 subprocess.run("git reset --hard origin/master", shell=True)
+                print(yellow(f"Installing Python Package Requirements")),
                 subprocess.run("pip3 install -r requirements.txt", shell=True)
                 print(" ---------------------------------------")
                 print(success("  ✅ Done Upgrading"))
@@ -141,6 +143,12 @@ def greetings():
             spinner.write("")
 
 
+def exception_handler(exctype, value, tb):
+    logging.error(
+        error(f'An error occured {exctype} : {value}\n    Restarting...'))
+    main_dashboard(config, tor)
+
+
 if __name__ == '__main__':
     clear_screen()
     logo()
@@ -156,10 +164,5 @@ if __name__ == '__main__':
     tor = create_tor()
     check_version()
     greetings()
-
-    while True:
-        try:
-            main_dashboard(config, tor)
-        except Exception as e:
-            logging.error(error(f'An error occured: {e}\n    Restarting...'))
-            main_dashboard(config, tor)
+    sys.excpethook(exception_handler)
+    main_dashboard(config, tor)
