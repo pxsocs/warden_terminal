@@ -150,6 +150,8 @@ def greetings():
 
 def exception_handler(exctype, value, tb):
     os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
+    # print(exctype)
+    # print(tb.print_last())
 
 
 if __name__ == '__main__':
@@ -180,4 +182,5 @@ if __name__ == '__main__':
             "port": 'Restarting...'
         }
     sys.excepthook = exception_handler
+    print(success("   Launching the Dashboard..."))
     main_dashboard(config, tor)

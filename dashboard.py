@@ -71,7 +71,7 @@ def main_dashboard(config, tor):
         ) + ') | Last Refresh on: ' + refresh_time
         if message:
             txt += ' | ' + message
-        header_text = urwid.Text(txt)
+        header_text = urwid.Text(txt, align='right')
         header = urwid.AttrMap(header_text, 'titlebar')
         layout.header = header
 
@@ -87,7 +87,8 @@ def main_dashboard(config, tor):
                      bottom=1,
                      left=1,
                      right=1,
-                     height=None):
+                     height=None,
+                     text_align='left'):
             self.loader_text = loader_text
             self.valign = valign
             self.top = top
@@ -95,8 +96,8 @@ def main_dashboard(config, tor):
             self.left = left
             self.right = right
             self.height = height
-
-            self.text = urwid.Text(self.loader_text)
+            self.text_align = text_align
+            self.text = urwid.Text(self.loader_text, align=self.text_align)
             self.filler = urwid.Filler(self.text,
                                        valign=self.valign,
                                        top=self.top,
@@ -115,14 +116,16 @@ def main_dashboard(config, tor):
 
     # Create the TOR Box
     large_price_size = quote_box_size
-    large_price = (Box(loader_text='Getting BTC Price...',
-                       height=large_price_size).line_box)
+    large_price = Box(loader_text='Getting BTC Price...',
+                      height=large_price_size,
+                      text_align='center',
+                      valign='middle',
+                      top=3).line_box
 
     # Create the Large Price Box
     tor_box_size = 10
     tor_box = Box(loader_text='Checking Tor Status...',
-                  height=tor_box_size,
-                  valign='middle').line_box
+                  height=tor_box_size).line_box
 
     # Create user login Box
     login_box_size = 12
