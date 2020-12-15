@@ -157,7 +157,9 @@ if __name__ == '__main__':
     check_version()
     greetings()
 
-    try:
-        main_dashboard(config, tor)
-    except Exception as e:
-        logging.error(error(f'An error occured: {e}\n    Restarting...'))
+    while True:
+        try:
+            main_dashboard(config, tor)
+        except Exception as e:
+            logging.error(error(f'An error occured: {e}\n    Restarting...'))
+            main_dashboard(config, tor)
