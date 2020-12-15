@@ -123,6 +123,10 @@ def data_btc_price():
         except Exception as e:
             tabs.append(['error: ' + str(e)])
 
+    if tabs == []:
+        return (
+            error(f' >> Error getting data from CryptoCompare. Retrying...'))
+
     tabs = tabulate(
         tabs,
         headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
@@ -195,7 +199,11 @@ def data_mempool():
 
     # Get recommended fees
 
-    mp_fee = tor_request(url + '/api/v1/fees/recommended').json()
+    try:
+        mp_fee = tor_request(url + '/api/v1/fees/recommended').json()
+    except Exception:
+        return (error(f' >> Error getting data from {url}. Retrying...'))
+
     tabs = list(mp_fee.values())
     tabs = [[str(x) + ' sats/Vb' for x in tabs]]
     tabs = tabulate(tabs,
