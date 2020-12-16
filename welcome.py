@@ -16,4 +16,4 @@ def logo():
             "                                          Node Edition :key:"))
     print(
         fg.boldyellow(
-            "                             Powered by NGU technology "))
+            "                             Powered by NgU technology "))

@@ -177,12 +177,12 @@ def main_dashboard(config, tor):
             chg = cleanfloat(chg_str)
             if chg > 5:
                 logging.info(
-                    info("[NGU] ") + muted(f"Looks like Bitcoin is pumping ") +
+                    info("[NgU] ") + muted(f"Looks like Bitcoin is pumping ") +
                     emoji.emojize(":rocket:") + yellow(f' {btc_price}') +
                     success(f' +{chg_str}%'))
             if chg < -5:
                 logging.info(
-                    info("[NGU] ") + muted(
+                    info("[NgU] ") + muted(
                         f"Looks like Bitcoin is dropping. Time to stack some sats. "
                     ) + yellow(f' {btc_price}') + error(f' {chg_str}%'))
         except Exception:

@@ -104,7 +104,7 @@ def data_large_price():
     if chg >= 0:
         msg += success(f'24hr Change: +{chg_str}%\n')
     if chg > 5:
-        msg += (info("[NGU] ") + muted(f"Looks like Bitcoin is pumping ") +
+        msg += (info("[NgU] ") + muted(f"Looks like Bitcoin is pumping ") +
                 emoji.emojize(":rocket:"))
 
     if chg < 0:
