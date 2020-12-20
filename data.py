@@ -22,19 +22,32 @@ from pricing_engine import multiple_price_grab, GBTC_premium
 
 
 def data_tor(tor=None):
+    from node_warden import load_config
+    config = load_config(quiet=True)
     if not tor:
         tor = test_tor()
 
     import socket
     local_ip = socket.gethostbyname(socket.gethostname())
-    tor_string = f""" ✅ {success('TOR Connected')}
- Running on port {info(bold(tor['port']))}
- Tor IP Address {warning(tor['post_proxy']['origin'])}
- Ping Time {tor['post_proxy_ping']}
- Global IP Address {warning(tor['pre_proxy']['origin'])}
- Ping Time {muted(tor['pre_proxy_ping'])}
- Local IP Address {warning(local_ip)}
- """
+
+    if config['MAIN'].getboolean('hide_private_info'):
+        tor_string = f""" ✅ {success('TOR Connected')}
+    Running on port {info(bold(tor['port']))}
+    Tor IP Address {warning(tor['post_proxy']['origin'])}
+    Ping Time {tor['post_proxy_ping']}
+    Global IP Address {warning(tor['pre_proxy']['origin'])}
+    Ping Time {muted(tor['pre_proxy_ping'])}
+    Local IP Address {warning(local_ip)}
+    """
+    else:
+        tor_string = f""" ✅ {success('TOR Connected')}
+    Running on port {info(bold(tor['port']))}
+    Tor IP Address ** HIDDEN **
+    Ping Time {tor['post_proxy_ping']}
+    Global IP Address ** HIDDEN **
+    Ping Time {muted(tor['pre_proxy_ping'])}
+    Local IP Address ** HIDDEN **
+    """
     return (tor_string)
 
 
@@ -173,12 +186,13 @@ def data_btc_price():
     try:
         if gbtc_config.getboolean('GBTC_enabled'):
             tabs += '\n\n'
-            gbtc_url = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=GBTC&apikey=DDC232JDH'
-            gbtc_data = tor_request(gbtc_url).json()['Global Quote']
+            gbtc_url = 'https://finnhub.io/api/v1/quote?symbol=GBTC&token=bvfhuqv48v6rhdtvnks0'
+            gbtc_data = tor_request(gbtc_url).json()
+            print(gbtc_data)
             gbtc_tabs = []
             GBTC_shares = gbtc_config.getfloat('gbtc_shares')
-            fairvalue, premium = (GBTC_premium(float(gbtc_data['05. price']),
-                                               btc_usd_price, GBTC_shares))
+            fairvalue, premium = (GBTC_premium((gbtc_data['c']), btc_usd_price,
+                                               GBTC_shares))
 
             if premium * 1 > 0:
                 premium = success('+' + jformat(premium, 2, 0.01) + '%')
@@ -187,9 +201,9 @@ def data_btc_price():
 
             fairvalue = jformat(fairvalue, 2)
 
-            chg_str = gbtc_data['10. change percent']
+            chg_str = gbtc_data['c'] / gbtc_data['pc']
             try:
-                chg = cleanfloat(chg_str)
+                chg = (chg_str)
                 if chg > 0:
                     chg_str = success('+' + jformat(chg, 2) + ' %')
                 elif chg < 0:
@@ -198,9 +212,11 @@ def data_btc_price():
                 chg_str = muted(chg_str)
 
             gbtc_tabs.append([
-                'GBTC', gbtc_data['05. price'], chg_str,
-                gbtc_data['04. low'] + ' - ' + gbtc_data['03. high'], premium,
-                fairvalue, gbtc_data['07. latest trading day']
+                'GBTC',
+                jformat(gbtc_data['c'], 2), chg_str,
+                jformat(gbtc_data['l'], 2) + ' - ' +
+                jformat(gbtc_data['h'], 2), premium, fairvalue,
+                time_ago(gbtc_data['t'])
             ])
             gbtc_tabs = tabulate(gbtc_tabs,
                                  headers=[

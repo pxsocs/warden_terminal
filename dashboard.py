@@ -4,6 +4,7 @@ import urwid
 import subprocess
 import ast
 import gc
+import os
 import pyttsx3
 from datetime import datetime
 from ansi_management import (warning, success, error, info, clear_screen, bold,
@@ -11,6 +12,18 @@ from ansi_management import (warning, success, error, info, clear_screen, bold,
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
+
+
+def toggle(config_var):
+    from node_warden import load_config
+    from node_warden import basedir
+    config = load_config(quiet=True)
+    getter = config['MAIN'].getboolean(config_var)
+    getter = not getter
+    config['MAIN'][config_var] = str(getter)
+    config_file = os.path.join(basedir, 'config.ini')
+    with open(config_file, 'w') as configfile:
+        config.write(configfile)
 
 
 def version():
@@ -59,10 +72,6 @@ def main_dashboard(config, tor):
                ('getting quote', 'dark blue', ''),
                ('headers', 'white,bold', ''), ('change ', 'dark green', ''),
                ('change negative', 'dark red', '')]
-
-    def exit_on_q(key):
-        if key in ('q', 'Q'):
-            raise urwid.ExitMainLoop()
 
     def update_header(layout, message=None, message_type=None):
         # Create Header
@@ -165,6 +174,10 @@ def main_dashboard(config, tor):
     def handle_input(key):
         if key == 'Q' or key == 'q':
             raise urwid.ExitMainLoop()
+        if key == 'S' or key == 's':
+            toggle('sound')
+        if key == 'H' or key == 'h':
+            toggle('hide_private_info')
 
         else:
             pass
@@ -308,18 +321,8 @@ def main_dashboard(config, tor):
 
         main_loop.set_alarm_in(refresh_interval, refresh)
 
-    try:
-        main_loop = urwid.MainLoop(layout,
-                                   palette,
-                                   unhandled_input=handle_input)
-        main_loop.set_alarm_in(30, check_for_pump)
-        main_loop.set_alarm_in(10, get_quote)
-        main_loop.set_alarm_in(0, refresh)
-        main_loop.run()
-    except Exception as e:  # Catch some timeouts - only once
-        logging.error(info('[MAIN] ') + muted('Error: ') + yellow(str(e)))
-        update_header(layout, message=f'Error: {e}')
-        main_loop = urwid.MainLoop(layout,
-                                   palette,
-                                   unhandled_input=handle_input)
-        main_loop.run()
+    main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
+    main_loop.set_alarm_in(30, check_for_pump)
+    main_loop.set_alarm_in(10, get_quote)
+    main_loop.set_alarm_in(0, refresh)
+    main_loop.run()

@@ -64,7 +64,7 @@ def test_tor():
     return response
 
 
-def tor_request(url, tor_only=True, method="get"):
+def tor_request(url, tor_only=True, method="get", headers=None):
     # Tor requests takes arguments:
     # url:       url to get or post
     # tor_only:  request will only be executed if tor is available
@@ -80,7 +80,10 @@ def tor_request(url, tor_only=True, method="get"):
                 "https": "socks5h://localhost:" + TOR['port'],
             }
             if method == "get":
-                request = session.get(url, timeout=15)
+                if headers:
+                    request = session.get(url, timeout=15, headers=headers)
+                else:
+                    request = session.get(url, timeout=15)
             if method == "post":
                 request = session.post(url, timeout=15)
 
