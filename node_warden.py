@@ -118,11 +118,11 @@ def check_version():
             if click.confirm(warning('    [?] Would you like to upgrade?'),
                              default=False):
                 print(" ---------------------------------------")
-                print(yellow(f"Upgrading from GitHub: ")),
+                print(yellow("Upgrading from GitHub: ")),
                 import subprocess
                 subprocess.run("git fetch --all", shell=True)
                 subprocess.run("git reset --hard origin/master", shell=True)
-                print(yellow(f"Installing Python Package Requirements")),
+                print(yellow("Installing Python Package Requirements")),
                 subprocess.run("pip3 install -r requirements.txt", shell=True)
                 print(" ---------------------------------------")
                 print(success("  ✅ Done Upgrading"))
@@ -150,9 +150,9 @@ def greetings():
 
 
 def exception_handler(exctype, value, tb):
-    # os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
-    print(exctype)
-    print(tb.print_last())
+    os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
+    # print(exctype)
+    # print(tb.print_last())
 
 
 if __name__ == '__main__':

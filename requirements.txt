@@ -10,3 +10,4 @@ pysocks
 click
 pyfiglet
 python-dateutil
+beautifulsoup4

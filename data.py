@@ -176,10 +176,14 @@ def data_btc_price():
         return (
             error(f' >> Error getting data from CryptoCompare. Retrying...'))
 
-    tabs = tabulate(
-        tabs,
-        headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
-        colalign=["center", "right", "right", "center", "right"])
+    try:
+        tabs = tabulate(
+            tabs,
+            headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
+            colalign=["center", "right", "right", "center", "right"])
+    except Exception:
+        return (
+            error(f' >> Error getting data from CryptoCompare. Retrying...'))
 
     # GBTC
     gbtc_config = config['STOCKS']
@@ -345,6 +349,16 @@ def data_random_satoshi():
     return (return_str)
 
 
+def clarkmoody_dashboard():
+    url = 'https://bitcoin.clarkmoody.com/dashboard/'
+    from bs4 import BeautifulSoup
+    page = tor_request(url)
+    print(page.text)
+    soup = BeautifulSoup(page.text, 'html.parser')
+    for tag in soup.find_all():
+        print(tag.get('id'))
+
+
 def main():
     arg = sys.argv[1]
     if arg == 'data_btc_price':
@@ -361,6 +375,8 @@ def main():
         print(data_random_satoshi())
     if arg == 'data_large_price':
         print(data_large_price())
+    if arg == 'clarkmoody_dashboard':
+        print(clarkmoody_dashboard())
 
 
 # HELPERS ------------------------------------------
