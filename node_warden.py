@@ -138,10 +138,11 @@ def greetings():
             from yaspin.spinners import Spinners
             spinner.spinner = Spinners.moon
             try:
-                engine = pyttsx3.init()
-                engine.setProperty('rate', 270)
-                engine.say(config['MAIN'].get('welcome_text'))
-                engine.runAndWait()
+                if config['MAIN'].getboolean('sound'):
+                    engine = pyttsx3.init()
+                    engine.setProperty('rate', 270)
+                    engine.say(config['MAIN'].get('welcome_text'))
+                    engine.runAndWait()
             except Exception:
                 pass
             spinner.stop()
@@ -149,9 +150,9 @@ def greetings():
 
 
 def exception_handler(exctype, value, tb):
-    os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
-    # print(exctype)
-    # print(tb.print_last())
+    # os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
+    print(exctype)
+    print(tb.print_last())
 
 
 if __name__ == '__main__':

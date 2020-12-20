@@ -68,7 +68,7 @@ def main_dashboard(config, tor):
 
     palette = [('titlebar', 'dark green', ''),
                ('refresh button', 'dark green,bold', ''),
-               ('quit button', 'dark green', ''),
+               ('quit button', 'dark green', ''), ('button', 'dark blue', ''),
                ('getting quote', 'dark blue', ''),
                ('headers', 'white,bold', ''), ('change ', 'dark green', ''),
                ('change negative', 'dark red', '')]
@@ -85,8 +85,14 @@ def main_dashboard(config, tor):
         header = urwid.AttrMap(header_text, 'titlebar')
         layout.header = header
 
-    # Draw empty dashboard
-    menu = urwid.Text([u'Press (', ('quit button', u'Q'), u') to quit.'])
+    def refresh_menu(layout):
+        lst_menu = []
+        lst_menu.append([f'(S) Sounds on/off  |  '])
+        lst_menu.append([f'(H) to toggle private info  |  '])
+        lst_menu.append(['(Q) to quit'])
+        menu = urwid.Text(lst_menu, align='center')
+        layout.footer = menu
+        return (menu)
 
     # Class to Create URWID box window to receive data
     class Box:
@@ -167,7 +173,9 @@ def main_dashboard(config, tor):
     body_widget = urwid.Pile([(top_box_size, top_box), (log_tor_size, log_tor),
                               (bottom_box_size, bottom_box)])
 
-    layout = urwid.Frame(header=header, body=body_widget, footer=menu)
+    layout = urwid.Frame(header=header, body=body_widget, footer='Loading...')
+
+    refresh_menu(layout)
     update_header(layout)
 
     # Handle key presses
@@ -176,8 +184,12 @@ def main_dashboard(config, tor):
             raise urwid.ExitMainLoop()
         if key == 'S' or key == 's':
             toggle('sound')
+            refresh_menu(layout)
         if key == 'H' or key == 'h':
             toggle('hide_private_info')
+            refresh_menu(layout)
+
+            tor_box.base_widget.set_text("Updating... Please Wait.")
 
         else:
             pass

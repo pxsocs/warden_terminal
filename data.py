@@ -30,7 +30,7 @@ def data_tor(tor=None):
     import socket
     local_ip = socket.gethostbyname(socket.gethostname())
 
-    if config['MAIN'].getboolean('hide_private_info'):
+    if not config['MAIN'].getboolean('hide_private_info'):
         tor_string = f""" ✅ {success('TOR Connected')}
     Running on port {info(bold(tor['port']))}
     Tor IP Address {warning(tor['post_proxy']['origin'])}
@@ -42,11 +42,11 @@ def data_tor(tor=None):
     else:
         tor_string = f""" ✅ {success('TOR Connected')}
     Running on port {info(bold(tor['port']))}
-    Tor IP Address ** HIDDEN **
+    Tor IP Address {yellow('** HIDDEN **')}
     Ping Time {tor['post_proxy_ping']}
-    Global IP Address ** HIDDEN **
+    Global IP Address {yellow('** HIDDEN **')}
     Ping Time {muted(tor['pre_proxy_ping'])}
-    Local IP Address ** HIDDEN **
+    Local IP Address {yellow('** HIDDEN **')}
     """
     return (tor_string)
 
@@ -270,10 +270,11 @@ def data_mempool():
             config['MEMPOOL'].getboolean('block_found_sound')):
         # Block found play sound
         try:
-            engine = pyttsx3.init()
-            engine.setProperty('rate', 270)
-            engine.say(config['MEMPOOL'].get('block_found_txt'))
-            engine.runAndWait()
+            if config['MAIN'].getboolean('sound'):
+                engine = pyttsx3.init()
+                engine.setProperty('rate', 270)
+                engine.say(config['MEMPOOL'].get('block_found_txt'))
+                engine.runAndWait()
         except Exception:
             pass
         logging.info(
