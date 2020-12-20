@@ -188,7 +188,6 @@ def data_btc_price():
             tabs += '\n\n'
             gbtc_url = 'https://finnhub.io/api/v1/quote?symbol=GBTC&token=bvfhuqv48v6rhdtvnks0'
             gbtc_data = tor_request(gbtc_url).json()
-            print(gbtc_data)
             gbtc_tabs = []
             GBTC_shares = gbtc_config.getfloat('gbtc_shares')
             fairvalue, premium = (GBTC_premium((gbtc_data['c']), btc_usd_price,
