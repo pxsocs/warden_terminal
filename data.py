@@ -4,6 +4,8 @@ import sys
 import subprocess
 import emoji
 import pickle
+
+from requests.api import request
 import pyfiglet
 
 import pyttsx3
@@ -106,9 +108,10 @@ def data_large_price():
     try:
         btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
     except Exception:
-        return (error(f' >> Error getting price data. Retrying...'))
+        return (error(' >> Error getting price data. Retrying...'))
     custom_fig = pyfiglet.Figlet(font=font)
     return_fig = custom_fig.renderText('$  ' + jformat(btc_price, 0))
+    return_fig = yellow(return_fig)
 
     chg_str = btc['DISPLAY']['BTC']['USD']['CHANGEPCTDAY']
     chg = cleanfloat(chg_str)
@@ -350,9 +353,17 @@ def data_random_satoshi():
 
 
 def clarkmoody_dashboard():
+    # NOT WORKING
     url = 'https://bitcoin.clarkmoody.com/dashboard/'
     from bs4 import BeautifulSoup
-    page = tor_request(url)
+    header = {
+        "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
+        'referer': 'https://www.google.com/'
+    }
+    import requests
+    page = requests.get(url, headers=header)
+
     print(page.text)
     soup = BeautifulSoup(page.text, 'html.parser')
     for tag in soup.find_all():
