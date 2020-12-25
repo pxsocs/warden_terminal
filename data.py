@@ -30,7 +30,10 @@ def data_tor(tor=None):
         tor = test_tor()
 
     import socket
-    local_ip = socket.gethostbyname(socket.gethostname())
+    try:
+        local_ip = socket.gethostbyname(socket.gethostname())
+    except Exception:
+        local_ip = 'Error getting local IP'
 
     if not config['MAIN'].getboolean('hide_private_info'):
         tor_string = f""" ✅ {success('TOR Connected')}
@@ -320,19 +323,22 @@ def data_mempool():
 
 def data_logger():
     from node_warden import debug_file
-    lines = 8
-    log_txt = tail(debug_file, lines)
-    return_str = []
-    for element in log_txt:
-        if 'INFO' in element:
-            return_str.append(info(element))
-        elif 'ERROR' in log_txt:
-            return_str.append(error(element))
-        elif 'WARN' in log_txt:
-            return_str.append(warning(element))
-        else:
-            return_str.append((element))
-    return_str = ''.join(return_str)
+    try:
+        lines = 8
+        log_txt = tail(debug_file, lines)
+        return_str = []
+        for element in log_txt:
+            if 'INFO' in element:
+                return_str.append(info(element))
+            elif 'ERROR' in log_txt:
+                return_str.append(error(element))
+            elif 'WARN' in log_txt:
+                return_str.append(warning(element))
+            else:
+                return_str.append((element))
+        return_str = ''.join(return_str)
+    except Exception:
+        return yellow('>> Error Loading Log Messages. Retying...')
     return return_str
 
 
