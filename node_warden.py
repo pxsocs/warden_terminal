@@ -180,7 +180,7 @@ def check_cryptocompare():
                         print(
                             "    Looks like you are over the API Limit. Will try to generate a random API."
                         )
-                        size = 63
+                        size = 16
                         import binascii
                         random_key = binascii.b2a_hex(os.urandom(size))
                         config['API']['random'] = 'True'
