@@ -52,10 +52,13 @@ def fxsymbol(fx, output='symbol'):
 
 
 def multiple_price_grab(tickers, fx):
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    api_key = config['API'].get('cryptocompare')
     # tickers should be in comma sep string format like "BTC,ETH,LTC" and "USD,EUR"
     baseURL = \
         "https://min-api.cryptocompare.com/data/pricemultifull?fsyms="\
-        + tickers + "&tsyms=" + fx + "&&api_key=9863dbe4217d98738f4ab58137007d24d70da92031584ba31de78137e0576225"
+        + tickers + "&tsyms=" + fx + "&&api_key=" + api_key
     try:
         request = tor_request(baseURL)
     except requests.exceptions.ConnectionError:

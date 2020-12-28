@@ -10,6 +10,10 @@ def error(s):
     return (fg.red(s))
 
 
+def blue(s):
+    return (fg.blue(s))
+
+
 def warning(s):
     return (fg.yellow(s))
 

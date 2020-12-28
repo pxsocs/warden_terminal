@@ -19,7 +19,7 @@ from welcome import logo
 from dashboard import main_dashboard
 
 from ansi_management import (warning, success, error, info, clear_screen, bold,
-                             muted, yellow)
+                             muted, yellow, blue)
 
 # Main Variables
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -149,6 +149,86 @@ def greetings():
             spinner.write("")
 
 
+def check_cryptocompare():
+    with yaspin(text=f"Testing price grab from Cryptocompare",
+                color="green") as spinner:
+        config = load_config(True)
+        api_key = config['API'].get('cryptocompare')
+        # tickers should be in comma sep string format like "BTC,ETH,LTC" and "USD,EUR"
+        baseURL = (
+            "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC" +
+            "&tsyms=USD&api_key=" + api_key)
+        try:
+            request = tor_request(baseURL)
+        except requests.exceptions.ConnectionError:
+            spinner.fail("💥 ")
+            spinner.write(
+                warning("    Connection Error - check internet connection"))
+            exit()
+
+        data = request.json()
+
+        try:
+            if data['Response'] == 'Error':
+                config_file = os.path.join(basedir, 'config.ini')
+                spinner.fail("💥 ")
+                spinner.write(warning("    CryptoCompare Returned an error"))
+                print("    " + data['Message'])
+                if data['Message'] == 'You are over your rate limit please upgrade your account!':
+                    # First try to get a random API KEY
+                    if config['API'].getboolean('random') is not True:
+                        print(
+                            "    Looks like you are over the API Limit. Will try to generate a random API."
+                        )
+                        size = 16
+                        import binascii
+                        random_key = binascii.b2a_hex(os.urandom(size))
+                        config['API']['random'] = 'True'
+                        config['API']['cryptocompare'] = str(random_key)
+                        with open(config_file, 'w') as configfile:
+                            config.write(configfile)
+                        check_cryptocompare()
+                        return
+
+                    print(
+                        '    -----------------------------------------------------------------'
+                    )
+                    print(
+                        yellow("    Looks like you need to get an API Key. "))
+                    print(
+                        yellow("    The WARden comes with a shared key that"))
+                    print(yellow("    eventually gets to the call limit."))
+                    print(
+                        '    -----------------------------------------------------------------'
+                    )
+                    print(
+                        blue(
+                            '    Go to: https://www.cryptocompare.com/cryptopian/api-keys'
+                        ))
+                    print(muted("    Current API:"))
+                    print(f"    {api_key}")
+                    new_key = input('    Enter new API key (Q to quit): ')
+                    if new_key == 'Q' or new_key == 'q':
+                        exit()
+                    config['API']['cryptocompare'] = new_key
+                    with open(config_file, 'w') as configfile:
+                        config.write(configfile)
+                    check_cryptocompare()
+        except KeyError:
+            try:
+                btc_price = (data['DISPLAY']['BTC']['USD']['PRICE'])
+                spinner.ok("✅ ")
+                spinner.write(success(f"    BTC price is: {btc_price}"))
+                return
+            except Exception:
+                spinner.fail("💥 ")
+                spinner.write(
+                    warning("    CryptoCompare Returned an UNKNOWN error"))
+                print(data)
+
+        return (data)
+
+
 def exception_handler(exctype, value, tb):
     os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
     # print(exctype)
@@ -169,6 +249,7 @@ if __name__ == '__main__':
         config = load_config()
         tor = create_tor()
         check_version()
+        check_cryptocompare()
         greetings()
     else:
         launch_logger()
