@@ -335,7 +335,7 @@ def data_whitepaper():
     except Exception as e:
         logging.error(
             warning(
-                f"    Coold not download bitcoin.pdf >> error: {e} [ERROR]"))
+                f"    Could not download bitcoin.pdf >> error: {e} [ERROR]"))
 
 
 def data_logger():
