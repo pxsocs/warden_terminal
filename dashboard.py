@@ -10,7 +10,8 @@ from datetime import datetime
 from ansi_management import (warning, success, error, info, clear_screen, bold,
                              yellow, muted, cleanfloat)
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
-                  data_mempool, data_random_satoshi, data_large_price)
+                  data_mempool, data_random_satoshi, data_large_price,
+                  data_whitepaper)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -89,6 +90,8 @@ def main_dashboard(config, tor):
         lst_menu = []
         lst_menu.append([f'(S) Sounds on/off  |  '])
         lst_menu.append([f'(H) to toggle private info  |  '])
+        lst_menu.append(
+            [f'(D) Download Bitcoin Whitepaper (bitcoin.pdf)  |  '])
         lst_menu.append(['(Q) to quit'])
         menu = urwid.Text(lst_menu, align='center')
         layout.footer = menu
@@ -188,8 +191,11 @@ def main_dashboard(config, tor):
         if key == 'H' or key == 'h':
             toggle('hide_private_info')
             refresh_menu(layout)
-
             tor_box.base_widget.set_text("Updating... Please Wait.")
+
+        if key == 'D' or key == 'd':
+            logger_box.base_widget.set_text(data_whitepaper())
+            refresh_menu(layout)
 
         else:
             pass

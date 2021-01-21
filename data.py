@@ -321,6 +321,23 @@ def data_mempool():
     return tabs
 
 
+def data_whitepaper():
+    from node_warden import launch_logger
+    launch_logger()
+    logging.info("Downloading Whitepaper >> bitcoin.pdf")
+    try:
+        from pathlib import Path
+        filename = Path('bitcoin.pdf')
+        url = 'https://bitcoin.org/bitcoin.pdf'
+        response = tor_request(url)
+        filename.write_bytes(response.content)
+        logging.info(success("File bitcoin.pdf saved [Success]"))
+    except Exception as e:
+        logging.error(
+            warning(
+                f"    Coold not download bitcoin.pdf >> error: {e} [ERROR]"))
+
+
 def data_logger():
     from node_warden import debug_file
     try:
@@ -358,24 +375,6 @@ def data_random_satoshi():
     return (return_str)
 
 
-def clarkmoody_dashboard():
-    # NOT WORKING
-    url = 'https://bitcoin.clarkmoody.com/dashboard/'
-    from bs4 import BeautifulSoup
-    header = {
-        "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
-        'referer': 'https://www.google.com/'
-    }
-    import requests
-    page = requests.get(url, headers=header)
-
-    print(page.text)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    for tag in soup.find_all():
-        print(tag.get('id'))
-
-
 def main():
     arg = sys.argv[1]
     if arg == 'data_btc_price':
@@ -392,8 +391,8 @@ def main():
         print(data_random_satoshi())
     if arg == 'data_large_price':
         print(data_large_price())
-    if arg == 'clarkmoody_dashboard':
-        print(clarkmoody_dashboard())
+    if arg == 'data_whitepaper':
+        data_whitepaper()
 
 
 # HELPERS ------------------------------------------
