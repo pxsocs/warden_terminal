@@ -253,8 +253,10 @@ def data_sys():
     os_info = pickle_it('load', 'os_info.pkl')
     umbrel = pickle_it('load', 'umbrel.pkl')
     # Get OS info
-    tabs.append([" Operating System", os_info["uname"].sysname])
-    tabs.append([" Machine Type", os_info["uname"].machine])
+    tabs.append([
+        " OS / System",
+        os_info["uname"].sysname + ' / ' + os_info["uname"].machine
+    ])
     if os_info["rpi"] != 'Not a Raspberry Pi':
         tabs.append([" Raspberry Pi", os_info["rpi"][0]])
     if umbrel:
@@ -305,11 +307,9 @@ def data_sys():
             perc=False,
             printEnd='',
             max_min=(0, 70))
-
+        tabs += f'\n{temp_bar}'
     except Exception:
-        temp_bar = muted('[!] Could not retrieve CPU Temperature')
-
-    tabs += f'\n{temp_bar}'
+        pass
 
     # Create CPU Usage Bar
     try:
@@ -355,15 +355,13 @@ def data_sys():
     tabs += '\n\nDisk Partitions\n---------------'
     try:
         import psutil
-        partitions = psutil.disk_partitions()
+        partitions = ['/', '/dev/sda0', '/dev/sda1', 'root']
 
         for partition in partitions:
             try:
-                disk_result = psutil.disk_usage(partition.mountpoint)
+                disk_result = psutil.disk_usage(partition)
                 # Get partition name and truncate / fix size
-                prefix = str(partition.mountpoint)
-                prefix = prefix.split('/')
-                prefix = prefix[-1]
+                prefix = str(partition)
                 prefix = '{:<15}'.format(prefix[:15])
                 perc_c = 100 - ((disk_result.free / disk_result.total) * 100)
                 disk_bar = printProgressBar(
