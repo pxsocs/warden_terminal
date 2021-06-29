@@ -163,7 +163,7 @@ def main_dashboard(config, tor):
                   height=sys_box_size).line_box
 
     # Create Logger Box
-    logger_box_size = 10
+    logger_box_size = 20
     logger_box = Box(loader_text='Loading Message Log...',
                      height=logger_box_size).line_box
 

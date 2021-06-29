@@ -230,9 +230,8 @@ def data_btc_price():
             ])
             gbtc_tabs = tabulate(gbtc_tabs,
                                  headers=[
-                                     'Ticker', 'Price', '% change',
-                                     '24h Range', 'Premium', 'Fair Value',
-                                     'Last Update'
+                                     'Ticker', 'Price', '%', '24h', 'Premium',
+                                     'Fair', 'Update'
                                  ],
                                  colalign=[
                                      "center", "right", "right", "center",
@@ -255,12 +254,11 @@ def data_sys():
     umbrel = pickle_it('load', 'umbrel.pkl')
     # Get OS info
     tabs.append([" Operating System", os_info["uname"].sysname])
-    tabs.append([" Local Node Name", os_info["uname"].nodename])
     tabs.append([" Machine Type", os_info["uname"].machine])
     if os_info["rpi"] != 'Not a Raspberry Pi':
         tabs.append([" Raspberry Pi", os_info["rpi"][0]])
     if umbrel:
-        tabs.append([" Umbrel Node Found", 'http://umbrel.local/'])
+        tabs.append([" Umbrel Node found @", 'http://umbrel.local/'])
 
     try:
         import psutil
@@ -357,7 +355,7 @@ def data_sys():
     tabs += '\n\nDisk Partitions\n---------------'
     try:
         import psutil
-        partitions = psutil.disk_partitions(all=True)
+        partitions = psutil.disk_partitions()
 
         for partition in partitions:
             try:
@@ -381,15 +379,13 @@ def data_sys():
                     printEnd='',
                     max_min=(0, 90))
 
-            except Exception as e:
-                disk_bar = warning(
-                    f'[!] Could not retrieve Disk Usage for {partition.mountpoint} {e}'
-                )
+                tabs += f'\n{disk_bar}'
+
+            except Exception:
+                pass
 
     except Exception:
         disk_bar = warning('[!] Could not retrieve Disk Usage')
-
-    tabs += f'\n{disk_bar}'
 
     return (tabs)
 
