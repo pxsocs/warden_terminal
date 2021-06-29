@@ -71,6 +71,17 @@ def tor_request(url, tor_only=True, method="get", headers=None):
     # method:    'get or' 'post'
     # Store TOR Status here to avoid having to check on all http requests
     TOR = test_tor()
+    if 'umbrel.local' in url:
+        try:
+            if method == "get":
+                request = requests.get(url, timeout=10)
+            if method == "post":
+                request = requests.post(url, timeout=10)
+            return (request)
+
+        except requests.exceptions.ConnectionError:
+            return "ConnectionError"
+
     if TOR["status"] is True:
         try:
             # Activate TOR proxies

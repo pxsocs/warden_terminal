@@ -11,7 +11,7 @@ from ansi_management import (warning, success, error, info, clear_screen, bold,
                              yellow, muted, cleanfloat)
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
-                  data_whitepaper)
+                  data_whitepaper, data_sys)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -59,6 +59,9 @@ def main_dashboard(config, tor):
         'mp': {
             'workers': 0
         },
+        'sys': {
+            'workers': 0
+        },
         'logger': {
             'workers': 0
         },
@@ -88,10 +91,9 @@ def main_dashboard(config, tor):
 
     def refresh_menu(layout):
         lst_menu = []
-        lst_menu.append([f'(S) Sounds on/off  |  '])
-        lst_menu.append([f'(H) to toggle private info  |  '])
-        lst_menu.append(
-            [f'(D) Download Bitcoin Whitepaper (bitcoin.pdf)  |  '])
+        lst_menu.append(['(S) Sounds on/off  |  '])
+        lst_menu.append(['(H) to toggle private info  |  '])
+        lst_menu.append(['(D) Download Bitcoin Whitepaper (bitcoin.pdf)  |  '])
         lst_menu.append(['(Q) to quit'])
         menu = urwid.Text(lst_menu, align='center')
         layout.footer = menu
@@ -155,6 +157,11 @@ def main_dashboard(config, tor):
     mp_box_size = 24
     mp_box = Box(loader_text='Loading Mempool...', height=mp_box_size).line_box
 
+    # Create SysInfo Box
+    sys_box_size = 24
+    sys_box = Box(loader_text='Loading System Info...',
+                  height=sys_box_size).line_box
+
     # Create Logger Box
     logger_box_size = 10
     logger_box = Box(loader_text='Loading Message Log...',
@@ -167,7 +174,8 @@ def main_dashboard(config, tor):
 
     # Assemble the widgets
     header = 'Loading...'
-    log_tor = urwid.Columns([mp_box, urwid.Pile([login_box, tor_box])])
+    log_tor = urwid.Columns(
+        [sys_box, urwid.Pile([login_box, tor_box]), mp_box])
     log_tor_size = max(mp_box_size, login_box_size, tor_box_size)
     bottom_box_size = max(satoshi_box_size, logger_box_size)
     bottom_box = urwid.Columns([logger_box, satoshi_box])
@@ -281,6 +289,16 @@ def main_dashboard(config, tor):
                     pipe.kill()
                     gc.collect()
 
+        def update_sys(read_data):
+            read_data = translate_text_for_urwid(read_data)
+            sys_box.base_widget.set_text(read_data)
+            main_loop.remove_watch_pipe = True
+            running_jobs['sys']['workers'] = 0
+            for pipe in running_jobs['sys']['pipe']:
+                if pipe != []:
+                    pipe.kill()
+                    gc.collect()
+
         def update_logger(read_data):
             read_data = translate_text_for_urwid(read_data)
             logger_box.base_widget.set_text(read_data)
@@ -312,6 +330,11 @@ def main_dashboard(config, tor):
                 'max_workers': 1,
                 'subprocess': 'python3 data.py data_mempool',
                 'updater': update_mp
+            },
+            'sys': {
+                'max_workers': 1,
+                'subprocess': 'python3 data.py data_sys',
+                'updater': update_sys
             },
             'logger': {
                 'max_workers': 1,

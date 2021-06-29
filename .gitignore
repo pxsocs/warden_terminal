@@ -21,6 +21,7 @@ txs*.pkl
 *.pyc
 debug*.*
 debug.log
+*.pkl
 
 # Packages #
 ############
