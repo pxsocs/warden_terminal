@@ -265,10 +265,9 @@ def data_sys():
     try:
         import psutil
         last_boot = psutil.boot_time()
-        last_fmt = datetime.fromtimestamp(last_boot).strftime(
-            "%Y-%m-%d %H:%M:%S")
-        tabs.append([" Last Boot Time", last_fmt])
-        tabs.append([" " * 40, time_ago(datetime.fromtimestamp(last_boot))])
+        tabs.append(
+            ["  Last Boot Time",
+             time_ago(datetime.fromtimestamp(last_boot))])
 
     except Exception:
         pass
@@ -277,7 +276,7 @@ def data_sys():
         if os_info["rpi"] != 'Not a Raspberry Pi':
             messages = raspi_get_throttled()
             for message in messages:
-                tabs.append([" Power Status", message])
+                logging.info(info('[POWER] ') + message)
     except Exception:
         pass
 
@@ -392,7 +391,7 @@ def raspi_get_throttled():
     import subprocess
 
     GET_THROTTLED_CMD = 'vcgencmd get_throttled'
-    MESSAGES = {
+    MESSAGES_INFO = {
         0: 'Under-voltage!',
         1: 'ARM frequency capped!',
         2: 'Currently throttled!',
@@ -406,10 +405,11 @@ def raspi_get_throttled():
     try:
         throttled_output = subprocess.check_output(GET_THROTTLED_CMD,
                                                    shell=True)
-        throttled_binary = bin(int(throttled_output.split('=')[1], 0))
+        throttled_binary = bin(
+            int(str(throttled_output).split('=')[1].replace("\\n'", ""), 0))
 
         warnings = 0
-        for position, message in MESSAGES.iteritems():
+        for position, message in MESSAGES_INFO.iteritems():
             # Check for the binary digits to be "on" for each warning message
             if len(throttled_binary) > position and throttled_binary[0 -
                                                                      position -
