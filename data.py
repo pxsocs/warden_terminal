@@ -277,7 +277,7 @@ def data_sys():
         if os_info["rpi"] != 'Not a Raspberry Pi':
             messages = raspi_get_throttled()
             for message in messages:
-                tabs.append([" Raspberry Pi Power Status", message])
+                tabs.append([" Power Status", message])
     except Exception:
         pass
 
@@ -438,7 +438,7 @@ def printProgressBar(iteration,
                      suffix='',
                      decimals=2,
                      length=100,
-                     fill='█',
+                     fill=u'█',
                      unit='%',
                      perc=True,
                      max_min=None,
