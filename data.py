@@ -37,7 +37,7 @@ def data_tor(tor=None):
         local_ip = 'Error getting local IP'
 
     if not config['MAIN'].getboolean('hide_private_info'):
-        tor_string = f""" ✅ {success('TOR Connected')}
+        tor_string = f"""   {success('TOR Connected')}
     Running on port {info(bold(tor['port']))}
     Tor IP Address {warning(tor['post_proxy']['origin'])}
     Ping Time {tor['post_proxy_ping']}
@@ -46,7 +46,7 @@ def data_tor(tor=None):
     Local IP Address {warning(local_ip)}
     """
     else:
-        tor_string = f""" ✅ {success('TOR Connected')}
+        tor_string = f"""   {success('TOR Connected')}
     Running on port {info(bold(tor['port']))}
     Tor IP Address {yellow('** HIDDEN **')}
     Ping Time {tor['post_proxy_ping']}
@@ -258,9 +258,9 @@ def data_sys():
     tabs.append([" Local Node Name", os_info["uname"].nodename])
     tabs.append([" Machine Type", os_info["uname"].machine])
     if os_info["rpi"] != 'Not a Raspberry Pi':
-        tabs.append([" Raspberry Pi", os_info["rpi"]])
+        tabs.append([" Raspberry Pi", os_info["rpi"][0]])
     if umbrel:
-        tabs.append([" Umbrel Node Found ☂️  ", 'http://umbrel.local/'])
+        tabs.append([" Umbrel Node Found", 'http://umbrel.local/'])
 
     try:
         import psutil
@@ -277,7 +277,7 @@ def data_sys():
         if os_info["rpi"] != 'Not a Raspberry Pi':
             messages = raspi_get_throttled()
             for message in messages:
-                tabs.append([" Raspberry Pi Power Status ⚡  ", message])
+                tabs.append([" Raspberry Pi Power Status", message])
     except Exception:
         pass
 

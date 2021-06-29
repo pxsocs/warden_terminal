@@ -181,7 +181,10 @@ def check_cryptocompare():
                 warning("    Connection Error - check internet connection"))
             exit()
 
-        data = request.json()
+        try:
+            data = request.json()
+        except Exception:
+            data = {'Response': 'Error', 'Message': request}
 
         try:
             if data['Response'] == 'Error':
