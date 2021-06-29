@@ -262,6 +262,25 @@ def data_sys():
     if umbrel:
         tabs.append([" Umbrel Node Found ☂️  ", 'http://umbrel.local/'])
 
+    try:
+        import psutil
+        last_boot = psutil.boot_time()
+        last_fmt = datetime.fromtimestamp(last_boot).strftime(
+            "%Y-%m-%d %H:%M:%S")
+        tabs.append([" Last Boot Time", last_fmt])
+        tabs.append([" " * 40, time_ago(datetime.fromtimestamp(last_boot))])
+
+    except Exception:
+        pass
+
+    try:
+        if os_info["rpi"] != 'Not a Raspberry Pi':
+            messages = raspi_get_throttled()
+            for message in messages:
+                tabs.append([" Raspberry Pi Power Status ⚡  ", message])
+    except Exception:
+        pass
+
     tabs = tabulate(tabs, colalign=["left", "right"])
 
     tabs += '\n\nSystem Resources\n----------------'
@@ -290,7 +309,7 @@ def data_sys():
             max_min=(0, 70))
 
     except Exception:
-        temp_bar = warning('[!] Could not retrieve CPU Temperature')
+        temp_bar = muted('[!] Could not retrieve CPU Temperature')
 
     tabs += f'\n{temp_bar}'
 
@@ -322,7 +341,7 @@ def data_sys():
             total=100,
             prefix='Memory Usage   ',
             suffix=
-            f'{round(mem_result.percent, 2)}%\n                 (total memory {round(mem_result.total/1000000000,0)} GB)',
+            f'{round(mem_result.percent, 2)}%\n                 Total Memory {round(mem_result.total/1000000000,0)} GB',
             length=bar_size,
             perc=True,
             printEnd='',
@@ -335,7 +354,7 @@ def data_sys():
 
     # Create Disk Usage Bar(s)
     # Get list of devices
-    tabs += '\n\nDisk Partitions\n------------------'
+    tabs += '\n\nDisk Partitions\n---------------'
     try:
         import psutil
         partitions = psutil.disk_partitions(all=True)
@@ -355,7 +374,7 @@ def data_sys():
                     prefix=prefix,
                     suffix=
                     (f'{round(perc_c, 2)}%' +
-                     f'\n                {round(disk_result.free / (2**30), 2)} GB available of {round(disk_result.total / (2**30), 2)} GB'
+                     f'\n                 {round(disk_result.free / (2**30), 2)} GB available of {round(disk_result.total / (2**30), 2)} GB'
                      ),
                     length=bar_size,
                     perc=True,
@@ -373,6 +392,43 @@ def data_sys():
     tabs += f'\n{disk_bar}'
 
     return (tabs)
+
+
+def raspi_get_throttled():
+    import subprocess
+
+    GET_THROTTLED_CMD = 'vcgencmd get_throttled'
+    MESSAGES = {
+        0: 'Under-voltage!',
+        1: 'ARM frequency capped!',
+        2: 'Currently throttled!',
+        3: 'Soft temperature limit active',
+        16: 'Under-voltage has occurred since last reboot.',
+        17: 'Throttling has occurred since last reboot.',
+        18: 'ARM frequency capped has occurred since last reboot.',
+        19: 'Soft temperature limit has occurred'
+    }
+    messages = []
+    try:
+        throttled_output = subprocess.check_output(GET_THROTTLED_CMD,
+                                                   shell=True)
+        throttled_binary = bin(int(throttled_output.split('=')[1], 0))
+
+        warnings = 0
+        for position, message in MESSAGES.iteritems():
+            # Check for the binary digits to be "on" for each warning message
+            if len(throttled_binary) > position and throttled_binary[0 -
+                                                                     position -
+                                                                     1] == '1':
+                messages.append(message)
+                warnings += 1
+
+        if warnings == 0:
+            messages.append("No power issues detected")
+    except Exception:
+        messages.append("Could not get power data")
+
+    return (messages)
 
 
 # Print progress bar

@@ -304,8 +304,6 @@ def check_umbrel():
         with open(config_file, 'w') as configfile:
             config.write(configfile)
 
-    a = input('press...')
-
 
 def check_os():
     try:
@@ -382,5 +380,4 @@ if __name__ == '__main__':
             "port": 'Restarting...'
         }
     sys.excepthook = exception_handler
-    print(success("   Launching the Dashboard..."))
     main_dashboard(config, tor)
