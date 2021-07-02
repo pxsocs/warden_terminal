@@ -4,6 +4,7 @@ import sys
 import subprocess
 import emoji
 import pickle
+import urwid
 
 from requests.api import request
 import pyfiglet
@@ -36,7 +37,7 @@ def data_tor(tor=None):
         local_ip = 'Error getting local IP'
 
     if not config['MAIN'].getboolean('hide_private_info'):
-        tor_string = f""" ✅ {success('TOR Connected')}
+        tor_string = f"""   {success('TOR Connected')}
     Running on port {info(bold(tor['port']))}
     Tor IP Address {warning(tor['post_proxy']['origin'])}
     Ping Time {tor['post_proxy_ping']}
@@ -45,7 +46,7 @@ def data_tor(tor=None):
     Local IP Address {warning(local_ip)}
     """
     else:
-        tor_string = f""" ✅ {success('TOR Connected')}
+        tor_string = f"""   {success('TOR Connected')}
     Running on port {info(bold(tor['port']))}
     Tor IP Address {yellow('** HIDDEN **')}
     Ping Time {tor['post_proxy_ping']}
@@ -229,9 +230,8 @@ def data_btc_price():
             ])
             gbtc_tabs = tabulate(gbtc_tabs,
                                  headers=[
-                                     'Ticker', 'Price', '% change',
-                                     '24h Range', 'Premium', 'Fair Value',
-                                     'Last Update'
+                                     'Ticker', 'Price', '%', '24h', 'Premium',
+                                     'Fair', 'Update'
                                  ],
                                  colalign=[
                                      "center", "right", "right", "center",
@@ -248,6 +248,200 @@ def data_btc_price():
     return tabs
 
 
+def data_sys():
+    tabs = []
+    os_info = pickle_it('load', 'os_info.pkl')
+    umbrel = pickle_it('load', 'umbrel.pkl')
+    # Get OS info
+    tabs.append([
+        " OS / System",
+        os_info["uname"].sysname + ' / ' + os_info["uname"].machine
+    ])
+    if os_info["rpi"] != 'Not a Raspberry Pi':
+        tabs.append([" Raspberry Pi", os_info["rpi"][0]])
+    if umbrel:
+        tabs.append([" Umbrel Node found @", 'http://umbrel.local/'])
+
+    try:
+        import psutil
+        last_boot = psutil.boot_time()
+        tabs.append(
+            ["  Last Boot Time",
+             time_ago(datetime.fromtimestamp(last_boot))])
+
+    except Exception:
+        pass
+
+    try:
+        if os_info["rpi"] != 'Not a Raspberry Pi':
+            messages = raspi_get_throttled()
+            for message in messages:
+                logging.info(info('[POWER] ') + message)
+    except Exception:
+        pass
+
+    tabs = tabulate(tabs, colalign=["left", "right"])
+
+    tabs += '\n\nSystem Resources\n----------------'
+
+    # Get current size of window
+    rows, columns = subprocess.check_output(['stty', 'size']).split()
+    bar_size = int(int(columns) / 3) - 35
+
+    # Create CPU Temperature Bar
+    try:
+        import psutil
+        temp_result = psutil.sensors_temperatures()
+        temp_result = round(temp_result['cpu_thermal'][0].current, 2)
+        # RPI temperature guidelines:
+        # https://www.raspberrypi.org/documentation/faqs/#pi-performance
+        temp_bar = printProgressBar(
+            iteration=temp_result,
+            total=80,
+            prefix='CPU Temperature',
+            suffix=
+            f'{temp_result}°C\n                 (ideal range = 0°C to 70°C)',
+            length=bar_size,
+            unit='°C',
+            perc=False,
+            printEnd='',
+            max_min=(0, 70))
+        tabs += f'\n{temp_bar}'
+    except Exception:
+        pass
+
+    # Create CPU Usage Bar
+    try:
+        import psutil
+        cpu_result = psutil.cpu_percent(interval=0.1)
+        cpu_result = round(cpu_result, 2)
+        cpu_bar = printProgressBar(iteration=cpu_result,
+                                   total=100,
+                                   prefix='CPU Usage      ',
+                                   suffix=f'{cpu_result}%',
+                                   length=bar_size,
+                                   perc=True,
+                                   printEnd='',
+                                   max_min=(0, 85))
+
+    except Exception:
+        cpu_bar = warning('[i] Could not retrieve CPU Usage')
+
+    tabs += f'\n{cpu_bar}'
+
+    # Create Memory Usage Bar
+    try:
+        import psutil
+        mem_result = psutil.virtual_memory()
+        mem_bar = printProgressBar(
+            iteration=round(mem_result.percent, 2),
+            total=100,
+            prefix='Memory Usage   ',
+            suffix=
+            f'{round(mem_result.percent, 2)}%\n                 Total Memory {round(mem_result.total/1000000000,0)} GB',
+            length=bar_size,
+            perc=True,
+            printEnd='',
+            max_min=(0, 85))
+
+    except Exception:
+        mem_bar = warning('[i] Could not retrieve Memory Usage')
+
+    tabs += f'\n{mem_bar}'
+
+    # Create Disk Usage Bar(s)
+    # Get list of devices
+    tabs += '\n\nStorage\n---------------'
+    try:
+        import shutil
+        partitions = ['/', '/mnt/data', 'mnt/hdd']
+
+        for partition in partitions:
+            try:
+                total, used, free = shutil.disk_usage(partition)
+                # Get partition name and truncate / fix size
+                prefix = str(partition)
+                prefix = '{:<15}'.format(prefix[:15])
+                perc_c = 100 - ((free / total) * 100)
+                disk_bar = printProgressBar(
+                    iteration=round(perc_c, 2),
+                    total=100,
+                    prefix=prefix,
+                    suffix=
+                    (f'{round(perc_c, 2)}%' +
+                     f'\n                 {round(free / (10**9), 2)} GB available of {round(total / (10 ** 9), 2)} GB'
+                     ),
+                    length=bar_size,
+                    perc=True,
+                    printEnd='',
+                    max_min=(0, 90))
+
+                tabs += f'\n{disk_bar}'
+
+            except Exception:
+                pass
+
+    except Exception:
+        disk_bar = warning('[!] Could not retrieve Disk Usage')
+
+    return (tabs)
+
+
+# Print progress bar
+def printProgressBar(iteration,
+                     total,
+                     prefix='',
+                     suffix='',
+                     decimals=2,
+                     length=100,
+                     fill='█',
+                     unit='%',
+                     perc=True,
+                     max_min=None,
+                     printEnd="\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        unit        - Optional  : Unit of account (Str)
+        perc        - Optional  : True to display percentages, False in absolutes (Bool)
+        max_min     - Optional  : Tuple with max and min values to warn (Tuple)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    if perc:
+        percent = ("{0:." + str(decimals) + "f}").format(
+            100 * (iteration / float(total)))
+        filledLength = int(length * iteration // total)
+        bar = fill * filledLength + '-' * (length - filledLength)
+        if max_min is not None:
+            if iteration > max_min[1] or iteration < max_min[0]:
+                prefix = error(prefix)
+                bar = warning(bar)
+            else:
+                prefix = success(prefix)
+                bar = success(bar)
+        return (f'{prefix} |{bar}| {suffix} {printEnd}')
+
+    else:
+        percent = ("{0:." + str(decimals) + "f}").format((iteration))
+        filledLength = int(length * iteration // total)
+        bar = fill * filledLength + '-' * (length - filledLength)
+        if max_min is not None:
+            if iteration > max_min[1] or iteration < max_min[0]:
+                prefix = error(prefix)
+                bar = warning(bar)
+            else:
+                prefix = success(prefix)
+                bar = success(bar)
+        return (f'{prefix} |{bar}| {suffix} {printEnd}')
+
+
 def data_mempool():
     from node_warden import load_config
     from node_warden import launch_logger
@@ -262,8 +456,8 @@ def data_mempool():
 
     try:
         mp_fee = tor_request(url + '/api/v1/fees/recommended').json()
-    except Exception:
-        return (error(f' >> Error getting data from {url}. Retrying...'))
+    except Exception as e:
+        return (error(f' >> Error getting data from {url}. Retrying... {e}'))
 
     tabs = list(mp_fee.values())
     tabs = [[str(x) + ' sats/Vb' for x in tabs]]
@@ -317,7 +511,7 @@ def data_mempool():
                        headers=[" Time", "Height", "Tx Count", "Size"],
                        colalign=["right", "center", "center", "right"])
     tabs += info('\n\n Latest Blocks: \n') + mp_tabs
-    tabs += muted(f"\n\n Source: {url}  {success('[Tor Request]')}\n")
+    tabs += muted(f"\n\n Source: {url} \n")
     return tabs
 
 
@@ -385,6 +579,8 @@ def main():
         print(data_login())
     if arg == 'data_mempool':
         print(data_mempool())
+    if arg == 'data_sys':
+        print(data_sys())
     if arg == 'data_logger':
         print(data_logger())
     if arg == 'data_random_satoshi':
@@ -398,7 +594,9 @@ def main():
 # HELPERS ------------------------------------------
 # Function to load and save data into pickles
 def pickle_it(action='load', filename=None, data=None):
+    home_path = os.path.dirname(os.path.abspath(__file__))
     filename = 'static/save/' + filename
+    filename = os.path.join(home_path, filename)
     if action == 'load':
         try:
             with open(filename, 'rb') as handle:

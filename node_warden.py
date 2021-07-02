@@ -107,14 +107,29 @@ def check_version():
             print(yellow("  [!] Could not reach GitHub to check for upgrades"))
             return
 
-        if str(remote_version).strip() == str(current_version).strip():
+        upgrade = False
+
+        try:
+            from packaging import version as packaging_version
+            parsed_github = packaging_version.parse(remote_version)
+            parsed_version = packaging_version.parse(current_version)
+            if parsed_github > parsed_version:
+                upgrade = True
+
+        except Exception:
+            if str(remote_version).strip() != str(current_version).strip():
+                upgrade = True
+
+        if not upgrade:
             spinner.ok("✅ ")
-            spinner.write(success("    You are running latest version"))
-        else:
+            spinner.write(success("    You are running the latest version"))
+
+        if upgrade:
             spinner.fail("💥 ")
             spinner.write(
                 warning(f"    Update available - version: {remote_version}"))
             import click
+            print(f"    [i] You are running version: {current_version}")
             if click.confirm(warning('    [?] Would you like to upgrade?'),
                              default=False):
                 print(" ---------------------------------------")
@@ -166,7 +181,10 @@ def check_cryptocompare():
                 warning("    Connection Error - check internet connection"))
             exit()
 
-        data = request.json()
+        try:
+            data = request.json()
+        except Exception:
+            data = {'Response': 'Error', 'Message': request}
 
         try:
             if data['Response'] == 'Error':
@@ -230,10 +248,108 @@ def check_cryptocompare():
         return (data)
 
 
+def check_umbrel():
+    #  Try to ping umbrel.local and check for installed apps
+    print("")
+    umbrel = False
+    pickle_it('save', 'umbrel.pkl', umbrel)
+    mempool = False
+    config = load_config(True)
+    config_file = os.path.join(basedir, 'config.ini')
+    with yaspin(text="Checking if http://umbrel.local/ is reachable",
+                color="green") as spinner:
+        # Test if this url can be reached
+        url = 'http://umbrel.local'
+        try:
+            result = requests.get(url)
+            if not isinstance(result, requests.models.Response):
+                raise Exception(
+                    'Did not get a return from http://umbrel.local/')
+            if not result.ok:
+                raise Exception(
+                    'Reached http://umbrel.local/ but an error occured.')
+            spinner.ok("✅ ")
+            spinner.write(success(f"    Umbrel ☂️  found on {url}"))
+            umbrel = True
+        except Exception as e:
+            spinner.fail("💥 ")
+            spinner.write(warning("    Umbrel not found:" + str(e)))
+
+    if umbrel:
+        pickle_it('save', 'umbrel.pkl', umbrel)
+        with yaspin(text=f"Checking if Mempool.space app is installed",
+                    color="green") as spinner:
+            url = 'http://umbrel.local:3006/'
+            try:
+                result = requests.get(url)
+                if not isinstance(result, requests.models.Response):
+                    raise Exception(
+                        'Did not get a return from http://umbrel.local:3006/')
+                if not result.ok:
+                    raise Exception(
+                        'Reached Mempool app but an error occured.')
+
+                block_height = tor_request(url +
+                                           '/api/blocks/tip/height').json()
+                spinner.ok("✅ ")
+                spinner.write(
+                    success(
+                        f"    Mempool.space app found on {url}. Latest block is: {block_height}"
+                    ))
+
+                mempool = True
+            except Exception as e:
+                spinner.fail("💥 ")
+                spinner.write(warning("    Umbrel not found:" + str(e)))
+
+    if mempool:
+        config['MEMPOOL']['url'] = 'http://umbrel.local:3006/'
+        with open(config_file, 'w') as configfile:
+            config.write(configfile)
+
+
+def check_os():
+    try:
+        rasp_file = '/sys/firmware/devicetree/base/model'
+        with open(rasp_file, "r") as myfile:
+            rasp_info = myfile.readlines()
+    except Exception:
+        rasp_info = 'Not a Raspberry Pi'
+    os_info = {'uname': os.uname(), 'rpi': rasp_info}
+    # Save for later
+    pickle_it('save', 'os_info.pkl', os_info)
+
+
 def exception_handler(exctype, value, tb):
     os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
     # print(exctype)
     # print(tb.print_last())
+
+
+# Function to load and save data into pickles
+def pickle_it(action='load', filename=None, data=None):
+    import pickle
+    home_path = os.path.dirname(os.path.abspath(__file__))
+    filename = 'static/save/' + filename
+    filename = os.path.join(home_path, filename)
+    if action == 'delete':
+        try:
+            os.remove(filename)
+            return ('deleted')
+        except Exception:
+            return ('failed')
+
+    if action == 'load':
+        try:
+            with open(filename, 'rb') as handle:
+                ld = pickle.load(handle)
+                return (ld)
+        except Exception:
+            return ("file not found")
+    else:
+        with open(filename, 'wb') as handle:
+            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            return ("saved")
 
 
 if __name__ == '__main__':
@@ -251,6 +367,8 @@ if __name__ == '__main__':
         tor = create_tor()
         check_version()
         check_cryptocompare()
+        check_umbrel()
+        check_os()
         greetings()
     else:
         launch_logger()
@@ -265,5 +383,4 @@ if __name__ == '__main__':
             "port": 'Restarting...'
         }
     sys.excepthook = exception_handler
-    print(success("   Launching the Dashboard..."))
     main_dashboard(config, tor)
