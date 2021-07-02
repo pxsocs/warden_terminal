@@ -453,11 +453,17 @@ def data_mempool():
     tabs = []
 
     # Get recommended fees
-
+    forced_mps = False
     try:
         mp_fee = tor_request(url + '/api/v1/fees/recommended').json()
-    except Exception as e:
-        return (error(f' >> Error getting data from {url}. Retrying... {e}'))
+    except Exception:
+        try:
+            url = 'http://mempool.space'
+            mp_fee = tor_request(url + '/api/v1/fees/recommended').json()
+            forced_mps = True
+        except Exception as e:
+            return (
+                error(f' >> Error getting data from {url}. Retrying... {e}'))
 
     tabs = list(mp_fee.values())
     tabs = [[str(x) + ' sats/Vb' for x in tabs]]
@@ -511,7 +517,10 @@ def data_mempool():
                        headers=[" Time", "Height", "Tx Count", "Size"],
                        colalign=["right", "center", "center", "right"])
     tabs += info('\n\n Latest Blocks: \n') + mp_tabs
-    tabs += muted(f"\n\n Source: {url} \n")
+    if not forced_mps:
+        tabs += muted(f"\n\n Source: {url} \n")
+    else:
+        tabs += warning(f"\n\n [!] Source: {url} [Alternate]")
     return tabs
 
 
