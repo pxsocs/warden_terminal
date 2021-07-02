@@ -387,44 +387,6 @@ def data_sys():
     return (tabs)
 
 
-def raspi_get_throttled():
-    import subprocess
-
-    GET_THROTTLED_CMD = 'vcgencmd get_throttled'
-    MESSAGES_INFO = {
-        0: 'Under-voltage!',
-        1: 'ARM frequency capped!',
-        2: 'Currently throttled!',
-        3: 'Soft temperature limit active',
-        16: 'Under-voltage has occurred since last reboot.',
-        17: 'Throttling has occurred since last reboot.',
-        18: 'ARM frequency capped has occurred since last reboot.',
-        19: 'Soft temperature limit has occurred'
-    }
-    messages = []
-    try:
-        throttled_output = subprocess.check_output(GET_THROTTLED_CMD,
-                                                   shell=True)
-        throttled_binary = bin(
-            int(str(throttled_output).split('=')[1].replace("\\n'", ""), 0))
-
-        warnings = 0
-        for position, message in MESSAGES_INFO.iteritems():
-            # Check for the binary digits to be "on" for each warning message
-            if len(throttled_binary) > position and throttled_binary[0 -
-                                                                     position -
-                                                                     1] == '1':
-                messages.append(message)
-                warnings += 1
-
-        if warnings == 0:
-            messages.append("No power issues detected")
-    except Exception:
-        messages.append("Could not get power data")
-
-    return (messages)
-
-
 # Print progress bar
 def printProgressBar(iteration,
                      total,
