@@ -351,25 +351,25 @@ def data_sys():
 
     # Create Disk Usage Bar(s)
     # Get list of devices
-    tabs += '\n\nDisk Partitions\n---------------'
+    tabs += '\n\nStorage\n---------------'
     try:
-        import psutil
-        partitions = ['/', '/dev/sda0', '/dev/sda1', 'root']
+        import shutil
+        partitions = ['/', '/mnt/data', 'mnt/hdd']
 
         for partition in partitions:
             try:
-                disk_result = psutil.disk_usage(partition)
+                total, used, free = shutil.disk_usage(partition)
                 # Get partition name and truncate / fix size
                 prefix = str(partition)
                 prefix = '{:<15}'.format(prefix[:15])
-                perc_c = 100 - ((disk_result.free / disk_result.total) * 100)
+                perc_c = 100 - ((free / total) * 100)
                 disk_bar = printProgressBar(
                     iteration=round(perc_c, 2),
                     total=100,
                     prefix=prefix,
                     suffix=
                     (f'{round(perc_c, 2)}%' +
-                     f'\n                 {round(disk_result.free / (2**30), 2)} GB available of {round(disk_result.total / (2**30), 2)} GB'
+                     f'\n                 {round(free / (10**9), 2)} GB available of {round(total / (10 ** 9), 2)} GB'
                      ),
                     length=bar_size,
                     perc=True,
@@ -432,7 +432,7 @@ def printProgressBar(iteration,
                      suffix='',
                      decimals=2,
                      length=100,
-                     fill=u'█',
+                     fill='█',
                      unit='%',
                      perc=True,
                      max_min=None,
