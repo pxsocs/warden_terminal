@@ -112,7 +112,9 @@ def check_version():
         try:
             from packaging import version as packaging_version
             parsed_github = packaging_version.parse(remote_version)
+            print(parsed_github)
             parsed_version = packaging_version.parse(current_version)
+            print(parsed_version)
             if parsed_github > parsed_version:
                 upgrade = True
 
