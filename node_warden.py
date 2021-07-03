@@ -96,6 +96,7 @@ def create_tor():
 def check_version():
     from dashboard import version
     current_version = version()
+    logging.info(f"Running WARden version: {current_version}")
     with yaspin(
             text=f"Checking for updates. Running version: {current_version}",
             color="green") as spinner:
@@ -256,18 +257,19 @@ def check_umbrel():
     mempool = False
     config = load_config(True)
     config_file = os.path.join(basedir, 'config.ini')
-    with yaspin(text="Checking if http://umbrel.local/ is reachable",
+    try:
+        url = config['UMBREL']['url']
+    except Exception:
+        url = 'http://umbrel.local/'
+    with yaspin(text=f"Checking if Umbrel @ {url} is reachable",
                 color="green") as spinner:
         # Test if this url can be reached
-        url = 'http://umbrel.local'
         try:
-            result = requests.get(url)
+            result = tor_request(url)
             if not isinstance(result, requests.models.Response):
-                raise Exception(
-                    'Did not get a return from http://umbrel.local/')
+                raise Exception(f'Did not get a return from {url}')
             if not result.ok:
-                raise Exception(
-                    'Reached http://umbrel.local/ but an error occured.')
+                raise Exception(f'Reached {url} but an error occured.')
             spinner.ok("✅ ")
             spinner.write(success(f"    Umbrel ☂️  found on {url}"))
             umbrel = True
@@ -276,12 +278,17 @@ def check_umbrel():
             spinner.write(warning("    Umbrel not found:" + str(e)))
 
     if umbrel:
+        if 'onion' in url:
+            url_parsed = ['[Hidden Onion address]']
+        else:
+            url_parsed = url
+        logging.info(success(f"Umbrel ☂️ running on {url_parsed}"))
         pickle_it('save', 'umbrel.pkl', umbrel)
         with yaspin(text=f"Checking if Mempool.space app is installed",
                     color="green") as spinner:
-            url = 'http://umbrel.local:3006/'
+            url = config['MEMPOOL']['url']
             try:
-                result = requests.get(url)
+                result = tor_request(url)
                 if not isinstance(result, requests.models.Response):
                     raise Exception(
                         'Did not get a return from http://umbrel.local:3006/')

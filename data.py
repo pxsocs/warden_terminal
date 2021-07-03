@@ -21,7 +21,7 @@ from connections import test_tor, tor_request
 from ansi_management import (warning, success, error, info, bold, jformat,
                              muted, time_ago, cleanfloat, yellow)
 
-from pricing_engine import multiple_price_grab, GBTC_premium
+from pricing_engine import multiple_price_grab, GBTC_premium, fxsymbol
 
 
 def data_tor(tor=None):
@@ -154,10 +154,20 @@ def data_btc_price():
     btc_usd_price = 0
     for fx in currencies:
         try:
-            price_str = price_data['DISPLAY']['BTC'][fx]['PRICE']
+            try:
+                price_str = price_data['RAW']['BTC'][fx]['PRICE']
+                price_str = fxsymbol(fx) + jformat(price_str, 2)
+                high = price_data['RAW']['BTC'][fx]['HIGHDAY']
+                high = fxsymbol(fx) + jformat(high, 0)
+                low = price_data['RAW']['BTC'][fx]['LOWDAY']
+                low = fxsymbol(fx) + jformat(low, 0)
+            except Exception:
+                price_str = price_data['DISPLAY']['BTC'][fx]['PRICE']
+                high = price_data['DISPLAY']['BTC'][fx]['HIGHDAY']
+                low = price_data['DISPLAY']['BTC'][fx]['LOWDAY']
+
             chg_str = price_data['DISPLAY']['BTC'][fx]['CHANGEPCTDAY']
-            high = price_data['DISPLAY']['BTC'][fx]['HIGHDAY']
-            low = price_data['DISPLAY']['BTC'][fx]['LOWDAY']
+            last_up_str = price_data['DISPLAY']['BTC'][fx]['LASTUPDATE']
             market = muted(price_data['DISPLAY']['BTC'][fx]['LASTMARKET'])
             try:
                 chg = float(chg_str)
@@ -173,24 +183,29 @@ def data_btc_price():
 
             if fx == primary_fx:
                 fx = info(fx)
-            tabs.append(
-                [u'  ' + fx, price_str, chg_str, low + ' - ' + high, market])
+            tabs.append([
+                u'  ' + fx, price_str, chg_str, low + ' - ' + high, market,
+                last_up_str
+            ])
 
         except Exception as e:
             tabs.append(['error: ' + str(e)])
 
     if tabs == []:
         return (
-            error(f' >> Error getting data from CryptoCompare. Retrying...'))
+            error(' >> Error getting data from CryptoCompare. Retrying...'))
 
     try:
         tabs = tabulate(
             tabs,
-            headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
-            colalign=["center", "right", "right", "center", "right"])
+            headers=[
+                'Fiat', 'Price', '% change', '24h Range', 'Source',
+                'Last Update'
+            ],
+            colalign=["center", "right", "right", "center", "center", "right"])
     except Exception:
         return (
-            error(f' >> Error getting data from CryptoCompare. Retrying...'))
+            error(' >> Error getting data from CryptoCompare. Retrying...'))
 
     # GBTC
     gbtc_config = config['STOCKS']
