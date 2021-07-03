@@ -15,7 +15,7 @@ except ModuleNotFoundError:
 from logging.handlers import RotatingFileHandler
 
 from connections import test_tor, tor_request
-from welcome import logo
+from welcome import logo, goodbye
 from dashboard import main_dashboard
 
 from ansi_management import (warning, success, error, info, clear_screen, bold,
@@ -391,3 +391,4 @@ if __name__ == '__main__':
         }
     sys.excepthook = exception_handler
     main_dashboard(config, tor)
+    goodbye()
