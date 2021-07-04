@@ -287,21 +287,17 @@ def data_sys():
     except Exception:
         pass
 
-    try:
-        if os_info["rpi"] != 'Not a Raspberry Pi':
-            messages = raspi_get_throttled()
-            for message in messages:
-                logging.info(info('[POWER] ') + message)
-    except Exception:
-        pass
-
     tabs = tabulate(tabs, colalign=["left", "right"])
 
     tabs += '\n\nSystem Resources\n----------------'
 
     # Get current size of window
     rows, columns = subprocess.check_output(['stty', 'size']).split()
-    bar_size = int(int(columns) / 3) - 35
+    small_display = pickle_it('load', 'small_display.pkl')
+    if small_display:
+        bar_size = int(int(columns)) - 35
+    else:
+        bar_size = int(int(columns) / 3) - 35
 
     # Create CPU Temperature Bar
     try:
