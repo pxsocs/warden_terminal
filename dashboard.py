@@ -11,7 +11,7 @@ from ansi_management import (warning, success, error, info, clear_screen, bold,
                              yellow, muted, cleanfloat)
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
-                  data_whitepaper, data_sys)
+                  data_whitepaper, data_sys, pickle_it)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -184,7 +184,26 @@ def main_dashboard(config, tor):
     body_widget = urwid.Pile([(top_box_size, top_box), (log_tor_size, log_tor),
                               (bottom_box_size, bottom_box)])
 
-    layout = urwid.Frame(header=header, body=body_widget, footer='Loading...')
+    widget_list = [
+        large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
+        sys_box
+    ]
+
+    try:
+        small_display = pickle_it('load', 'small_display.pkl')
+    except Exception:
+        small_display = False
+
+    cycle = pickle_it('load', 'cycle.pkl')
+
+    if not small_display:
+        layout = urwid.Frame(header=header,
+                             body=body_widget,
+                             footer='Loading...')
+    else:
+        layout = urwid.Frame(header=header,
+                             body=widget_list[cycle],
+                             footer='Loading...')
 
     refresh_menu(layout)
     update_header(layout)
@@ -235,8 +254,16 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(120, get_quote)
 
     def refresh(_loop, _data):
+        cycle = pickle_it('load', 'cycle.pkl')
+        layout.body = widget_list[cycle]
+        cycle += 1
+        if cycle > (len(widget_list) - 1):
+            cycle = 0
+        pickle_it('save', 'cycle.pkl', cycle)
+
         # Add Background Tasks
         update_header(layout)
+
         main_loop.draw_screen()
 
         # Add Background Updates
@@ -360,6 +387,8 @@ def main_dashboard(config, tor):
                 # Store or create a list to store
                 running_jobs[job].setdefault('pipe', []).append(launch_process)
 
+        layout.body = widget_list[cycle]
+        cycle += 1
         main_loop.set_alarm_in(refresh_interval, refresh)
 
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)

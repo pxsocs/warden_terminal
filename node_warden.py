@@ -3,6 +3,8 @@ import logging
 import os
 import sys
 import subprocess
+import json
+from random import randrange
 # Upon the first import of non standard libraries, if not found
 # Start pip install
 try:
@@ -249,6 +251,44 @@ def check_cryptocompare():
         return (data)
 
 
+def login_tip():
+    from pricing_engine import current_path
+    filename = os.path.join(current_path(), 'static/json_files/tips.json')
+    with open(filename) as tips_json:
+        tips = json.load(tips_json)["did_you_know"]
+    tip = tips[randrange(len(tips))]
+    logging.info(tip)
+
+
+def check_screen_size():
+    with yaspin(text=f" Checking terminal screen size",
+                color="green") as spinner:
+        rows, columns = subprocess.check_output(['stty', 'size']).split()
+        rows = int(rows)
+        columns = int(columns)
+
+        # min dimensions are recommended at 60 x 172
+        if rows < 60 or columns < 172:
+            small_display = True
+        else:
+            small_display = False
+
+        cycle = int(0)
+        pickle_it('save', 'cycle.pkl', cycle)
+
+        spinner.ok("🖥️ ")
+        message = f"Screen size is {str(rows)} rows x {str(columns)} columns"
+        spinner.write(success("    " + message))
+        logging.info(message)
+        pickle_it('save', 'small_display.pkl', small_display)
+        if small_display:
+            print(
+                yellow(
+                    "    [i] Small display detected. Will cycle through widgets."
+                ))
+        print("")
+
+
 def check_umbrel():
     #  Try to ping umbrel.local and check for installed apps
     print("")
@@ -274,7 +314,7 @@ def check_umbrel():
             spinner.write(success(f"    Umbrel ☂️  found on {url}"))
             umbrel = True
         except Exception as e:
-            spinner.fail("💥 ")
+            spinner.fail("🟡 ")
             spinner.write(warning("    Umbrel not found:" + str(e)))
 
     if umbrel:
@@ -306,7 +346,7 @@ def check_umbrel():
 
                 mempool = True
             except Exception as e:
-                spinner.fail("💥 ")
+                spinner.fail("🟡 ")
                 spinner.write(warning("    Umbrel not found:" + str(e)))
 
     if mempool:
@@ -373,10 +413,13 @@ if __name__ == '__main__':
         config = load_config()
         tor = create_tor()
         check_version()
+        check_screen_size()
         check_cryptocompare()
         check_umbrel()
         check_os()
+        login_tip()
         greetings()
+
     else:
         launch_logger()
         config = load_config(True)
