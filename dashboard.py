@@ -253,6 +253,11 @@ def main_dashboard(config, tor):
         satoshi_box.base_widget.set_text(quote)
         main_loop.set_alarm_in(120, get_quote)
 
+    def get_tip(loop, _data):
+        from node_warden import login_tip
+        login_tip()
+        main_loop.set_alarm_in(120, get_tip)
+
     def refresh(_loop, _data):
         cycle = pickle_it('load', 'cycle.pkl')
         small_display = pickle_it('load', 'small_display.pkl')
@@ -398,5 +403,6 @@ def main_dashboard(config, tor):
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
     main_loop.set_alarm_in(30, check_for_pump)
     main_loop.set_alarm_in(10, get_quote)
+    main_loop.set_alarm_in(120, get_tip)
     main_loop.set_alarm_in(0, refresh)
     main_loop.run()
