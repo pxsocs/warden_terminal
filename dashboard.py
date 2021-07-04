@@ -255,11 +255,13 @@ def main_dashboard(config, tor):
 
     def refresh(_loop, _data):
         cycle = pickle_it('load', 'cycle.pkl')
-        layout.body = widget_list[cycle]
-        cycle += 1
-        if cycle > (len(widget_list) - 1):
-            cycle = 0
-        pickle_it('save', 'cycle.pkl', cycle)
+        small_display = pickle_it('load', 'small_display.pkl')
+        if small_display:
+            layout.body = widget_list[cycle]
+            cycle += 1
+            if cycle > (len(widget_list) - 1):
+                cycle = 0
+            pickle_it('save', 'cycle.pkl', cycle)
 
         # Add Background Tasks
         update_header(layout)
@@ -387,8 +389,10 @@ def main_dashboard(config, tor):
                 # Store or create a list to store
                 running_jobs[job].setdefault('pipe', []).append(launch_process)
 
-        layout.body = widget_list[cycle]
-        cycle += 1
+        small_display = pickle_it('load', 'small_display.pkl')
+        if small_display:
+            layout.body = widget_list[cycle]
+
         main_loop.set_alarm_in(refresh_interval, refresh)
 
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
