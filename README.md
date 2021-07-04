@@ -40,19 +40,19 @@ python3 node_warden.py
 
 Yes. follow the steps below:
 
-1; Look at launcer.sh and make sure it is pointing to the correct directory where warden terminal is
+1. Look at launcer.sh and make sure it is pointing to the correct directory where warden terminal is
 
 ```bash
 nano launcher.sh
 ```
 
-2; Change the file permission of launcher sh (if required)
+2. Change the file permission of launcher sh (if required)
 
 ```bash
 chmod 755 launcher.sh
 ```
 
-3; Add it as a cron job
+3. Add it as a cron job
 
 ```bash
 sudo crontab -e
@@ -66,8 +66,8 @@ and add the following line
 
 4; Reboot
 
-```sudo reboot
-
+```bash
+sudo reboot
 ```
 
 ### Getting a message that Tor is not running
