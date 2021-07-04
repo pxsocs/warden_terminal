@@ -43,9 +43,6 @@ change the file permission of launcher sh (if required)
 ```chmod 755 launcher.sh
 ```
 
-create a logs directory in home 
-```mkdir logs```
-
 add it as a cron job 
 ```
 sudo crontab -e
@@ -53,7 +50,7 @@ sudo crontab -e
 
 add the following line
 ```
-@reboot sh /home/umbrel/warden/warden_terminal//launcher.sh >/home/umbrel/logs/cronlog 2>&1
+@reboot sh /home/umbrel/warden/warden_terminal/launcher.sh &
 ```
 
 reboot
