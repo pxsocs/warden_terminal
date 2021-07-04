@@ -128,7 +128,7 @@ def check_version():
             spinner.write(success("    You are running the latest version"))
 
         if upgrade:
-            spinner.fail("💥 ")
+            spinner.fail("🟡 ")
             spinner.write(
                 warning(f"    Update available - version: {remote_version}"))
             import click
