@@ -33,6 +33,37 @@ pip3 install -r requirements.txt
 python3 node_warden.py
 ```
 
+##Auto load warden on start up on  PI
+look at launcer.sh and make sure it is pointing to the correct directory where warden terminal is
+```nano launcher.sh
+```
+
+change the file permission of launcher sh (if required)
+
+```chmod 755 launcher.sh
+```
+
+create a logs directory in home 
+```mkdir logs```
+
+add it as a cron job 
+```
+sudo crontab -e
+```
+
+add the following line
+```
+@reboot sh /home/umbrel/warden/warden_terminal//launcher.sh >/home/umbrel/logs/cronlog 2>&1
+```
+
+reboot
+```sudo reboot
+```
+
+
+
+
+
 You need Tor Running for the app to work. Instructions [here](https://2019.www.torproject.org/docs/debian.html.en).
 
 The `config.ini` file can be edited with:
