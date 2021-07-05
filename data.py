@@ -199,8 +199,7 @@ def data_btc_price():
         tabs = tabulate(
             tabs,
             headers=[
-                'Fiat', 'Price', '% change', '24h Range', 'Source',
-                'Last Update'
+                'Fiat', 'Price', '% change', '24h Range', 'Source', 'Update'
             ],
             colalign=["center", "right", "right", "center", "center", "right"])
     except Exception:

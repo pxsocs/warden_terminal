@@ -369,6 +369,16 @@ def check_os():
 
 
 def exception_handler(exctype, value, tb):
+    print(f"An error occured... Error: {exctype}")
+    print("Relaunching App...")
+    try:
+        import psutil
+        p = psutil.Process(os.getpid())
+        for handler in p.open_files() + p.connections():
+            os.close(handler.fd)
+    except Exception as e:
+        logging.error(e)
+
     os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
     # print(exctype)
     # print(tb.print_last())
@@ -433,6 +443,7 @@ if __name__ == '__main__':
             "status": True,
             "port": 'Restarting...'
         }
+
     sys.excepthook = exception_handler
     main_dashboard(config, tor)
     goodbye()
