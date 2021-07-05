@@ -281,10 +281,11 @@ def check_screen_size():
         spinner.write(success("    " + message))
         logging.info(message)
         pickle_it('save', 'small_display.pkl', small_display)
+        pickle_it('save', 'multi_toggle.pkl', False)
         if small_display:
             print(
                 yellow(
-                    "    [i] Small display detected. Will cycle through widgets."
+                    "    [i] Small display detected. Will cycle through widgets. Pressing (M) on main screen will force multi gadget display."
                 ))
         print("")
 
