@@ -40,13 +40,21 @@ python3 node_warden.py
 
 Yes. follow the steps below:
 
-1. Look at launcer.sh and make sure it is pointing to the correct directory where warden terminal is
+1. Edit the file launcer.sh and make sure it is pointing to the correct directory where warden terminal is. You can check the folder path by typing `pwd` while inside the WARden folder.
+
+Should return something like:
+
+> /home/umbrel/warden_terminal
+
+Take note of this folder then:
 
 ```bash
 nano launcher.sh
 ```
 
-2. Change the file permission of launcher sh (if required)
+And change the cd home/...... to your folder above. CTRL+X and Y to save and exit.
+
+2. Change the file permission of `launcher.sh`
 
 ```bash
 chmod 755 launcher.sh
@@ -58,13 +66,18 @@ chmod 755 launcher.sh
 sudo crontab -e
 ```
 
-and add the following line
+If prompted to select an editor, choose `/bin/nano`.
+
+Scroll to the end of the file - last line and include the following line. **Make sure to change the directory to the one you noted with `pwd` above**
 
 ```bash
-@reboot sh /home/umbrel/warden/warden_terminal/launcher.sh &
+@reboot sh /home/umbrel/<your folder>/warden_terminal/launcher.sh &
 ```
 
-4; Reboot
+CTRL + X
+Y to save
+
+4. Reboot
 
 ```bash
 sudo reboot

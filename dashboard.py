@@ -8,7 +8,7 @@ import os
 import pyttsx3
 from datetime import datetime
 from ansi_management import (warning, success, error, info, clear_screen, bold,
-                             yellow, muted, cleanfloat)
+                             yellow, muted, cleanfloat, jformat)
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
                   data_whitepaper, data_sys, pickle_it)
@@ -83,6 +83,17 @@ def main_dashboard(config, tor):
         txt = u' WARden Node Edition (Version: ' + version() + emoji.emojize(
             ') | twitter :bird: @alphaazeta | Last Refresh on: '
         ) + refresh_time
+
+        try:
+            from data import btc_price_data
+            btc = btc_price_data()
+            btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
+        except Exception:
+            btc_price = 0
+
+        if btc_price > 0:
+            txt += '  |  ' + f"BTC ${jformat(btc_price, 0)} "
+
         if message:
             txt += ' | ' + message
         header_text = urwid.Text(txt, align='right')
@@ -91,9 +102,11 @@ def main_dashboard(config, tor):
 
     def refresh_menu(layout):
         lst_menu = []
-        lst_menu.append(['(S) Sounds on/off  |  '])
+        lst_menu.append(['(A) Audio on/off  |  '])
         lst_menu.append(['(H) to toggle private info  |  '])
         lst_menu.append(['(D) Download Bitcoin Whitepaper (bitcoin.pdf)  |  '])
+        lst_menu.append(['(S) Setup Settings  |  '])
+        lst_menu.append(['(M) to toggle multi view  |  '])
         lst_menu.append(['(Q) to quit'])
         menu = urwid.Text(lst_menu, align='center')
         layout.footer = menu
@@ -191,6 +204,10 @@ def main_dashboard(config, tor):
 
     try:
         small_display = pickle_it('load', 'small_display.pkl')
+        multi = pickle_it('load', 'multi_toggle.pkl')
+        if multi is True:
+            small_display = False
+
     except Exception:
         small_display = False
 
@@ -212,17 +229,30 @@ def main_dashboard(config, tor):
     def handle_input(key):
         if key == 'Q' or key == 'q':
             raise urwid.ExitMainLoop()
-        if key == 'S' or key == 's':
+        if key == 'A' or key == 'a':
             toggle('sound')
             refresh_menu(layout)
         if key == 'H' or key == 'h':
             toggle('hide_private_info')
             refresh_menu(layout)
             tor_box.base_widget.set_text("Updating... Please Wait.")
-
         if key == 'D' or key == 'd':
             logger_box.base_widget.set_text(data_whitepaper())
             refresh_menu(layout)
+
+        # Toggle multi windows / gadgets or single
+        if key == 'M' or key == 'm':
+            try:
+                multi = pickle_it('load', 'multi_toggle.pkl')
+            except Exception:
+                multi = True
+            # toggle
+            multi = not multi
+            pickle_it('save', 'multi_toggle.pkl', multi)
+            main_loop.draw_screen()
+
+        if key == 'S' or key == 's':
+            pass
 
         else:
             pass
@@ -258,6 +288,25 @@ def main_dashboard(config, tor):
         login_tip()
         main_loop.set_alarm_in(120, get_tip)
 
+    def check_screen_size(_loop, __data):
+        rows, columns = subprocess.check_output(['stty', 'size']).split()
+        rows = int(rows)
+        columns = int(columns)
+
+        # min dimensions are recommended at 60 x 172
+        if rows < 60 or columns < 172:
+            multi = pickle_it('load', 'multi_toggle.pkl')
+            if multi is False:
+                small_display = True
+            else:
+                small_display = False
+            pickle_it('save', 'small_display.pkl', small_display)
+        else:
+            small_display = False
+            pickle_it('save', 'small_display.pkl', small_display)
+
+        main_loop.set_alarm_in(2, check_screen_size)
+
     def refresh(_loop, _data):
         cycle = pickle_it('load', 'cycle.pkl')
         small_display = pickle_it('load', 'small_display.pkl')
@@ -267,6 +316,8 @@ def main_dashboard(config, tor):
             if cycle > (len(widget_list) - 1):
                 cycle = 0
             pickle_it('save', 'cycle.pkl', cycle)
+        else:
+            layout.body = body_widget
 
         # Add Background Tasks
         update_header(layout)
@@ -405,4 +456,5 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(10, get_quote)
     main_loop.set_alarm_in(120, get_tip)
     main_loop.set_alarm_in(0, refresh)
+    main_loop.set_alarm_in(2, check_screen_size)
     main_loop.run()
