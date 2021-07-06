@@ -143,7 +143,8 @@ def check_version():
                 print(yellow("Installing Python Package Requirements")),
                 subprocess.run("pip3 install -r requirements.txt", shell=True)
                 print(" ---------------------------------------")
-                print(success("  ✅ Done Upgrading"))
+                print(success("  ✅ Done Upgrading | Restarting App..."))
+                exception_handler(None, None, None)
 
         print("")
 
@@ -372,8 +373,10 @@ def check_os():
 
 
 def exception_handler(exctype, value, tb):
-    print(f"An error occured... Error: {exctype}")
-    print("Relaunching App...")
+    if exctype is not None:
+        print(f"An error occured... Error: {exctype}")
+        print("Relaunching App...")
+
     try:
         import psutil
         p = psutil.Process(os.getpid())
