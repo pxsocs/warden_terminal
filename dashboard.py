@@ -405,6 +405,11 @@ def main_dashboard(config, tor):
                 'subprocess': 'python3 data.py data_btc_price',
                 'updater': update_btc
             },
+            'large_price': {
+                'max_workers': 1,
+                'subprocess': 'python3 data.py data_large_price',
+                'updater': update_large_price
+            },
             'tor': {
                 'max_workers': 1,
                 'subprocess': 'python3 data.py data_tor',
@@ -429,11 +434,6 @@ def main_dashboard(config, tor):
                 'max_workers': 1,
                 'subprocess': 'python3 data.py data_logger',
                 'updater': update_logger
-            },
-            'large_price': {
-                'max_workers': 1,
-                'subprocess': 'python3 data.py data_large_price',
-                'updater': update_large_price
             }
         }
 
@@ -456,9 +456,9 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(refresh_interval, refresh)
 
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
-    main_loop.set_alarm_in(10, check_for_pump)
-    main_loop.set_alarm_in(20, get_quote)
-    main_loop.set_alarm_in(30, get_tip)
     main_loop.set_alarm_in(0, refresh)
-    main_loop.set_alarm_in(5, check_screen_size)
+    main_loop.set_alarm_in(0, check_for_pump)
+    main_loop.set_alarm_in(0, get_quote)
+    main_loop.set_alarm_in(0, get_tip)
+    main_loop.set_alarm_in(0, check_screen_size)
     main_loop.run()

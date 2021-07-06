@@ -108,42 +108,52 @@ def btc_price_data():
     return (price_data)
 
 
-def data_large_price():
+def data_large_price(price=None, change=None, chg_str=None):
     from node_warden import load_config
     config = load_config(quiet=True)
     ft_config = config['MAIN']
     font = ft_config.get('large_text_font')
-    btc = btc_price_data()
-    custom_fig = pyfiglet.Figlet(font=font)
-    if btc != 'loading...':
-        try:
-            btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
-        except Exception:
-            btc_price = None
-            return (error(' >> Error getting price data. Retrying...'))
+    # If a price is provided, it won't refresh
+    if price is not None:
+        btc_price = price
+        if change is None:
+            chg = -1
+            chg_str = '-'
+
     else:
-        btc_price = btc
-        return_fig = custom_fig.renderText('Loading...')
-        return (return_fig)
+        btc = btc_price_data()
+        custom_fig = pyfiglet.Figlet(font=font)
+        if btc != 'loading...':
+            try:
+                btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
+            except Exception:
+                btc_price = None
+                return (error(' >> Error getting price data. Retrying...'))
+        else:
+            btc_price = btc
+            return_fig = custom_fig.renderText('Loading...')
+            return (return_fig)
 
     return_fig = custom_fig.renderText('$  ' + jformat(btc_price, 0))
     return_fig = yellow(return_fig)
 
-    chg_str = btc['DISPLAY']['BTC']['USD']['CHANGEPCTDAY']
-    chg = cleanfloat(chg_str)
-    msg = '\n'
+    if chg_str != '-':
+        chg_str = btc['DISPLAY']['BTC']['USD']['CHANGEPCTDAY']
+        chg = cleanfloat(chg_str)
 
-    if chg >= 0:
-        msg += success(f'24hr Change: +{chg_str}%\n')
-    if chg > 5:
-        msg += (info("[NgU] ") + muted(f"Looks like Bitcoin is pumping ") +
-                emoji.emojize(":rocket:"))
+    if chg_str != '-':
+        msg = '\n'
+        if chg >= 0:
+            msg += success(f'24hr Change: +{chg_str}%\n')
+        if chg > 5:
+            msg += (info("[NgU] ") + muted(f"Looks like Bitcoin is pumping ") +
+                    emoji.emojize(":rocket:"))
 
-    if chg < 0:
-        msg += error(f'24hr Change: {chg_str}%\n')
-    if chg < -5:
-        msg += muted(
-            f"Bitcoin dropping? Buy the dip!\nTime to stack some sats. ")
+        if chg < 0:
+            msg += error(f'24hr Change: {chg_str}%\n')
+        if chg < -5:
+            msg += muted(
+                f"Bitcoin dropping? Buy the dip!\nTime to stack some sats. ")
 
     return_fig = muted(return_fig)
     return_fig += msg
