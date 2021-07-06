@@ -85,11 +85,14 @@ def main_dashboard(config, tor):
             ') | twitter :bird: @alphaazeta | Last Refresh on: '
         ) + refresh_time
 
-        try:
-            from data import btc_price_data
-            btc = btc_price_data()
-            btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
-        except Exception:
+        from data import btc_price_data
+        btc = btc_price_data()
+        if btc != 'loading...':
+            try:
+                btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
+            except Exception:
+                btc_price = 0
+        else:
             btc_price = 0
 
         if btc_price > 0:
@@ -336,6 +339,7 @@ def main_dashboard(config, tor):
                 if pipe != []:
                     pipe.kill()
                     gc.collect()
+            update_header(layout)
 
         def update_tor(read_data):
             read_data = translate_text_for_urwid(read_data)

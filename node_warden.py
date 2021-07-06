@@ -149,6 +149,8 @@ def check_version():
 
 
 def greetings():
+    # Clean saved price
+    pickle_it('save', 'multi_price.pkl', 'loading...')
     # Welcome Sound
     if config['MAIN'].getboolean('welcome_sound'):
         with yaspin(text=config['MAIN'].get('welcome_text'),

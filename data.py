@@ -99,7 +99,12 @@ def data_login():
 
 
 def btc_price_data():
-    price_data = multiple_price_grab('BTC', 'USD')
+    try:
+        price_data = pickle_it('load', 'multi_price.pkl')
+        # test if loaded. Will raise KeyError if not.
+        _ = price_data['DISPLAY']
+    except Exception:
+        price_data = 'loading...'
     return (price_data)
 
 
@@ -109,11 +114,18 @@ def data_large_price():
     ft_config = config['MAIN']
     font = ft_config.get('large_text_font')
     btc = btc_price_data()
-    try:
-        btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
-    except Exception:
-        return (error(' >> Error getting price data. Retrying...'))
     custom_fig = pyfiglet.Figlet(font=font)
+    if btc != 'loading...':
+        try:
+            btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
+        except Exception:
+            btc_price = None
+            return (error(' >> Error getting price data. Retrying...'))
+    else:
+        btc_price = btc
+        return_fig = custom_fig.renderText('Loading...')
+        return (return_fig)
+
     return_fig = custom_fig.renderText('$  ' + jformat(btc_price, 0))
     return_fig = yellow(return_fig)
 
@@ -149,6 +161,10 @@ def data_btc_price():
     currencies = ast.literal_eval(fx_config.get('fx_list'))
     primary_fx = ast.literal_eval(fx_config.get('primary_fx'))
     price_data = multiple_price_grab('BTC', ','.join(currencies))
+    # save BTC prices to be used with all apps.
+    # All refreshes are done at this single point to avoid
+    # different prices and reduce the number of API calls
+    pickle_it('save', 'multi_price.pkl', price_data)
     # Get prices in different currencies
     tabs = []
     btc_usd_price = 0
@@ -577,7 +593,12 @@ def data_random_satoshi():
     config = load_config(quiet=True)
     url = config['QUOTES'].get('url')
     try:
-        quotes = tor_request(url).json()
+        load_quote = pickle_it('load', 'satoshi.pkl')
+        if load_quote == "file not found":
+            quotes = tor_request(url).json()
+            pickle_it('save', 'satoshi.pkl', quotes)
+        else:
+            quotes = load_quote
     except Exception:
         return (error(' >> Error contacting server. Retrying... '))
     quote = quotes[randrange(len(quotes))]
