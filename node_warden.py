@@ -143,12 +143,16 @@ def check_version():
                 print(yellow("Installing Python Package Requirements")),
                 subprocess.run("pip3 install -r requirements.txt", shell=True)
                 print(" ---------------------------------------")
-                print(success("  ✅ Done Upgrading"))
+                print(success("  ✅ Done Upgrading | Restarting App..."))
+                exception_handler(None, None, None)
 
         print("")
 
 
 def greetings():
+    # Clean saved price
+    pickle_it('save', 'multi_price.pkl', 'loading...')
+    pickle_it('load', 'last_price_refresh.pkl', 0)
     # Welcome Sound
     if config['MAIN'].getboolean('welcome_sound'):
         with yaspin(text=config['MAIN'].get('welcome_text'),
@@ -323,7 +327,7 @@ def check_umbrel():
             url_parsed = ['[Hidden Onion address]']
         else:
             url_parsed = url
-        logging.info(success(f"Umbrel ☂️ running on {url_parsed}"))
+        logging.info(success(f"Umbrel ☂️  running on {url_parsed}"))
         pickle_it('save', 'umbrel.pkl', umbrel)
         with yaspin(text=f"Checking if Mempool.space app is installed",
                     color="green") as spinner:
@@ -369,6 +373,18 @@ def check_os():
 
 
 def exception_handler(exctype, value, tb):
+    if exctype is not None:
+        print(f"An error occured... Error: {exctype}")
+        print("Relaunching App...")
+
+    try:
+        import psutil
+        p = psutil.Process(os.getpid())
+        for handler in p.open_files() + p.connections():
+            os.close(handler.fd)
+    except Exception as e:
+        logging.error(e)
+
     os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
     # print(exctype)
     # print(tb.print_last())
@@ -433,6 +449,7 @@ if __name__ == '__main__':
             "status": True,
             "port": 'Restarting...'
         }
+
     sys.excepthook = exception_handler
     main_dashboard(config, tor)
     goodbye()

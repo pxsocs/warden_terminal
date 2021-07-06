@@ -6,6 +6,7 @@ import ast
 import gc
 import os
 import pyttsx3
+from contextlib import suppress
 from datetime import datetime
 from ansi_management import (warning, success, error, info, clear_screen, bold,
                              yellow, muted, cleanfloat, jformat)
@@ -13,6 +14,7 @@ from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
                   data_whitepaper, data_sys, pickle_it)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
+from urwid.container import PileError
 
 
 def toggle(config_var):
@@ -40,7 +42,6 @@ def version():
 
 
 def main_dashboard(config, tor):
-
     try:
         refresh_interval = int(config['MAIN'].get('refresh'))
     except Exception:
@@ -84,11 +85,14 @@ def main_dashboard(config, tor):
             ') | twitter :bird: @alphaazeta | Last Refresh on: '
         ) + refresh_time
 
-        try:
-            from data import btc_price_data
-            btc = btc_price_data()
-            btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
-        except Exception:
+        from data import btc_price_data
+        btc = btc_price_data()
+        if btc != 'loading...':
+            try:
+                btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
+            except Exception:
+                btc_price = 0
+        else:
             btc_price = 0
 
         if btc_price > 0:
@@ -101,12 +105,17 @@ def main_dashboard(config, tor):
         layout.header = header
 
     def refresh_menu(layout):
+        audio = config['MAIN'].getboolean('sound')
+        multi = pickle_it('load', 'multi_toggle.pkl')
+        audio_str = "ON" if audio is True else "OFF"
+        multi_str = "ON" if multi is True else "OFF"
+
         lst_menu = []
-        lst_menu.append(['(A) Audio on/off  |  '])
+        lst_menu.append([f'(A) Audio on/off [{audio_str}] |  '])
         lst_menu.append(['(H) to toggle private info  |  '])
         lst_menu.append(['(D) Download Bitcoin Whitepaper (bitcoin.pdf)  |  '])
         lst_menu.append(['(S) Setup Settings  |  '])
-        lst_menu.append(['(M) to toggle multi view  |  '])
+        lst_menu.append([f'(M) to toggle multi view [{multi_str}] |  '])
         lst_menu.append(['(Q) to quit'])
         menu = urwid.Text(lst_menu, align='center')
         layout.footer = menu
@@ -231,14 +240,11 @@ def main_dashboard(config, tor):
             raise urwid.ExitMainLoop()
         if key == 'A' or key == 'a':
             toggle('sound')
-            refresh_menu(layout)
         if key == 'H' or key == 'h':
             toggle('hide_private_info')
-            refresh_menu(layout)
             tor_box.base_widget.set_text("Updating... Please Wait.")
         if key == 'D' or key == 'd':
             logger_box.base_widget.set_text(data_whitepaper())
-            refresh_menu(layout)
 
         # Toggle multi windows / gadgets or single
         if key == 'M' or key == 'm':
@@ -249,13 +255,15 @@ def main_dashboard(config, tor):
             # toggle
             multi = not multi
             pickle_it('save', 'multi_toggle.pkl', multi)
-            main_loop.draw_screen()
 
         if key == 'S' or key == 's':
             pass
 
         else:
             pass
+
+        main_loop.draw_screen()
+        refresh_menu(layout)
 
     def check_for_pump(_loop, _data):
         try:
@@ -288,6 +296,24 @@ def main_dashboard(config, tor):
         login_tip()
         main_loop.set_alarm_in(120, get_tip)
 
+    def check_health(_loop, __data):
+        # Checks how long since last update, if more than 120 seconds went
+        # through without price refresh, the app tries to restart
+        REFRESH_HEALTH = 120
+        last_price_refresh = pickle_it('load', 'last_price_refresh.pkl')
+        try:
+            seconds = (datetime.now() - last_price_refresh).total_seconds()
+            if seconds > REFRESH_HEALTH:
+                from node_warden import exception_handler
+                logging.error(
+                    warning("[!] APP was not refreshing, forced a restart."))
+                exception_handler(
+                    'No updates - health is compromised. Restarting.', None,
+                    None)
+        except Exception:
+            pass
+        main_loop.set_alarm_in(60, check_health)
+
     def check_screen_size(_loop, __data):
         rows, columns = subprocess.check_output(['stty', 'size']).split()
         rows = int(rows)
@@ -305,7 +331,7 @@ def main_dashboard(config, tor):
             small_display = False
             pickle_it('save', 'small_display.pkl', small_display)
 
-        main_loop.set_alarm_in(2, check_screen_size)
+        main_loop.set_alarm_in(1, check_screen_size)
 
     def refresh(_loop, _data):
         cycle = pickle_it('load', 'cycle.pkl')
@@ -319,11 +345,6 @@ def main_dashboard(config, tor):
         else:
             layout.body = body_widget
 
-        # Add Background Tasks
-        update_header(layout)
-
-        main_loop.draw_screen()
-
         # Add Background Updates
         # UPDATER FUNCTIONS - ONE NEEDED PER UPDATE
         # These run on background as watch pipes
@@ -336,6 +357,7 @@ def main_dashboard(config, tor):
                 if pipe != []:
                     pipe.kill()
                     gc.collect()
+            update_header(layout)
 
         def update_tor(read_data):
             read_data = translate_text_for_urwid(read_data)
@@ -401,6 +423,11 @@ def main_dashboard(config, tor):
                 'subprocess': 'python3 data.py data_btc_price',
                 'updater': update_btc
             },
+            'large_price': {
+                'max_workers': 1,
+                'subprocess': 'python3 data.py data_large_price',
+                'updater': update_large_price
+            },
             'tor': {
                 'max_workers': 1,
                 'subprocess': 'python3 data.py data_tor',
@@ -425,11 +452,6 @@ def main_dashboard(config, tor):
                 'max_workers': 1,
                 'subprocess': 'python3 data.py data_logger',
                 'updater': update_logger
-            },
-            'large_price': {
-                'max_workers': 1,
-                'subprocess': 'python3 data.py data_large_price',
-                'updater': update_large_price
             }
         }
 
@@ -452,9 +474,10 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(refresh_interval, refresh)
 
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
-    main_loop.set_alarm_in(30, check_for_pump)
-    main_loop.set_alarm_in(10, get_quote)
-    main_loop.set_alarm_in(120, get_tip)
     main_loop.set_alarm_in(0, refresh)
-    main_loop.set_alarm_in(2, check_screen_size)
+    main_loop.set_alarm_in(0, check_for_pump)
+    main_loop.set_alarm_in(0, get_quote)
+    main_loop.set_alarm_in(0, get_tip)
+    main_loop.set_alarm_in(0, check_screen_size)
+    main_loop.set_alarm_in(360, check_health)
     main_loop.run()
