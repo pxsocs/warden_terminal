@@ -175,6 +175,8 @@ def data_btc_price():
     # All refreshes are done at this single point to avoid
     # different prices and reduce the number of API calls
     pickle_it('save', 'multi_price.pkl', price_data)
+    last_price_refresh = datetime.now()
+    pickle_it('save', 'last_price_refresh.pkl', last_price_refresh)
     # Get prices in different currencies
     tabs = []
     btc_usd_price = 0

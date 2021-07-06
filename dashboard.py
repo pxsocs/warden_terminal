@@ -296,6 +296,24 @@ def main_dashboard(config, tor):
         login_tip()
         main_loop.set_alarm_in(120, get_tip)
 
+    def check_health(_loop, __data):
+        # Checks how long since last update, if more than 120 seconds went
+        # through without price refresh, the app tries to restart
+        REFRESH_HEALTH = 120
+        last_price_refresh = pickle_it('load', 'last_price_refresh.pkl')
+        try:
+            seconds = (datetime.now() - last_price_refresh).total_seconds()
+            if seconds > REFRESH_HEALTH:
+                from node_warden import exception_handler
+                logging.error(
+                    warning("[!] APP was not refreshing, forced a restart."))
+                exception_handler(
+                    'No updates - health is compromised. Restarting.', None,
+                    None)
+        except Exception:
+            pass
+        main_loop.set_alarm_in(60, check_health)
+
     def check_screen_size(_loop, __data):
         rows, columns = subprocess.check_output(['stty', 'size']).split()
         rows = int(rows)
@@ -313,7 +331,7 @@ def main_dashboard(config, tor):
             small_display = False
             pickle_it('save', 'small_display.pkl', small_display)
 
-        main_loop.set_alarm_in(2, check_screen_size)
+        main_loop.set_alarm_in(1, check_screen_size)
 
     def refresh(_loop, _data):
         cycle = pickle_it('load', 'cycle.pkl')
@@ -461,4 +479,5 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(0, get_quote)
     main_loop.set_alarm_in(0, get_tip)
     main_loop.set_alarm_in(0, check_screen_size)
+    main_loop.set_alarm_in(360, check_health)
     main_loop.run()

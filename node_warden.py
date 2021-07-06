@@ -151,6 +151,7 @@ def check_version():
 def greetings():
     # Clean saved price
     pickle_it('save', 'multi_price.pkl', 'loading...')
+    pickle_it('load', 'last_price_refresh.pkl', 0)
     # Welcome Sound
     if config['MAIN'].getboolean('welcome_sound'):
         with yaspin(text=config['MAIN'].get('welcome_text'),
@@ -325,7 +326,7 @@ def check_umbrel():
             url_parsed = ['[Hidden Onion address]']
         else:
             url_parsed = url
-        logging.info(success(f"Umbrel ☂️ running on {url_parsed}"))
+        logging.info(success(f"Umbrel ☂️  running on {url_parsed}"))
         pickle_it('save', 'umbrel.pkl', umbrel)
         with yaspin(text=f"Checking if Mempool.space app is installed",
                     color="green") as spinner:
