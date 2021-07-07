@@ -14,7 +14,6 @@ from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
                   data_whitepaper, data_sys, pickle_it)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
-from urwid.container import PileError
 
 
 def toggle(config_var):
@@ -196,15 +195,12 @@ def main_dashboard(config, tor):
 
     # Assemble the widgets
     header = 'Loading...'
+
     log_tor = urwid.Columns(
         [sys_box, urwid.Pile([login_box, tor_box]), mp_box])
-    log_tor_size = max(mp_box_size, login_box_size, tor_box_size)
-    bottom_box_size = max(satoshi_box_size, logger_box_size)
     bottom_box = urwid.Columns([logger_box, satoshi_box])
     top_box = urwid.Columns([quote_box, large_price])
-    top_box_size = max(large_price_size, quote_box_size)
-    body_widget = urwid.Pile([(top_box_size, top_box), (log_tor_size, log_tor),
-                              (bottom_box_size, bottom_box)])
+    body_widget = urwid.Pile([top_box, log_tor, bottom_box])
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
