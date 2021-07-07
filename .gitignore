@@ -22,6 +22,7 @@ txs*.pkl
 debug*.*
 debug.log
 *.pkl
+.dockerignore
 
 # Packages #
 ############

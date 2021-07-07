@@ -373,10 +373,6 @@ def check_os():
 
 
 def exception_handler(exctype, value, tb):
-    if exctype is not None:
-        print(f"An error occured... Error: {exctype}")
-        print("Relaunching App...")
-
     try:
         import psutil
         p = psutil.Process(os.getpid())
@@ -452,4 +448,5 @@ if __name__ == '__main__':
 
     sys.excepthook = exception_handler
     main_dashboard(config, tor)
+
     goodbye()

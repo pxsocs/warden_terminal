@@ -315,7 +315,12 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(60, check_health)
 
     def check_screen_size(_loop, __data):
-        rows, columns = subprocess.check_output(['stty', 'size']).split()
+        try:
+            rows, columns = subprocess.check_output(['stty', 'size'],
+                                                    close_fds=True).split()
+        except OSError:
+            return
+
         rows = int(rows)
         columns = int(columns)
 
@@ -331,7 +336,7 @@ def main_dashboard(config, tor):
             small_display = False
             pickle_it('save', 'small_display.pkl', small_display)
 
-        main_loop.set_alarm_in(1, check_screen_size)
+        main_loop.set_alarm_in(5, check_screen_size)
 
     def refresh(_loop, _data):
         cycle = pickle_it('load', 'cycle.pkl')
@@ -463,7 +468,8 @@ def main_dashboard(config, tor):
                 launch_process = subprocess.Popen(job_list[job]['subprocess'],
                                                   shell=True,
                                                   stdout=stdout,
-                                                  stderr=stderr)
+                                                  stderr=stderr,
+                                                  close_fds=True)
                 # Store or create a list to store
                 running_jobs[job].setdefault('pipe', []).append(launch_process)
 
