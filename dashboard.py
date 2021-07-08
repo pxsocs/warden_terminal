@@ -5,21 +5,29 @@ import subprocess
 import ast
 import gc
 import os
-import pyttsx3
+import configparser
 from contextlib import suppress
 from datetime import datetime
 from ansi_management import (warning, success, error, info, clear_screen, bold,
                              yellow, muted, cleanfloat, jformat)
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
-                  data_whitepaper, data_sys, pickle_it)
+                  data_whitepaper, data_sys, pickle_it, data_logger)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
+def load_config():
+    # Load Config
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    config_file = os.path.join(basedir, 'config.ini')
+    CONFIG = configparser.ConfigParser()
+    CONFIG.read(config_file)
+    return (CONFIG)
+
+
 def toggle(config_var):
-    from node_warden import load_config
-    from node_warden import basedir
-    config = load_config(quiet=True)
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    config = load_config()
     getter = config['MAIN'].getboolean(config_var)
     getter = not getter
     config['MAIN'][config_var] = str(getter)
@@ -41,42 +49,6 @@ def version():
 
 
 def main_dashboard(config, tor):
-    try:
-        refresh_interval = int(config['MAIN'].get('refresh'))
-    except Exception:
-        refresh_interval = 5
-
-    running_jobs = {
-        'btc': {
-            'workers': 0
-        },
-        'tor': {
-            'workers': 0
-        },
-        'login': {
-            'workers': 0
-        },
-        'mp': {
-            'workers': 0
-        },
-        'sys': {
-            'workers': 0
-        },
-        'logger': {
-            'workers': 0
-        },
-        'large_price': {
-            'workers': 0
-        }
-    }
-
-    palette = [('titlebar', 'dark green', ''),
-               ('refresh button', 'dark green,bold', ''),
-               ('quit button', 'dark green', ''), ('button', 'dark blue', ''),
-               ('getting quote', 'dark blue', ''),
-               ('headers', 'white,bold', ''), ('change ', 'dark green', ''),
-               ('change negative', 'dark red', '')]
-
     def update_header(layout, message=None, message_type=None):
         # Create Header
         refresh_time = datetime.now().strftime('%H:%M:%S')
@@ -104,12 +76,19 @@ def main_dashboard(config, tor):
         layout.header = header
 
     def refresh_menu(layout):
-        audio = config['MAIN'].getboolean('sound')
+        config = load_config()
+        try:
+            audio = config['MAIN']['sound']
+        except Exception:
+            return
         multi = pickle_it('load', 'multi_toggle.pkl')
         audio_str = "ON" if audio is True else "OFF"
         multi_str = "ON" if multi is True else "OFF"
 
         lst_menu = []
+        small_display = pickle_it('load', 'small_display.pkl')
+        if small_display:
+            lst_menu.append([f'Use arrows to cycle screens |  '])
         lst_menu.append([f'(A) Audio on/off [{audio_str}] |  '])
         lst_menu.append(['(H) to toggle private info  |  '])
         lst_menu.append(['(D) Download Bitcoin Whitepaper (bitcoin.pdf)  |  '])
@@ -150,16 +129,27 @@ def main_dashboard(config, tor):
             self.line_box = urwid.LineBox(self.v_padding)
             self.box_size = self.height
 
+    try:
+        refresh_interval = int(config['MAIN'].get('refresh'))
+    except Exception:
+        config = load_config()
+        refresh_interval = 5
+
+    palette = [('titlebar', 'dark green', ''),
+               ('refresh button', 'dark green,bold', ''),
+               ('quit button', 'dark green', ''), ('button', 'dark blue', ''),
+               ('getting quote', 'dark blue', ''),
+               ('headers', 'white,bold', ''), ('change ', 'dark green', ''),
+               ('change negative', 'dark red', '')]
+
     # Create the BTC price box
-    quote_box_size = len(ast.literal_eval(
-        config['CURRENCIES'].get('fx_list'))) + 10
-    quote_box = Box(loader_text='Loading Prices...',
-                    height=quote_box_size).line_box
+
+    quote_box = Box(loader_text='Loading Prices...').line_box
 
     # Create the TOR Box
-    large_price_size = quote_box_size
+    # large_price_size = quote_box_size
     large_price = Box(loader_text='Getting BTC Price...',
-                      height=large_price_size,
+                      height=12,
                       text_align='center',
                       valign='middle',
                       top=3).line_box
@@ -218,6 +208,9 @@ def main_dashboard(config, tor):
 
     cycle = pickle_it('load', 'cycle.pkl')
 
+    if not isinstance(cycle, int):
+        cycle = 0
+
     if not small_display:
         layout = urwid.Frame(header=header,
                              body=body_widget,
@@ -241,6 +234,24 @@ def main_dashboard(config, tor):
             tor_box.base_widget.set_text("Updating... Please Wait.")
         if key == 'D' or key == 'd':
             logger_box.base_widget.set_text(data_whitepaper())
+        if key == 'right' or key == 'down':
+            small_display = pickle_it('load', 'small_display.pkl')
+            if small_display:
+                cycle = pickle_it('load', 'cycle.pkl')
+                cycle += 1
+                if cycle > (len(widget_list) - 1):
+                    cycle = 0
+                pickle_it('save', 'cycle.pkl', cycle)
+                layout.body = widget_list[cycle]
+        if key == 'left' or key == 'down':
+            small_display = pickle_it('load', 'small_display.pkl')
+            if small_display:
+                cycle = pickle_it('load', 'cycle.pkl')
+                cycle -= 1
+                if cycle < 0:
+                    cycle = (len(widget_list) - 1)
+                pickle_it('save', 'cycle.pkl', cycle)
+                layout.body = widget_list[cycle]
 
         # Toggle multi windows / gadgets or single
         if key == 'M' or key == 'm':
@@ -287,11 +298,6 @@ def main_dashboard(config, tor):
         satoshi_box.base_widget.set_text(quote)
         main_loop.set_alarm_in(120, get_quote)
 
-    def get_tip(loop, _data):
-        from node_warden import login_tip
-        login_tip()
-        main_loop.set_alarm_in(120, get_tip)
-
     def check_health(_loop, __data):
         # Checks how long since last update, if more than 120 seconds went
         # through without price refresh, the app tries to restart
@@ -300,15 +306,47 @@ def main_dashboard(config, tor):
         try:
             seconds = (datetime.now() - last_price_refresh).total_seconds()
             if seconds > REFRESH_HEALTH:
-                from node_warden import exception_handler
                 logging.error(
                     warning("[!] APP was not refreshing, forced a restart."))
-                exception_handler(
-                    'No updates - health is compromised. Restarting.', None,
-                    None)
         except Exception:
             pass
         main_loop.set_alarm_in(60, check_health)
+
+    def large_price_updater(_loop, __data):
+        data = translate_text_for_urwid(data_large_price())
+        large_price.base_widget.set_text(data)
+        main_loop.set_alarm_in(2, large_price_updater)
+
+    def btc_updater(_loop, __data):
+        data = translate_text_for_urwid(data_btc_price())
+        quote_box.base_widget.set_text(data)
+        update_header(layout)
+        main_loop.set_alarm_in(refresh_interval, btc_updater)
+
+    def tor_updater(_loop, __data):
+        data = translate_text_for_urwid(data_tor())
+        tor_box.base_widget.set_text(data)
+        main_loop.set_alarm_in(refresh_interval, tor_updater)
+
+    def login_updater(_loop, __data):
+        data = translate_text_for_urwid(data_login())
+        login_box.base_widget.set_text(data)
+        main_loop.set_alarm_in(5, login_updater)
+
+    def logger_updater(_loop, __data):
+        data = translate_text_for_urwid(data_logger())
+        logger_box.base_widget.set_text(data)
+        main_loop.set_alarm_in(1, logger_updater)
+
+    def mp_updater(_loop, __data):
+        data = translate_text_for_urwid(data_mempool())
+        mp_box.base_widget.set_text(data)
+        main_loop.set_alarm_in(10, mp_updater)
+
+    def sys_updater(_loop, __data):
+        data = translate_text_for_urwid(data_sys())
+        sys_box.base_widget.set_text(data)
+        main_loop.set_alarm_in(3, sys_updater)
 
     def check_screen_size(_loop, __data):
         try:
@@ -332,7 +370,7 @@ def main_dashboard(config, tor):
             small_display = False
             pickle_it('save', 'small_display.pkl', small_display)
 
-        main_loop.set_alarm_in(5, check_screen_size)
+        main_loop.set_alarm_in(1, check_screen_size)
 
     def refresh(_loop, _data):
         cycle = pickle_it('load', 'cycle.pkl')
@@ -346,140 +384,23 @@ def main_dashboard(config, tor):
         else:
             layout.body = body_widget
 
-        # Add Background Updates
-        # UPDATER FUNCTIONS - ONE NEEDED PER UPDATE
-        # These run on background as watch pipes
-        def update_btc(read_data):
-            read_data = translate_text_for_urwid(read_data)
-            quote_box.base_widget.set_text(read_data)
-            main_loop.remove_watch_pipe = True
-            running_jobs['btc']['workers'] = 0
-            for pipe in running_jobs['btc']['pipe']:
-                if pipe != []:
-                    pipe.kill()
-                    gc.collect()
-            update_header(layout)
-
-        def update_tor(read_data):
-            read_data = translate_text_for_urwid(read_data)
-            tor_box.base_widget.set_text(read_data)
-            running_jobs['tor']['workers'] = 0
-            for pipe in running_jobs['tor']['pipe']:
-                if pipe != []:
-                    pipe.kill()
-                    gc.collect()
-
-        def update_large_price(read_data):
-            read_data = translate_text_for_urwid(read_data)
-            large_price.base_widget.set_text(read_data)
-            running_jobs['large_price']['workers'] = 0
-            for pipe in running_jobs['large_price']['pipe']:
-                if pipe != []:
-                    pipe.kill()
-                    gc.collect()
-
-        def update_login(read_data):
-            read_data = translate_text_for_urwid(read_data)
-            login_box.base_widget.set_text(read_data)
-            running_jobs['login']['workers'] = 0
-            for pipe in running_jobs['login']['pipe']:
-                if pipe != []:
-                    pipe.kill()
-                    gc.collect()
-
-        def update_mp(read_data):
-            read_data = translate_text_for_urwid(read_data)
-            mp_box.base_widget.set_text(read_data)
-            main_loop.remove_watch_pipe = True
-            running_jobs['mp']['workers'] = 0
-            for pipe in running_jobs['mp']['pipe']:
-                if pipe != []:
-                    pipe.kill()
-                    gc.collect()
-
-        def update_sys(read_data):
-            read_data = translate_text_for_urwid(read_data)
-            sys_box.base_widget.set_text(read_data)
-            main_loop.remove_watch_pipe = True
-            running_jobs['sys']['workers'] = 0
-            for pipe in running_jobs['sys']['pipe']:
-                if pipe != []:
-                    pipe.kill()
-                    gc.collect()
-
-        def update_logger(read_data):
-            read_data = translate_text_for_urwid(read_data)
-            logger_box.base_widget.set_text(read_data)
-            main_loop.remove_watch_pipe = True
-            running_jobs['logger']['workers'] = 0
-            for pipe in running_jobs['logger']['pipe']:
-                if pipe != []:
-                    pipe.kill()
-                    gc.collect()
-
-        # Job List Dictionaty
-        job_list = {
-            'btc': {
-                'max_workers': 1,
-                'subprocess': 'python3 data.py data_btc_price',
-                'updater': update_btc
-            },
-            'large_price': {
-                'max_workers': 1,
-                'subprocess': 'python3 data.py data_large_price',
-                'updater': update_large_price
-            },
-            'tor': {
-                'max_workers': 1,
-                'subprocess': 'python3 data.py data_tor',
-                'updater': update_tor
-            },
-            'login': {
-                'max_workers': 1,
-                'subprocess': 'python3 data.py data_login',
-                'updater': update_login
-            },
-            'mp': {
-                'max_workers': 1,
-                'subprocess': 'python3 data.py data_mempool',
-                'updater': update_mp
-            },
-            'sys': {
-                'max_workers': 1,
-                'subprocess': 'python3 data.py data_sys',
-                'updater': update_sys
-            },
-            'logger': {
-                'max_workers': 1,
-                'subprocess': 'python3 data.py data_logger',
-                'updater': update_logger
-            }
-        }
-
-        for job in job_list.keys():
-            if running_jobs[job]['workers'] < job_list[job]['max_workers']:
-                running_jobs[job]['workers'] += 1
-                stdout = main_loop.watch_pipe(job_list[job]['updater'])
-                stderr = main_loop.watch_pipe(job_list[job]['updater'])
-                launch_process = subprocess.Popen(job_list[job]['subprocess'],
-                                                  shell=True,
-                                                  stdout=stdout,
-                                                  stderr=stderr,
-                                                  close_fds=True)
-                # Store or create a list to store
-                running_jobs[job].setdefault('pipe', []).append(launch_process)
-
         small_display = pickle_it('load', 'small_display.pkl')
         if small_display:
             layout.body = widget_list[cycle]
 
-        main_loop.set_alarm_in(refresh_interval, refresh)
+        main_loop.set_alarm_in(5, refresh)
 
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
-    main_loop.set_alarm_in(0, refresh)
-    main_loop.set_alarm_in(0, check_for_pump)
-    main_loop.set_alarm_in(0, get_quote)
-    main_loop.set_alarm_in(0, get_tip)
+    main_loop.set_alarm_in(1, refresh)
+    main_loop.set_alarm_in(2, check_for_pump)
+    main_loop.set_alarm_in(0, large_price_updater)
+    main_loop.set_alarm_in(2, btc_updater)
+    main_loop.set_alarm_in(0, sys_updater)
+    main_loop.set_alarm_in(0, logger_updater)
+    main_loop.set_alarm_in(0, login_updater)
+    main_loop.set_alarm_in(2, tor_updater)
+    main_loop.set_alarm_in(3, mp_updater)
+    main_loop.set_alarm_in(2, get_quote)
     main_loop.set_alarm_in(0, check_screen_size)
     main_loop.set_alarm_in(360, check_health)
     main_loop.run()

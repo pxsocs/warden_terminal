@@ -29,6 +29,7 @@ debug_file = os.path.join(basedir, 'debug.log')
 
 def load_config(quiet=False):
     # Load Config
+    basedir = os.path.abspath(os.path.dirname(__file__))
     config_file = os.path.join(basedir, 'config.ini')
     CONFIG = configparser.ConfigParser()
     if quiet:
@@ -440,11 +441,11 @@ def main(quiet=None):
             "port": 'Restarting...'
         }
 
-    try:
-        main_dashboard(config, tor)
-    except Exception as e:
-        logging.exception(f"[Error] {e}")
-        main(quiet=True)
+    # try:
+    main_dashboard(config, tor)
+    # except Exception as e:
+    #     logging.exception(f"[Error] {e}")
+    #     main(quiet=True)
 
 
 if __name__ == '__main__':
