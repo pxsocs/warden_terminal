@@ -23,13 +23,13 @@ from dashboard import main_dashboard
 from ansi_management import (warning, success, error, info, clear_screen, bold,
                              muted, yellow, blue)
 
-# Main Variables
 basedir = os.path.abspath(os.path.dirname(__file__))
 debug_file = os.path.join(basedir, 'debug.log')
 
 
 def load_config(quiet=False):
     # Load Config
+    basedir = os.path.abspath(os.path.dirname(__file__))
     config_file = os.path.join(basedir, 'config.ini')
     CONFIG = configparser.ConfigParser()
     if quiet:
@@ -54,17 +54,20 @@ def load_config(quiet=False):
 
 
 def launch_logger():
-    # Config of Logging
-    formatter = "[%(asctime)s] %(message)s"
-    logging.basicConfig(handlers=[
-        RotatingFileHandler(filename=debug_file,
-                            mode='w',
-                            maxBytes=120,
-                            backupCount=0)
-    ],
-                        level=logging.INFO,
-                        format=formatter,
-                        datefmt='%I:%M:%S %p')
+    try:
+        # Config of Logging
+        formatter = "[%(asctime)s] %(message)s"
+        logging.basicConfig(handlers=[
+            RotatingFileHandler(filename=debug_file,
+                                mode='w',
+                                maxBytes=120,
+                                backupCount=0)
+        ],
+                            level=logging.INFO,
+                            format=formatter,
+                            datefmt='%I:%M:%S %p')
+    except Exception:
+        pass
 
 
 def create_tor():
@@ -143,8 +146,7 @@ def check_version():
                 print(yellow("Installing Python Package Requirements")),
                 subprocess.run("pip3 install -r requirements.txt", shell=True)
                 print(" ---------------------------------------")
-                print(success("  ✅ Done Upgrading | Restarting App..."))
-                exception_handler(None, None, None)
+                print(success("  ✅ Done Upgrading"))
 
         print("")
 
@@ -153,6 +155,7 @@ def greetings():
     # Clean saved price
     pickle_it('save', 'multi_price.pkl', 'loading...')
     pickle_it('load', 'last_price_refresh.pkl', 0)
+    config = load_config()
     # Welcome Sound
     if config['MAIN'].getboolean('welcome_sound'):
         with yaspin(text=config['MAIN'].get('welcome_text'),
@@ -372,24 +375,6 @@ def check_os():
     pickle_it('save', 'os_info.pkl', os_info)
 
 
-def exception_handler(exctype, value, tb):
-    if exctype is not None:
-        print(f"An error occured... Error: {exctype}")
-        print("Relaunching App...")
-
-    try:
-        import psutil
-        p = psutil.Process(os.getpid())
-        for handler in p.open_files() + p.connections():
-            os.close(handler.fd)
-    except Exception as e:
-        logging.error(e)
-
-    os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
-    # print(exctype)
-    # print(tb.print_last())
-
-
 # Function to load and save data into pickles
 def pickle_it(action='load', filename=None, data=None):
     import pickle
@@ -416,8 +401,15 @@ def pickle_it(action='load', filename=None, data=None):
             return ("saved")
 
 
-if __name__ == '__main__':
-    if 'quiet' not in sys.argv:
+def main(quiet=None):
+    # Main Variables
+    if quiet is None:
+        if 'quiet' in sys.argv:
+            quiet = True
+        else:
+            quiet = False
+
+    if quiet is False or quiet is None:
         clear_screen()
         logo()
         print("")
@@ -438,7 +430,6 @@ if __name__ == '__main__':
         greetings()
 
     else:
-        launch_logger()
         config = load_config(True)
         tor = {
             "pre_proxy": 'Restarting...',
@@ -450,6 +441,13 @@ if __name__ == '__main__':
             "port": 'Restarting...'
         }
 
-    sys.excepthook = exception_handler
+    # try:
     main_dashboard(config, tor)
+    # except Exception as e:
+    #     logging.exception(f"[Error] {e}")
+    #     main(quiet=True)
+
+
+if __name__ == '__main__':
+    main()
     goodbye()
