@@ -298,20 +298,6 @@ def main_dashboard(config, tor):
         satoshi_box.base_widget.set_text(quote)
         main_loop.set_alarm_in(120, get_quote)
 
-    def check_health(_loop, __data):
-        # Checks how long since last update, if more than 120 seconds went
-        # through without price refresh, the app tries to restart
-        REFRESH_HEALTH = 120
-        last_price_refresh = pickle_it('load', 'last_price_refresh.pkl')
-        try:
-            seconds = (datetime.now() - last_price_refresh).total_seconds()
-            if seconds > REFRESH_HEALTH:
-                logging.error(
-                    warning("[!] APP was not refreshing, forced a restart."))
-        except Exception:
-            pass
-        main_loop.set_alarm_in(60, check_health)
-
     def large_price_updater(_loop, __data):
         data = translate_text_for_urwid(data_large_price())
         large_price.base_widget.set_text(data)
@@ -321,12 +307,12 @@ def main_dashboard(config, tor):
         data = translate_text_for_urwid(data_btc_price())
         quote_box.base_widget.set_text(data)
         update_header(layout)
-        main_loop.set_alarm_in(refresh_interval, btc_updater)
+        main_loop.set_alarm_in(30, btc_updater)
 
     def tor_updater(_loop, __data):
         data = translate_text_for_urwid(data_tor())
         tor_box.base_widget.set_text(data)
-        main_loop.set_alarm_in(refresh_interval, tor_updater)
+        main_loop.set_alarm_in(200, tor_updater)
 
     def login_updater(_loop, __data):
         data = translate_text_for_urwid(data_login())
@@ -341,12 +327,12 @@ def main_dashboard(config, tor):
     def mp_updater(_loop, __data):
         data = translate_text_for_urwid(data_mempool())
         mp_box.base_widget.set_text(data)
-        main_loop.set_alarm_in(10, mp_updater)
+        main_loop.set_alarm_in(100, mp_updater)
 
     def sys_updater(_loop, __data):
         data = translate_text_for_urwid(data_sys())
         sys_box.base_widget.set_text(data)
-        main_loop.set_alarm_in(3, sys_updater)
+        main_loop.set_alarm_in(2, sys_updater)
 
     def check_screen_size(_loop, __data):
         try:
@@ -388,6 +374,7 @@ def main_dashboard(config, tor):
         if small_display:
             layout.body = widget_list[cycle]
 
+        # Will wait 5 seconds per screen beforing cycling
         main_loop.set_alarm_in(5, refresh)
 
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
@@ -399,8 +386,7 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(0, logger_updater)
     main_loop.set_alarm_in(0, login_updater)
     main_loop.set_alarm_in(2, tor_updater)
-    main_loop.set_alarm_in(3, mp_updater)
+    main_loop.set_alarm_in(2, mp_updater)
     main_loop.set_alarm_in(2, get_quote)
     main_loop.set_alarm_in(0, check_screen_size)
-    main_loop.set_alarm_in(360, check_health)
     main_loop.run()
