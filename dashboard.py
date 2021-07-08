@@ -364,6 +364,7 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(1, check_screen_size)
 
     def refresh(_loop, _data):
+        config = load_config()
         auto_scroll = config['MAIN'].getboolean('auto_scroll')
         if auto_scroll:
             cycle = pickle_it('load', 'cycle.pkl')
