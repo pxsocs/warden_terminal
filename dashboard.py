@@ -12,7 +12,8 @@ from ansi_management import (warning, success, error, info, clear_screen, bold,
                              yellow, muted, cleanfloat, jformat)
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
-                  data_whitepaper, data_sys, pickle_it, data_logger)
+                  data_whitepaper, data_sys, pickle_it, data_logger,
+                  data_large_block)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -77,10 +78,9 @@ def main_dashboard(config, tor):
 
     def refresh_menu(layout):
         config = load_config()
-        try:
-            audio = config['MAIN']['sound']
-        except Exception:
-            return
+
+        audio = config['MAIN']['sound']
+        auto_scroll = config['MAIN'].getboolean('auto_scroll')
         multi = pickle_it('load', 'multi_toggle.pkl')
         audio_str = "ON" if audio is True else "OFF"
         multi_str = "ON" if multi is True else "OFF"
@@ -88,11 +88,12 @@ def main_dashboard(config, tor):
         lst_menu = []
         small_display = pickle_it('load', 'small_display.pkl')
         if small_display:
-            lst_menu.append([f'Use arrows to cycle screens |  '])
+            lst_menu.append(['Use arrows to cycle screens |  '])
+            lst_menu.append([f'(S) Auto Scroll [{auto_scroll}]  |  '])
         lst_menu.append([f'(A) Audio on/off [{audio_str}] |  '])
         lst_menu.append(['(H) to toggle private info  |  '])
         lst_menu.append(['(D) Download Bitcoin Whitepaper (bitcoin.pdf)  |  '])
-        lst_menu.append(['(S) Setup Settings  |  '])
+
         lst_menu.append([f'(M) to toggle multi view [{multi_str}] |  '])
         lst_menu.append(['(Q) to quit'])
         menu = urwid.Text(lst_menu, align='center')
@@ -129,12 +130,6 @@ def main_dashboard(config, tor):
             self.line_box = urwid.LineBox(self.v_padding)
             self.box_size = self.height
 
-    try:
-        refresh_interval = int(config['MAIN'].get('refresh'))
-    except Exception:
-        config = load_config()
-        refresh_interval = 5
-
     palette = [('titlebar', 'dark green', ''),
                ('refresh button', 'dark green,bold', ''),
                ('quit button', 'dark green', ''), ('button', 'dark blue', ''),
@@ -146,8 +141,12 @@ def main_dashboard(config, tor):
 
     quote_box = Box(loader_text='Loading Prices...').line_box
 
-    # Create the TOR Box
-    # large_price_size = quote_box_size
+    large_block = Box(loader_text='Getting Block Height...',
+                      height=12,
+                      text_align='center',
+                      valign='middle',
+                      top=3).line_box
+
     large_price = Box(loader_text='Getting BTC Price...',
                       height=12,
                       text_align='center',
@@ -194,7 +193,7 @@ def main_dashboard(config, tor):
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
-        sys_box
+        sys_box, large_block
     ]
 
     try:
@@ -264,7 +263,8 @@ def main_dashboard(config, tor):
             pickle_it('save', 'multi_toggle.pkl', multi)
 
         if key == 'S' or key == 's':
-            pass
+            toggle('auto_scroll')
+            refresh_menu(layout)
 
         else:
             pass
@@ -280,13 +280,13 @@ def main_dashboard(config, tor):
             chg = cleanfloat(chg_str)
             if chg > 5:
                 logging.info(
-                    info("[NgU] ") + muted(f"Looks like Bitcoin is pumping ") +
+                    info("[NgU] ") + muted("Looks like Bitcoin is pumping ") +
                     emoji.emojize(":rocket:") + yellow(f' {btc_price}') +
                     success(f' +{chg_str}%'))
             if chg < -5:
                 logging.info(
                     info("[NgU] ") + muted(
-                        f"Looks like Bitcoin is dropping. Time to stack some sats. "
+                        "Looks like Bitcoin is dropping. Time to stack some sats. "
                     ) + yellow(f' {btc_price}') + error(f' {chg_str}%'))
         except Exception:
             pass
@@ -301,6 +301,11 @@ def main_dashboard(config, tor):
     def large_price_updater(_loop, __data):
         data = translate_text_for_urwid(data_large_price())
         large_price.base_widget.set_text(data)
+        main_loop.set_alarm_in(2, large_price_updater)
+
+    def large_block_updater(_loop, __data):
+        data = translate_text_for_urwid(data_large_block())
+        large_block.base_widget.set_text(data)
         main_loop.set_alarm_in(2, large_price_updater)
 
     def btc_updater(_loop, __data):
@@ -359,20 +364,22 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(1, check_screen_size)
 
     def refresh(_loop, _data):
-        cycle = pickle_it('load', 'cycle.pkl')
-        small_display = pickle_it('load', 'small_display.pkl')
-        if small_display:
-            layout.body = widget_list[cycle]
-            cycle += 1
-            if cycle > (len(widget_list) - 1):
-                cycle = 0
-            pickle_it('save', 'cycle.pkl', cycle)
-        else:
-            layout.body = body_widget
+        auto_scroll = config['MAIN'].getboolean('auto_scroll')
+        if auto_scroll:
+            cycle = pickle_it('load', 'cycle.pkl')
+            small_display = pickle_it('load', 'small_display.pkl')
+            if small_display:
+                layout.body = widget_list[cycle]
+                cycle += 1
+                if cycle > (len(widget_list) - 1):
+                    cycle = 0
+                pickle_it('save', 'cycle.pkl', cycle)
+            else:
+                layout.body = body_widget
 
-        small_display = pickle_it('load', 'small_display.pkl')
-        if small_display:
-            layout.body = widget_list[cycle]
+            small_display = pickle_it('load', 'small_display.pkl')
+            if small_display:
+                layout.body = widget_list[cycle]
 
         # Will wait 5 seconds per screen beforing cycling
         main_loop.set_alarm_in(5, refresh)
@@ -381,6 +388,7 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(1, refresh)
     main_loop.set_alarm_in(2, check_for_pump)
     main_loop.set_alarm_in(0, large_price_updater)
+    main_loop.set_alarm_in(0, large_block_updater)
     main_loop.set_alarm_in(2, btc_updater)
     main_loop.set_alarm_in(0, sys_updater)
     main_loop.set_alarm_in(0, logger_updater)
