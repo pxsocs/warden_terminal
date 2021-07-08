@@ -161,6 +161,20 @@ def data_large_price(price=None, change=None, chg_str=None):
     return (return_fig)
 
 
+def data_large_block():
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    ft_config = config['MAIN']
+    font = ft_config.get('large_text_font')
+    # If a price is provided, it won't refresh
+    latest_block = pickle_it(action='load', filename='block.pkl')
+    custom_fig = pyfiglet.Figlet(font=font)
+    return_fig = custom_fig.renderText(jformat(latest_block, 0))
+    return_fig = yellow(return_fig)
+    return_fig += muted(f"Block Height")
+    return (return_fig)
+
+
 def data_btc_price():
     from node_warden import launch_logger
     launch_logger()
@@ -639,6 +653,8 @@ def main():
         print(data_random_satoshi())
     if arg == 'data_large_price':
         print(data_large_price())
+    if arg == 'data_large_block':
+        print(data_large_block())
     if arg == 'data_whitepaper':
         data_whitepaper()
 
