@@ -14,7 +14,7 @@ from ansi_management import (time_ago, warning, success, error, info,
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
                   data_whitepaper, data_sys, pickle_it, data_logger,
-                  data_large_block)
+                  data_large_block, data_large_message)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -154,6 +154,15 @@ def main_dashboard(config, tor):
 
     quote_box = Box(loader_text='Loading Prices...').line_box
 
+    large_message = Box(loader_text='Loading...',
+                        height=12,
+                        text_align='center',
+                        valign='middle',
+                        top=3).line_box
+
+    large_message.base_widget.set_text(
+        translate_text_for_urwid(data_large_message()))
+
     large_block = Box(loader_text='Getting Block Height...',
                       height=12,
                       text_align='center',
@@ -206,7 +215,7 @@ def main_dashboard(config, tor):
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
-        sys_box, large_block
+        sys_box, large_block, large_message
     ]
 
     try:

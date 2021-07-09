@@ -191,6 +191,24 @@ def data_large_block(use_cache=True):
     return (return_fig)
 
 
+def data_large_message(use_cache=True):
+    # Displays a custom message saved on config.ini
+    # under [MAIN][message_widget]
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    ft_config = config['MAIN']
+    font = ft_config.get('large_text_font')
+    try:
+        message = ft_config.get('message_widget')
+    except Exception:
+        return None
+    # If a price is provided, it won't refresh
+    custom_fig = pyfiglet.Figlet(font=font)
+    return_fig = custom_fig.renderText(message)
+    return_fig = yellow(return_fig)
+    return (return_fig)
+
+
 def data_btc_price(use_cache=True):
     if use_cache is True:
         cached = pickle_it('load', 'data_btc_price.pkl')
