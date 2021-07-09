@@ -57,3 +57,27 @@ def goodbye():
     print("")
     print(fg.boldyellow("    [i] Shutting down. Please wait..... "))
     print("")
+
+
+def umbrel():
+    print(
+        fg.magenta("""
+              ,;###GGGGGGGGGGl#Sp
+           ,##GGGlW""^'  '`""%GGGG#S,
+         ,#GGG"                  "lGG#o
+        #GGl^                      '$GG#
+      ,#GGb                          GGG,
+      lGG"                            "GGG
+     #GGGlGGGl##p,,p##lGGl##p,,p###ll##GGGG
+    !GGGlW''''''*GGGGGGG#'WlGGGGG#W''*WGGGGS
+     ''          '^          ''          ''
+
+                @GGS         lG#
+                !GGG        !GGG
+                !GGG        !GGG
+                !GGG        !GGG
+                !GGG        !GGG
+                !GGG        !GGG
+                'GGG        $GGl
+                 "GGG#psqp##GG#
+                   "%GGGGGG# """))

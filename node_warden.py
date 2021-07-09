@@ -1,14 +1,3 @@
-import configparser
-from data import (btc_price_data, data_large_block, data_large_price,
-                  data_logger, data_login, data_mempool, data_random_satoshi,
-                  data_sys, data_tor, data_btc_price)
-import logging
-import os
-import sys
-import subprocess
-import json
-from random import randrange
-from apscheduler.schedulers.background import BackgroundScheduler
 # Upon the first import of non standard libraries, if not found
 # Start pip install
 try:
@@ -16,7 +5,20 @@ try:
     import requests
     from yaspin import yaspin
 except ModuleNotFoundError:
+    import subprocess
     subprocess.run("pip3 install -r requirements.txt", shell=True)
+
+import configparser
+import subprocess
+from data import (data_large_block, data_logger, data_login, data_mempool,
+                  data_random_satoshi, data_sys, data_tor, data_btc_price)
+import logging
+import os
+import sys
+
+import json
+from random import randrange
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from logging.handlers import RotatingFileHandler
 
@@ -24,7 +26,7 @@ from connections import test_tor, tor_request
 from welcome import logo, goodbye
 from dashboard import main_dashboard
 
-from ansi_management import (warning, success, error, info, clear_screen, bold,
+from ansi_management import (warning, success, error, info, clear_screen,
                              muted, yellow, blue)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
