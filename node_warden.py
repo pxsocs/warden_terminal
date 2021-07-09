@@ -6,7 +6,10 @@ try:
     from yaspin import yaspin
 except ModuleNotFoundError:
     import subprocess
+    import os
+    import sys
     subprocess.run("pip3 install -r requirements.txt", shell=True)
+    os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
 
 import configparser
 import subprocess
