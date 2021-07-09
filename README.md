@@ -34,6 +34,20 @@ pip3 install -r requirements.txt
 python3 node_warden.py
 ```
 
+### Installation as a Docker container
+
+You may also install the app as a docker container. The file `Dockerfile` will build the container using `python:3.8.0-slim` - start by running:
+
+```bash
+docker build --tag node_warden:latest .
+```
+
+Then run the app:
+
+```bash
+docker run -it node_warden
+```
+
 ## FAQ:
 
 ### Can I auto load warden on start up on PI?
