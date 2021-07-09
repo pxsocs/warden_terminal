@@ -24,7 +24,12 @@ from ansi_management import (warning, success, error, info, bold, jformat,
 from pricing_engine import multiple_price_grab, GBTC_premium, fxsymbol
 
 
-def data_tor(tor=None):
+def data_tor(tor=None, use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_tor.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
+
     from node_warden import load_config
     config = load_config(quiet=True)
     if not tor:
@@ -54,10 +59,15 @@ def data_tor(tor=None):
     Ping Time {muted(tor['pre_proxy_ping'])}
     Local IP Address {yellow('** HIDDEN **')}
     """
+    pickle_it('save', 'data_tor.pkl', tor_string)
     return (tor_string)
 
 
-def data_login():
+def data_login(use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_login.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
     tabs = []
     processes = subprocess.check_output("last")
     processes = list(processes.splitlines())
@@ -95,6 +105,7 @@ def data_login():
             'List of users logged in to this computer is empty.\nEither no outside users are logged in or login info is not available.'
         )
 
+    pickle_it('save', 'data_login.pkl', tabs)
     return (tabs)
 
 
@@ -161,7 +172,11 @@ def data_large_price(price=None, change=None, chg_str=None):
     return (return_fig)
 
 
-def data_large_block():
+def data_large_block(use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_large_block.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
     from node_warden import load_config
     config = load_config(quiet=True)
     ft_config = config['MAIN']
@@ -171,13 +186,37 @@ def data_large_block():
     custom_fig = pyfiglet.Figlet(font=font)
     return_fig = custom_fig.renderText(jformat(latest_block, 0))
     return_fig = yellow(return_fig)
-    return_fig += muted(f"Block Height")
+    return_fig += muted("Block Height")
+    pickle_it('save', 'data_large_block.pkl', return_fig)
     return (return_fig)
 
 
-def data_btc_price():
-    from node_warden import launch_logger
-    launch_logger()
+def data_large_message(use_cache=True):
+    # Displays a custom message saved on config.ini
+    # under [MAIN][message_widget]
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    ft_config = config['MAIN']
+    font = ft_config.get('large_text_font')
+    try:
+        message = ft_config.get('message_widget')
+    except Exception:
+        return None
+    # If a price is provided, it won't refresh
+    custom_fig = pyfiglet.Figlet(font=font)
+    return_fig = custom_fig.renderText(message)
+    return_fig = yellow(return_fig)
+    return (return_fig)
+
+
+def data_btc_price(use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_btc_price.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
+
+    # from node_warden import launch_logger
+    # launch_logger()
 
     from node_warden import load_config
     config = load_config(quiet=True)
@@ -301,10 +340,17 @@ def data_btc_price():
 
     tabs += (
         f"\n\n Last Refresh on: {info(datetime.now().strftime('%H:%M:%S'))}")
+
+    pickle_it('save', 'data_btc_price.pkl', tabs)
     return tabs
 
 
-def data_sys():
+def data_sys(use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_sys.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
+
     tabs = []
     os_info = pickle_it('load', 'os_info.pkl')
     umbrel = pickle_it('load', 'umbrel.pkl')
@@ -436,6 +482,7 @@ def data_sys():
     except Exception:
         disk_bar = warning('[!] Could not retrieve Disk Usage')
 
+    pickle_it('save', 'data_sys.pkl', tabs)
     return (tabs)
 
 
@@ -494,7 +541,11 @@ def printProgressBar(iteration,
         return (f'{prefix} |{bar}| {suffix} {printEnd}')
 
 
-def data_mempool():
+def data_mempool(use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_mempool.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
     from node_warden import load_config
     from node_warden import launch_logger
     launch_logger()
@@ -573,6 +624,7 @@ def data_mempool():
         tabs += muted(f"\n\n Source: {url} \n")
     else:
         tabs += warning(f"\n\n [!] Source: {url} [Alternate]")
+    pickle_it('save', 'data_mempool.pkl', tabs)
     return tabs
 
 
@@ -593,7 +645,12 @@ def data_whitepaper():
                 f"    Could not download bitcoin.pdf >> error: {e} [ERROR]"))
 
 
-def data_logger():
+def data_logger(use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_logger.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
+
     from node_warden import debug_file
     try:
         lines = 8
@@ -611,10 +668,15 @@ def data_logger():
         return_str = ''.join(return_str)
     except Exception:
         return yellow('>> Error Loading Log Messages. Retying...')
+    pickle_it('save', 'data_logger.pkl', return_str)
     return return_str
 
 
-def data_random_satoshi():
+def data_random_satoshi(use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_satoshi.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
     from node_warden import load_config
     config = load_config(quiet=True)
     url = config['QUOTES'].get('url')
@@ -632,6 +694,7 @@ def data_random_satoshi():
     return_str += muted(f"{quote['date']} on {quote['medium']}\n")
     return_str += yellow(f"{quote['text']} \n\n")
     return_str += muted("Source: Nakamoto Institute")
+    pickle_it('save', 'data_satoshi.pkl', return_str)
     return (return_str)
 
 

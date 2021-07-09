@@ -8,12 +8,13 @@ import os
 import configparser
 from contextlib import suppress
 from datetime import datetime
-from ansi_management import (warning, success, error, info, clear_screen, bold,
-                             yellow, muted, cleanfloat, jformat)
+from ansi_management import (time_ago, warning, success, error, info,
+                             clear_screen, bold, yellow, muted, cleanfloat,
+                             jformat, time_ago)
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
                   data_whitepaper, data_sys, pickle_it, data_logger,
-                  data_large_block)
+                  data_large_block, data_large_message)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -26,11 +27,14 @@ def load_config():
     return (CONFIG)
 
 
-def toggle(config_var):
+def toggle(config_var, value=None):
     basedir = os.path.abspath(os.path.dirname(__file__))
     config = load_config()
     getter = config['MAIN'].getboolean(config_var)
-    getter = not getter
+    if not value:
+        getter = not getter
+    else:
+        getter = value
     config['MAIN'][config_var] = str(getter)
     config_file = os.path.join(basedir, 'config.ini')
     with open(config_file, 'w') as configfile:
@@ -52,26 +56,35 @@ def version():
 def main_dashboard(config, tor):
     def update_header(layout, message=None, message_type=None):
         # Create Header
-        refresh_time = datetime.now().strftime('%H:%M:%S')
-        txt = u' WARden Node Edition (Version: ' + version() + emoji.emojize(
-            ') | twitter :bird: @alphaazeta | Last Refresh on: '
-        ) + refresh_time
 
-        from data import btc_price_data
+        try:
+            r_time = pickle_it('load', 'last_price_refresh.pkl')
+        except Exception:
+            r_time = warning("No recent data")
+        try:
+            r_time = time_ago(r_time)
+        except Exception:
+            r_time = warning("No recent data")
+        txt = u' WARden Node Edition (Version: ' + version() + emoji.emojize(
+            ') | twitter :bird: @alphaazeta')
+
         btc = btc_price_data()
+
         if btc != 'loading...':
             try:
-                btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
+                btc_price = btc['RAW']['BTC']['USD']['PRICE']
             except Exception:
                 btc_price = 0
         else:
             btc_price = 0
 
         if btc_price > 0:
-            txt += '  |  ' + f"BTC ${jformat(btc_price, 0)} "
+            txt += ('  |  ' + f"BTC ${jformat(btc_price, 0)} " +
+                    "  | Last Refresh " + r_time)
 
         if message:
             txt += ' | ' + message
+
         header_text = urwid.Text(txt, align='right')
         header = urwid.AttrMap(header_text, 'titlebar')
         layout.header = header
@@ -141,6 +154,15 @@ def main_dashboard(config, tor):
 
     quote_box = Box(loader_text='Loading Prices...').line_box
 
+    large_message = Box(loader_text='Loading...',
+                        height=12,
+                        text_align='center',
+                        valign='middle',
+                        top=3).line_box
+
+    large_message.base_widget.set_text(
+        translate_text_for_urwid(data_large_message()))
+
     large_block = Box(loader_text='Getting Block Height...',
                       height=12,
                       text_align='center',
@@ -193,7 +215,7 @@ def main_dashboard(config, tor):
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
-        sys_box, large_block
+        sys_box, large_block, large_message
     ]
 
     try:
@@ -220,7 +242,6 @@ def main_dashboard(config, tor):
                              footer='Loading...')
 
     refresh_menu(layout)
-    update_header(layout)
 
     # Handle key presses
     def handle_input(key):
@@ -261,6 +282,9 @@ def main_dashboard(config, tor):
             # toggle
             multi = not multi
             pickle_it('save', 'multi_toggle.pkl', multi)
+            # Turn off auto scroll on multi gadget display
+            if multi is True:
+                toggle('auto_scroll', False)
 
         if key == 'S' or key == 's':
             toggle('auto_scroll')
@@ -269,12 +293,12 @@ def main_dashboard(config, tor):
         else:
             pass
 
-        main_loop.draw_screen()
         refresh_menu(layout)
+        main_loop.draw_screen()
 
     def check_for_pump(_loop, _data):
         try:
-            btc = btc_price_data()
+            btc = pickle_it('load', 'btc_price_data.pkl')
             btc_price = btc['DISPLAY']['BTC']['USD']['PRICE']
             chg_str = btc['DISPLAY']['BTC']['USD']['CHANGEPCTDAY']
             chg = cleanfloat(chg_str)
@@ -291,38 +315,38 @@ def main_dashboard(config, tor):
         except Exception:
             pass
 
-        main_loop.set_alarm_in(300, check_for_pump)
+        main_loop.set_alarm_in(1, check_for_pump)
 
     def get_quote(_loop, _data):
         quote = translate_text_for_urwid(data_random_satoshi())
         satoshi_box.base_widget.set_text(quote)
         main_loop.set_alarm_in(120, get_quote)
 
-    def large_price_updater(_loop, __data):
-        data = translate_text_for_urwid(data_large_price())
-        large_price.base_widget.set_text(data)
-        main_loop.set_alarm_in(2, large_price_updater)
-
     def large_block_updater(_loop, __data):
         data = translate_text_for_urwid(data_large_block())
         large_block.base_widget.set_text(data)
-        main_loop.set_alarm_in(2, large_price_updater)
+        main_loop.set_alarm_in(1, large_block_updater)
 
     def btc_updater(_loop, __data):
         data = translate_text_for_urwid(data_btc_price())
         quote_box.base_widget.set_text(data)
+
+        data = translate_text_for_urwid(data_large_price())
+        large_price.base_widget.set_text(data)
+
         update_header(layout)
-        main_loop.set_alarm_in(30, btc_updater)
+        main_loop.draw_screen()
+        main_loop.set_alarm_in(5, btc_updater)
 
     def tor_updater(_loop, __data):
         data = translate_text_for_urwid(data_tor())
         tor_box.base_widget.set_text(data)
-        main_loop.set_alarm_in(200, tor_updater)
+        main_loop.set_alarm_in(1, tor_updater)
 
     def login_updater(_loop, __data):
         data = translate_text_for_urwid(data_login())
         login_box.base_widget.set_text(data)
-        main_loop.set_alarm_in(5, login_updater)
+        main_loop.set_alarm_in(1, login_updater)
 
     def logger_updater(_loop, __data):
         data = translate_text_for_urwid(data_logger())
@@ -332,12 +356,12 @@ def main_dashboard(config, tor):
     def mp_updater(_loop, __data):
         data = translate_text_for_urwid(data_mempool())
         mp_box.base_widget.set_text(data)
-        main_loop.set_alarm_in(100, mp_updater)
+        main_loop.set_alarm_in(1, mp_updater)
 
     def sys_updater(_loop, __data):
         data = translate_text_for_urwid(data_sys())
         sys_box.base_widget.set_text(data)
-        main_loop.set_alarm_in(2, sys_updater)
+        main_loop.set_alarm_in(1, sys_updater)
 
     def check_screen_size(_loop, __data):
         try:
@@ -383,19 +407,19 @@ def main_dashboard(config, tor):
                 layout.body = widget_list[cycle]
 
         # Will wait 5 seconds per screen beforing cycling
-        main_loop.set_alarm_in(5, refresh)
+        refresh_time = config['MAIN'].getint('refresh')
+        main_loop.set_alarm_in(refresh_time, refresh)
 
     main_loop = urwid.MainLoop(layout, palette, unhandled_input=handle_input)
-    main_loop.set_alarm_in(1, refresh)
-    main_loop.set_alarm_in(2, check_for_pump)
-    main_loop.set_alarm_in(0, large_price_updater)
+    main_loop.set_alarm_in(0, refresh)
+    main_loop.set_alarm_in(0, check_for_pump)
     main_loop.set_alarm_in(0, large_block_updater)
-    main_loop.set_alarm_in(2, btc_updater)
+    main_loop.set_alarm_in(0, btc_updater)
     main_loop.set_alarm_in(0, sys_updater)
     main_loop.set_alarm_in(0, logger_updater)
     main_loop.set_alarm_in(0, login_updater)
-    main_loop.set_alarm_in(2, tor_updater)
-    main_loop.set_alarm_in(2, mp_updater)
-    main_loop.set_alarm_in(2, get_quote)
+    main_loop.set_alarm_in(0, tor_updater)
+    main_loop.set_alarm_in(0, mp_updater)
+    main_loop.set_alarm_in(0, get_quote)
     main_loop.set_alarm_in(0, check_screen_size)
     main_loop.run()
