@@ -1,10 +1,14 @@
 import configparser
+from data import (btc_price_data, data_large_block, data_large_price,
+                  data_logger, data_login, data_mempool, data_random_satoshi,
+                  data_sys, data_tor, data_btc_price)
 import logging
 import os
 import sys
 import subprocess
 import json
 from random import randrange
+from apscheduler.schedulers.background import BackgroundScheduler
 # Upon the first import of non standard libraries, if not found
 # Start pip install
 try:
@@ -66,6 +70,8 @@ def launch_logger():
                             level=logging.INFO,
                             format=formatter,
                             datefmt='%I:%M:%S %p')
+        logging.getLogger('apscheduler').setLevel(logging.CRITICAL)
+
     except Exception:
         pass
 
@@ -441,11 +447,35 @@ def main(quiet=None):
             "port": 'Restarting...'
         }
 
-    # try:
+    # Execute all data calls and save results locally so the main
+    # app can run without interruptions while these updated as
+    # background jobs
+    # Separate background sequential jobs
+    # depending on the nature of data getting gathered
+    def price_grabs():
+        data_btc_price(use_cache=False)
+
+    def node_web_grabs():
+        data_mempool(use_cache=False)
+        data_large_block(use_cache=False)
+        data_tor(use_cache=False)
+        data_random_satoshi(use_cache=False)
+
+    def sys_grabs():
+        data_login(use_cache=False)
+        data_sys(use_cache=False)
+        data_logger(use_cache=False)
+
+    # Kick off data upgrades as background jobs
+    job_defaults = {'coalesce': False, 'max_instances': 1}
+    scheduler = BackgroundScheduler(job_defaults=job_defaults)
+    scheduler.add_job(price_grabs, 'interval', seconds=15)
+    scheduler.add_job(node_web_grabs, 'interval', seconds=15)
+    scheduler.add_job(sys_grabs, 'interval', seconds=1)
+    scheduler.start()
+    print(success("✅ Background jobs running"))
     main_dashboard(config, tor)
-    # except Exception as e:
-    #     logging.exception(f"[Error] {e}")
-    #     main(quiet=True)
+    scheduler.shutdown(wait=False)
 
 
 if __name__ == '__main__':

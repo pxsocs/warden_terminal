@@ -55,3 +55,5 @@ def goodbye():
     """)
 
     print("")
+    print(fg.boldyellow("    [i] Shutting down. Please wait..... "))
+    print("")
