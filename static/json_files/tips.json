@@ -4,12 +4,13 @@
         "[Did you know?] Craig Wright is a Fraud.",
         "[Tip] On the config.ini file you can change the Bitcoin Price font by changing the large_text_font field. http://www.figlet.org/ for list of fonts",
         "[Did you know?] The maximum difficulty adjustment per era is a factor of 4. It can only go up by 4x or down by 1/4x.",
-        "[Tip] Cypherpunks write code. If you want to get started the CS50 course is free and online. Look it up.",
+        "[Quote] Cypherpunks write code.",
         "[Quotes] 'In the end, Bitcoin may be that declaration, in the original American tradition of anti-authoritarianism and personal freedom, that helps finally rid us of our saddles and riders.' - Alex Gladstein",
         "[Quotes] 'If you're not pro-Bitcoin, you hate the environment.' - Matt Odell",
         "[Quotes] 'Trusted third parties are security holes' - Nick Szabo",
         "[Quotes] 'Running Bitcoin' - Hal Finney",
         "[Did you know?] This software is open source. You can do whatever you want with the code. Audit, clone, modify. Whatever you want.",
-        "[Genesis] The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
+        "[Genesis] The Times 03/Jan/2009 Chancellor on brink of second bailout for banks",
+        "[Quotes] Si vis pacem, para bellum."
     ]
 }
