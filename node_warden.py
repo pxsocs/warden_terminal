@@ -288,6 +288,15 @@ def check_screen_size():
         # min dimensions are recommended at 60 x 172
         if rows < 60 or columns < 172:
             small_display = True
+            config = load_config()
+            config_file = os.path.join(basedir, 'config.ini')
+            # When starting, always enable auto scroll through widgets
+            # the refresh variable on config.ini determines how many seconds
+            # to wait between refreshes
+            config['MAIN']['auto_scroll'] = 'True'
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+
         else:
             small_display = False
 
