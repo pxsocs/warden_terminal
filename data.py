@@ -728,15 +728,15 @@ def data_btc_rpc_info(use_cache=True):
     rows, columns = subprocess.check_output(['stty', 'size']).split()
     small_display = pickle_it('load', 'small_display.pkl')
     if small_display:
-        bar_size = int(int(columns)) - 35
+        bar_size = int(int(columns)) - 38
     else:
-        bar_size = int(int(columns) / 3) - 35
+        bar_size = int(int(columns) / 3) - 38
 
     # Get Blockchaininfo from Bitcoin RPC
     bci = rpc_connection.getblockchaininfo()
 
     tabs = []
-    tabs.append([muted("\nBlockchain Info"), ""])
+
     # Testnet, Mainnet, etc...
     tabs.append(["Chain", bci['chain']])
 
@@ -777,13 +777,13 @@ def data_btc_rpc_info(use_cache=True):
         pass
 
     # Network Info
-    tabs.append([muted("\nNetwork Info"), ""])
+    tabs.append([muted("Network Info"), ""])
     network = rpc_connect().getnetworkinfo()
     tabs.append(['Bitcoin Core Version', network['subversion']])
     tabs.append(['Connections', jformat(network['connections'], 0)])
 
     # Wallet Info
-    tabs.append([muted("\nBitcoin Core Wallet Info"), ""])
+    tabs.append([muted("Wallet Info"), ""])
     wallets = rpc_connect().getbalances()
     try:
         confirmed = float(wallets['mine']['trusted'])
@@ -813,7 +813,9 @@ def data_btc_rpc_info(use_cache=True):
         str_ago = time_ago(time_max)
         tabs.append([success("Latest Transaction"), success(str_ago)])
 
-    return_str = tabulate(tabs, colalign=["left", "right"])
+    return_str = tabulate(tabs,
+                          colalign=["left", "right"],
+                          headers=["Bitcoin Core", "Node info"])
 
     pickle_it('save', 'data_rpc.pkl', return_str)
     return (return_str)
