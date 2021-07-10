@@ -766,9 +766,9 @@ def data_btc_rpc_info(use_cache=True):
          jformat(bci['initialblockdownload'], 0) + 'GB'])
     pruned = bci['pruned']
     if pruned is True:
-        tabs.append([warning(" Prunned Chain?"), warning(pruned)])
+        tabs.append([warning(" Prunned Chain?"), warning(str(pruned))])
     else:
-        tabs.append([success(" Prunned Chain?"), success(pruned)])
+        tabs.append([success(" Prunned Chain?"), success(str(pruned))])
     try:
         segwit = bci['softforks']['segwit']['active']
         if segwit is True:
