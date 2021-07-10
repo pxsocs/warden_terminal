@@ -720,8 +720,8 @@ def data_btc_rpc_info():
         return ("Could not connect to Bitcoin RPC")
     bci = rpc_connection.getblockchaininfo()
     tabs = []
-    tabs.append([" Chain", bci['chain']],
-                ["Synch", bci['verificationprogress']])
+    tabs.append([" Chain", bci['chain']])
+    tabs.append(["Synch", bci['verificationprogress']])
     btc_tabs = tabulate(tabs, colalign=["left", "right"])
     return (btc_tabs)
 
