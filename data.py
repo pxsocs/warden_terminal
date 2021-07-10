@@ -514,8 +514,6 @@ def printProgressBar(iteration,
         printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
     """
     if perc:
-        percent = ("{0:." + str(decimals) + "f}").format(
-            100 * (iteration / float(total)))
         filledLength = int(length * iteration // total)
         bar = fill * filledLength + '-' * (length - filledLength)
         if max_min is not None:
@@ -528,7 +526,6 @@ def printProgressBar(iteration,
         return (f'{prefix} |{bar}| {suffix} {printEnd}')
 
     else:
-        percent = ("{0:." + str(decimals) + "f}").format((iteration))
         filledLength = int(length * iteration // total)
         bar = fill * filledLength + '-' * (length - filledLength)
         if max_min is not None:
@@ -698,8 +695,43 @@ def data_random_satoshi(use_cache=True):
     return (return_str)
 
 
+def data_umbrel(umbrel=True):
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    if umbrel is None:
+        umbrel = pickle_it('load', 'umbrel.pkl')
+    if umbrel is not True:
+        return None
+
+    from welcome import umbrel
+    umbrel_logo = umbrel()
+    url = config['UMBREL'].get('url')
+    umbrel_info = f"\n\t    \nUmbrel Node Running\nurl: {url} \nsynched: 100%"
+    tabs = [[umbrel_logo, umbrel_info]]
+    tabs = tabulate(tabs, colalign=["none", "right"], tablefmt="plain")
+    return (tabs)
+
+
+def data_btc_rpc_info():
+    from rpc import rpc_connect, btc_network
+    btc_network = btc_network()
+    rpc_connection = rpc_connect()
+    if rpc_connection is None:
+        return ("Could not connect to Bitcoin RPC")
+    bci = rpc_connection.getblockchaininfo()
+    tabs = []
+    tabs.append([" Chain", bci['chain']],
+                ["Synch", bci['verificationprogress']])
+    btc_tabs = tabulate(tabs, colalign=["left", "right"])
+    return (btc_tabs)
+
+
 def main():
     arg = sys.argv[1]
+    if arg == 'data_btc_rpc_info':
+        print(data_btc_rpc_info())
+    if arg == 'data_umbrel':
+        print(data_umbrel())
     if arg == 'data_btc_price':
         print(data_btc_price())
     if arg == 'data_tor':

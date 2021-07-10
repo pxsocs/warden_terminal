@@ -60,8 +60,7 @@ def goodbye():
 
 
 def umbrel():
-    print(
-        fg.magenta("""
+    return (fg.magenta("""
               ,;###GGGGGGGGGGl#Sp
            ,##GGGlW""^'  '`""%GGGG#S,
          ,#GGG"                  "lGG#o

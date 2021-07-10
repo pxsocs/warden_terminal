@@ -13,3 +13,4 @@ python-dateutil
 packaging==20.8
 psutil
 apscheduler
+python-bitcoinrpc
