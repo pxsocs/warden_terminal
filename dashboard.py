@@ -14,7 +14,7 @@ from ansi_management import (time_ago, warning, success, error, info,
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
                   data_whitepaper, data_sys, pickle_it, data_logger,
-                  data_large_block, data_large_message)
+                  data_large_block, data_large_message, data_btc_rpc_info)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -175,6 +175,8 @@ def main_dashboard(config, tor):
                       valign='middle',
                       top=3).line_box
 
+    rpc_box = Box(loader_text='Getting Bitcoin Core Info [RPC]...').line_box
+
     # Create the Large Price Box
     tor_box_size = 10
     tor_box = Box(loader_text='Checking Tor Status...',
@@ -210,13 +212,26 @@ def main_dashboard(config, tor):
     log_tor = urwid.Columns(
         [sys_box, urwid.Pile([login_box, tor_box]), mp_box])
     bottom_box = urwid.Columns([logger_box, satoshi_box])
-    top_box = urwid.Columns([quote_box, large_price])
+
+    try:
+        rpc_running = pickle_it('load', 'rpc_running.pkl')
+    except Exception:
+        rpc_running = False
+
+    if rpc_running is True:
+        top_box = urwid.Columns([quote_box, rpc_box, large_price])
+    else:
+        top_box = urwid.Columns([quote_box, large_price])
+
     body_widget = urwid.Pile([top_box, log_tor, bottom_box])
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
         sys_box, large_block, large_message
     ]
+
+    if rpc_running is True:
+        widget_list.append(rpc_box)
 
     try:
         small_display = pickle_it('load', 'small_display.pkl')
@@ -322,6 +337,11 @@ def main_dashboard(config, tor):
         satoshi_box.base_widget.set_text(quote)
         main_loop.set_alarm_in(120, get_quote)
 
+    def rpc_updater(_loop, __data):
+        data = translate_text_for_urwid(data_btc_rpc_info())
+        rpc_box.base_widget.set_text(data)
+        main_loop.set_alarm_in(5, rpc_updater)
+
     def large_block_updater(_loop, __data):
         data = translate_text_for_urwid(data_large_block())
         large_block.base_widget.set_text(data)
@@ -416,6 +436,7 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(0, large_block_updater)
     main_loop.set_alarm_in(0, btc_updater)
     main_loop.set_alarm_in(0, sys_updater)
+    main_loop.set_alarm_in(0, rpc_updater)
     main_loop.set_alarm_in(0, logger_updater)
     main_loop.set_alarm_in(0, login_updater)
     main_loop.set_alarm_in(0, tor_updater)

@@ -6,8 +6,9 @@ from yaspin import yaspin
 
 import configparser
 import subprocess
-from data import (data_large_block, data_logger, data_login, data_mempool,
-                  data_random_satoshi, data_sys, data_tor, data_btc_price)
+from data import (data_btc_rpc_info, data_large_block, data_logger, data_login,
+                  data_mempool, data_random_satoshi, data_sys, data_tor,
+                  data_btc_price)
 import logging
 import os
 import sys
@@ -493,6 +494,9 @@ def main(quiet=None):
         data_mempool(use_cache=False)
         data_large_block(use_cache=False)
         data_tor(use_cache=False)
+        rpc_running = pickle_it('load', 'rpc_running.pkl')
+        if rpc_running:
+            data_btc_rpc_info(use_cache=False)
         data_random_satoshi(use_cache=False)
 
     def sys_grabs():
