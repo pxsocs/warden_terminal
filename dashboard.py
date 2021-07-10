@@ -320,8 +320,7 @@ def main_dashboard(config, tor):
             if chg > 5:
                 logging.info(
                     info("[NgU] ") + muted("Looks like Bitcoin is pumping ") +
-                    emoji.emojize(":rocket:") + yellow(f' {btc_price}') +
-                    success(f' +{chg_str}%'))
+                    yellow(f' {btc_price}') + success(f' +{chg_str}%'))
             if chg < -5:
                 logging.info(
                     info("[NgU] ") + muted(

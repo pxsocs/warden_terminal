@@ -157,8 +157,7 @@ def data_large_price(price=None, change=None, chg_str=None):
         if chg >= 0:
             msg += success(f'24hr Change: +{chg_str}%\n')
         if chg > 5:
-            msg += (info("[NgU] ") + muted(f"Looks like Bitcoin is pumping ") +
-                    emoji.emojize(":rocket:"))
+            msg += (info("[NgU] ") + muted("Looks like Bitcoin is pumping "))
 
         if chg < 0:
             msg += error(f'24hr Change: {chg_str}%\n')
@@ -762,17 +761,17 @@ def data_btc_rpc_info(use_cache=True):
     if pruned is True:
         tabs.append(["Prunned", warning("Prunned [!]")])
     else:
-        tabs.append(["Prunned", "Not Prunned  ✅"])
+        tabs.append(["Prunned", "Not Prunned"])
     try:
         segwit = bci['softforks']['segwit']['active']
         if segwit is True:
-            tabs.append(["Segwit", "Ready  ✅"])
+            tabs.append(["Segwit", success("Ready")])
     except Exception:
         pass
     try:
         taproot = bci['softforks']['taproot']['active']
         if taproot is True:
-            tabs.append(["Taproot", "Ready  ✅"])
+            tabs.append(["Taproot", success("Ready")])
     except Exception:
         pass
 
