@@ -766,13 +766,13 @@ def data_btc_rpc_info(use_cache=True):
     try:
         segwit = bci['softforks']['segwit']['active']
         if segwit is True:
-            tabs.append([success("Segwit"), "Ready  ✅"])
+            tabs.append(["Segwit", "Ready  ✅"])
     except Exception:
         pass
     try:
         taproot = bci['softforks']['taproot']['active']
         if taproot is True:
-            tabs.append([success("Taproot"), "Ready  ✅"])
+            tabs.append(["Taproot", "Ready  ✅"])
     except Exception:
         pass
 
@@ -811,7 +811,7 @@ def data_btc_rpc_info(use_cache=True):
     if max_time > 0:
         time_max = datetime.utcfromtimestamp(max_time)
         str_ago = time_ago(time_max)
-        tabs.append([success("Last Transaction"), success(str_ago)])
+        tabs.append([success("Latest Transaction"), success(str_ago)])
 
     return_str = tabulate(tabs, colalign=["left", "right"])
 

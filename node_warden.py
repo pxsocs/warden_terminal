@@ -1,15 +1,8 @@
 # Upon the first import of non standard libraries, if not found
-# Start pip install
-try:
-    import pyttsx3
-    import requests
-    from yaspin import yaspin
-except ModuleNotFoundError:
-    import subprocess
-    import os
-    import sys
-    subprocess.run("pip3 install -r requirements.txt", shell=True)
-    os.execv(sys.executable, ['python3'] + [sys.argv[0]] + ['quiet'])
+
+import pyttsx3
+import requests
+from yaspin import yaspin
 
 import configparser
 import subprocess
@@ -317,6 +310,32 @@ def check_screen_size():
         print("")
 
 
+def check_btc_rpc():
+    #  Check if Bitcoin's RPC is available. See rpc.py for defaults and environment vars.
+    print("")
+    rpc_running = False
+    pickle_it('save', 'rpc_running.pkl', rpc_running)
+
+    with yaspin(text=f"Checking if Bitcoin RPC is reachable",
+                color="green") as spinner:
+        from rpc import rpc_connect
+        rpc = rpc_connect()
+        if rpc is None:
+            spinner.fail("🟡 ")
+            spinner.write(warning("    Bitcoin RPC unreachable"))
+        else:
+            try:
+                bci = rpc.getblockchaininfo()
+                chain = bci['chain']
+                pickle_it('save', 'rpc_running.pkl', True)
+                spinner.ok("✅ ")
+                spinner.write(success(f"    RPC reached on chain {chain}"))
+            except Exception as e:
+                spinner.fail("🟡 ")
+                spinner.write(
+                    warning(f"    Bitcoin RPC returned an error: {e}"))
+
+
 def check_umbrel():
     #  Try to ping umbrel.local and check for installed apps
     print("")
@@ -444,6 +463,7 @@ def main(quiet=None):
         check_version()
         check_screen_size()
         check_cryptocompare()
+        check_btc_rpc()
         check_umbrel()
         check_os()
         login_tip()
