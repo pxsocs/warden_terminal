@@ -1,22 +1,21 @@
+# Upon the first import of non standard libraries, if not found
+
+import pyttsx3
+import requests
+from yaspin import yaspin
+
 import configparser
-from data import (btc_price_data, data_large_block, data_large_price,
-                  data_logger, data_login, data_mempool, data_random_satoshi,
-                  data_sys, data_tor, data_btc_price)
+import subprocess
+from data import (data_btc_rpc_info, data_large_block, data_logger, data_login,
+                  data_mempool, data_random_satoshi, data_sys, data_tor,
+                  data_btc_price)
 import logging
 import os
 import sys
-import subprocess
+
 import json
 from random import randrange
 from apscheduler.schedulers.background import BackgroundScheduler
-# Upon the first import of non standard libraries, if not found
-# Start pip install
-try:
-    import pyttsx3
-    import requests
-    from yaspin import yaspin
-except ModuleNotFoundError:
-    subprocess.run("pip3 install -r requirements.txt", shell=True)
 
 from logging.handlers import RotatingFileHandler
 
@@ -24,7 +23,7 @@ from connections import test_tor, tor_request
 from welcome import logo, goodbye
 from dashboard import main_dashboard
 
-from ansi_management import (warning, success, error, info, clear_screen, bold,
+from ansi_management import (warning, success, error, info, clear_screen,
                              muted, yellow, blue)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -283,6 +282,15 @@ def check_screen_size():
         # min dimensions are recommended at 60 x 172
         if rows < 60 or columns < 172:
             small_display = True
+            config = load_config()
+            config_file = os.path.join(basedir, 'config.ini')
+            # When starting, always enable auto scroll through widgets
+            # the refresh variable on config.ini determines how many seconds
+            # to wait between refreshes
+            config['MAIN']['auto_scroll'] = 'True'
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+
         else:
             small_display = False
 
@@ -301,6 +309,32 @@ def check_screen_size():
                     "    [i] Small display detected. Will cycle through widgets. Pressing (M) on main screen will force multi gadget display."
                 ))
         print("")
+
+
+def check_btc_rpc():
+    #  Check if Bitcoin's RPC is available. See rpc.py for defaults and environment vars.
+    print("")
+    rpc_running = False
+    pickle_it('save', 'rpc_running.pkl', rpc_running)
+
+    with yaspin(text=f"Checking if Bitcoin RPC is reachable",
+                color="green") as spinner:
+        from rpc import rpc_connect
+        rpc = rpc_connect()
+        if rpc is None:
+            spinner.fail("🟡 ")
+            spinner.write(warning("    Bitcoin RPC unreachable"))
+        else:
+            try:
+                bci = rpc.getblockchaininfo()
+                chain = bci['chain']
+                pickle_it('save', 'rpc_running.pkl', True)
+                spinner.ok("✅ ")
+                spinner.write(success(f"    RPC reached on chain {chain}"))
+            except Exception as e:
+                spinner.fail("🟡 ")
+                spinner.write(
+                    warning(f"    Bitcoin RPC returned an error: {e}"))
 
 
 def check_umbrel():
@@ -430,6 +464,7 @@ def main(quiet=None):
         check_version()
         check_screen_size()
         check_cryptocompare()
+        check_btc_rpc()
         check_umbrel()
         check_os()
         login_tip()
@@ -459,6 +494,9 @@ def main(quiet=None):
         data_mempool(use_cache=False)
         data_large_block(use_cache=False)
         data_tor(use_cache=False)
+        rpc_running = pickle_it('load', 'rpc_running.pkl')
+        if rpc_running:
+            data_btc_rpc_info(use_cache=False)
         data_random_satoshi(use_cache=False)
 
     def sys_grabs():

@@ -157,8 +157,7 @@ def data_large_price(price=None, change=None, chg_str=None):
         if chg >= 0:
             msg += success(f'24hr Change: +{chg_str}%\n')
         if chg > 5:
-            msg += (info("[NgU] ") + muted(f"Looks like Bitcoin is pumping ") +
-                    emoji.emojize(":rocket:"))
+            msg += (info("[NgU] ") + muted("Looks like Bitcoin is pumping "))
 
         if chg < 0:
             msg += error(f'24hr Change: {chg_str}%\n')
@@ -514,8 +513,6 @@ def printProgressBar(iteration,
         printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
     """
     if perc:
-        percent = ("{0:." + str(decimals) + "f}").format(
-            100 * (iteration / float(total)))
         filledLength = int(length * iteration // total)
         bar = fill * filledLength + '-' * (length - filledLength)
         if max_min is not None:
@@ -528,7 +525,6 @@ def printProgressBar(iteration,
         return (f'{prefix} |{bar}| {suffix} {printEnd}')
 
     else:
-        percent = ("{0:." + str(decimals) + "f}").format((iteration))
         filledLength = int(length * iteration // total)
         bar = fill * filledLength + '-' * (length - filledLength)
         if max_min is not None:
@@ -698,8 +694,138 @@ def data_random_satoshi(use_cache=True):
     return (return_str)
 
 
+def data_umbrel(umbrel=True):
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    if umbrel is None:
+        umbrel = pickle_it('load', 'umbrel.pkl')
+    if umbrel is not True:
+        return None
+
+    from welcome import umbrel
+    umbrel_logo = umbrel()
+    url = config['UMBREL'].get('url')
+    umbrel_info = f"\n\t    \nUmbrel Node Running\nurl: {url} \nsynched: 100%"
+    tabs = [[umbrel_logo, umbrel_info]]
+    tabs = tabulate(tabs, colalign=["none", "right"], tablefmt="plain")
+    return (tabs)
+
+
+def data_btc_rpc_info(use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_rpc.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
+    # Get RPC Connection
+    from rpc import rpc_connect, btc_network
+    btc_network = btc_network()
+    rpc_connection = rpc_connect()
+    if rpc_connection is None:
+        return ("Could not connect to Bitcoin RPC")
+
+    # Check if small or large and the size of progress  bars
+    rows, columns = subprocess.check_output(['stty', 'size']).split()
+    small_display = pickle_it('load', 'small_display.pkl')
+    if small_display:
+        bar_size = int(int(columns)) - 38
+    else:
+        bar_size = int(int(columns) / 3) - 38
+
+    # Get Blockchaininfo from Bitcoin RPC
+    bci = rpc_connection.getblockchaininfo()
+
+    tabs = []
+
+    # Testnet, Mainnet, etc...
+    tabs.append(["Chain", bci['chain']])
+
+    # Create Synch progress bar
+    try:
+        perc_c = int(bci['verificationprogress']) * 100
+        synch_bar = printProgressBar(iteration=round(perc_c, 2),
+                                     total=100,
+                                     suffix=(f'{round(perc_c, 2)}%'),
+                                     length=bar_size,
+                                     perc=True,
+                                     printEnd='',
+                                     max_min=(0, 100))
+    except Exception:
+        synch_bar = "Error checking synch completion"
+
+    tabs.append(["Synch", synch_bar])
+
+    # Initial BLOCK Download & other info
+
+    tabs.append(["Blockchain Size", humanbytes(bci['size_on_disk'])])
+    pruned = bci['pruned']
+    if pruned is True:
+        tabs.append(["Prunned", warning("Prunned [!]")])
+    else:
+        tabs.append(["Prunned", "Not Prunned"])
+    try:
+        segwit = bci['softforks']['segwit']['active']
+        if segwit is True:
+            tabs.append(["Segwit", success("Ready")])
+    except Exception:
+        pass
+    try:
+        taproot = bci['softforks']['taproot']['active']
+        if taproot is True:
+            tabs.append(["Taproot", success("Ready")])
+    except Exception:
+        pass
+
+    # Network Info
+    tabs.append([muted("Network Info"), ""])
+    network = rpc_connect().getnetworkinfo()
+    tabs.append(['Bitcoin Core Version', network['subversion']])
+    tabs.append(['Connections', jformat(network['connections'], 0)])
+
+    # Wallet Info
+    tabs.append([muted("Wallet Info"), ""])
+    wallets = rpc_connect().getbalances()
+    try:
+        confirmed = float(wallets['mine']['trusted'])
+    except Exception:
+        confirmed = 0
+    try:
+        unconfirmed = float(wallets['mine']['immature'])
+    except Exception:
+        unconfirmed = 0
+    total = confirmed + unconfirmed
+    tabs.append(["Confirmed", jformat(confirmed, 8)])
+    tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
+    tabs.append(["Total", jformat(total, 8)])
+
+    # Transaction Info
+    txs = rpc_connect().listtransactions()
+    max_time = 0
+    try:
+        for tx in txs:
+            if tx['time'] > max_time:
+                max_time = tx['time']
+    except Exception:
+        max_time = 0
+
+    if max_time > 0:
+        time_max = datetime.utcfromtimestamp(max_time)
+        str_ago = time_ago(time_max)
+        tabs.append([success("Latest Transaction"), success(str_ago)])
+
+    return_str = tabulate(tabs,
+                          colalign=["left", "right"],
+                          headers=["Bitcoin Core", "Node info"])
+
+    pickle_it('save', 'data_rpc.pkl', return_str)
+    return (return_str)
+
+
 def main():
     arg = sys.argv[1]
+    if arg == 'data_btc_rpc_info':
+        print(data_btc_rpc_info())
+    if arg == 'data_umbrel':
+        print(data_umbrel())
     if arg == 'data_btc_price':
         print(data_btc_price())
     if arg == 'data_tor':
@@ -724,6 +850,26 @@ def main():
 
 # HELPERS ------------------------------------------
 # Function to load and save data into pickles
+def humanbytes(B):
+    'Return the given bytes as a human friendly KB, MB, GB, or TB string'
+    B = float(B)
+    KB = float(1024)
+    MB = float(KB**2)  # 1,048,576
+    GB = float(KB**3)  # 1,073,741,824
+    TB = float(KB**4)  # 1,099,511,627,776
+
+    if B < KB:
+        return '{0} {1}'.format(B, 'Bytes' if 0 == B > 1 else 'Byte')
+    elif KB <= B < MB:
+        return '{0:.2f} KB'.format(B / KB)
+    elif MB <= B < GB:
+        return '{0:.2f} MB'.format(B / MB)
+    elif GB <= B < TB:
+        return '{0:.2f} GB'.format(B / GB)
+    elif TB <= B:
+        return '{0:.2f} TB'.format(B / TB)
+
+
 def pickle_it(action='load', filename=None, data=None):
     home_path = os.path.dirname(os.path.abspath(__file__))
     filename = 'static/save/' + filename
