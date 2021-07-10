@@ -797,6 +797,22 @@ def data_btc_rpc_info(use_cache=True):
     tabs.append(["Confirmed", jformat(confirmed, 8)])
     tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
     tabs.append(["Total", jformat(total, 8)])
+
+    # Transaction Info
+    txs = rpc_connect().listtransactions()
+    max_time = 0
+    try:
+        for tx in txs:
+            if tx['time'] > max_time:
+                max_time = tx['time']
+    except Exception:
+        max_time = 0
+
+    if max_time > 0:
+        time_max = datetime.utcfromtimestamp(max_time)
+        str_ago = time_ago(time_max)
+        tabs.append([success("Last Transaction"), success(str_ago)])
+
     return_str = tabulate(tabs, colalign=["left", "right"])
 
     pickle_it('save', 'data_rpc.pkl', return_str)
