@@ -736,9 +736,8 @@ def data_btc_rpc_info(use_cache=True):
     bci = rpc_connection.getblockchaininfo()
 
     tabs = []
-
     # Testnet, Mainnet, etc...
-    tabs.append([" Chain", bci['chain']])
+    tabs.append(["Chain", bci['chain']])
 
     # Create Synch progress bar
     try:
@@ -753,7 +752,7 @@ def data_btc_rpc_info(use_cache=True):
     except Exception:
         synch_bar = "Error checking synch completion"
 
-    tabs.append([" Synch", synch_bar])
+    tabs.append(["Synch", synch_bar])
 
     # Initial BLOCK Download & other info
 
@@ -776,10 +775,43 @@ def data_btc_rpc_info(use_cache=True):
     except Exception:
         pass
 
+    return_str = '\nBlockchain Info\n--------------------------\n'
     btc_tabs = tabulate(tabs, colalign=["left", "right"])
+    return_str += btc_tabs
 
-    pickle_it('save', 'data_rpc.pkl', btc_tabs)
-    return (btc_tabs)
+    # Network Info
+    network = rpc_connect().getnetworkinfo()
+    return_str += '\nNetwork Info\n--------------------------\n'
+    net_tabs = []
+    net_tabs.append(['Bitcoin Core Version', network['subversion']])
+    net_tabs.append(['Connections', jformat(network['connections'], 0)])
+
+    net_tabs = tabulate(net_tabs, colalign=["left", "right"])
+    return_str += net_tabs
+
+    # Wallet Info
+    return_str = '\nBitcoin Core Wallet Info\n-------------------------\n'
+    wallets = rpc_connect().getbalances()
+    try:
+        confirmed = float(wallets['mine']['trusted'])
+    except Exception:
+        confirmed = 0
+    try:
+        unconfirmed = float(wallets['mine']['immature'])
+    except Exception:
+        unconfirmed = 0
+    total = confirmed + unconfirmed
+
+    tabs = []
+    tabs.append(["Confirmed", jformat(confirmed, 8)])
+    tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
+    tabs.append(["------------", "--------"])
+    tabs.append(["Total", jformat(total, 8)])
+    wallet_tabs = tabulate(tabs, colalign=["left", "right"])
+    return_str += wallet_tabs
+
+    pickle_it('save', 'data_rpc.pkl', return_str)
+    return (return_str)
 
 
 def main():
