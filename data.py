@@ -759,26 +759,26 @@ def data_btc_rpc_info(use_cache=True):
     if bci['initialblockdownload'] is True:
         ver_str = success('Success ✅')
     else:
-        ver_str = warning('Downloading...')
+        ver_str = warning(f"Downloading... {bci['initialblockdownload']}")
     tabs.append([" Initial Block Download", ver_str])
     tabs.append(
         [" Blockchain Size",
          jformat(bci['initialblockdownload'], 0) + 'GB'])
     pruned = bci['pruned']
     if pruned is True:
-        tabs.append([warning(" Prunned Chain?"), warning(str(pruned))])
+        tabs.append(["Prunned Chain?", warning(str(pruned))])
     else:
-        tabs.append([success(" Prunned Chain?"), success(str(pruned))])
+        tabs.append(["Prunned Chain?", success(str(pruned))])
     try:
         segwit = bci['softforks']['segwit']['active']
         if segwit is True:
-            tabs.append([success(" Segwit"), "Ready  ✅"])
+            tabs.append([success("Segwit"), "Ready  ✅"])
     except Exception:
         pass
     try:
         taproot = bci['softforks']['taproot']['active']
         if taproot is True:
-            tabs.append([success(" Taproot"), "Ready  ✅"])
+            tabs.append([success("Taproot"), "Ready  ✅"])
     except Exception:
         pass
 
