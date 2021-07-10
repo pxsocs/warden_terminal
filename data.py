@@ -736,6 +736,7 @@ def data_btc_rpc_info(use_cache=True):
     bci = rpc_connection.getblockchaininfo()
 
     tabs = []
+    tabs.append(["Blockchain Information", ""])
     # Testnet, Mainnet, etc...
     tabs.append(["Chain", bci['chain']])
 
@@ -775,22 +776,14 @@ def data_btc_rpc_info(use_cache=True):
     except Exception:
         pass
 
-    return_str = '\nBlockchain Info\n--------------------------\n'
-    btc_tabs = tabulate(tabs, colalign=["left", "right"])
-    return_str += btc_tabs
-
     # Network Info
+    tabs.append(["Network Information", ""])
     network = rpc_connect().getnetworkinfo()
-    return_str += '\nNetwork Info\n--------------------------\n'
-    net_tabs = []
-    net_tabs.append(['Bitcoin Core Version', network['subversion']])
-    net_tabs.append(['Connections', jformat(network['connections'], 0)])
-
-    net_tabs = tabulate(net_tabs, colalign=["left", "right"])
-    return_str += net_tabs
+    tabs.append(['Bitcoin Core Version', network['subversion']])
+    tabs.append(['Connections', jformat(network['connections'], 0)])
 
     # Wallet Info
-    return_str += '\nBitcoin Core Wallet Info\n-------------------------\n'
+    tabs.append(["Bitcoin Core Wallet Info", ""])
     wallets = rpc_connect().getbalances()
     try:
         confirmed = float(wallets['mine']['trusted'])
@@ -801,13 +794,10 @@ def data_btc_rpc_info(use_cache=True):
     except Exception:
         unconfirmed = 0
     total = confirmed + unconfirmed
-
-    tabs = []
     tabs.append(["Confirmed", jformat(confirmed, 8)])
     tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
     tabs.append(["Total", jformat(total, 8)])
-    wallet_tabs = tabulate(tabs, colalign=["left", "right"])
-    return_str += wallet_tabs
+    return_str = tabulate(tabs, colalign=["left", "right"])
 
     pickle_it('save', 'data_rpc.pkl', return_str)
     return (return_str)
