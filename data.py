@@ -712,17 +712,79 @@ def data_umbrel(umbrel=True):
     return (tabs)
 
 
-def data_btc_rpc_info():
+def data_btc_rpc_info(use_cache=True):
+    if use_cache is True:
+        cached = pickle_it('load', 'data_rpc.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
+    # Get RPC Connection
     from rpc import rpc_connect, btc_network
     btc_network = btc_network()
     rpc_connection = rpc_connect()
     if rpc_connection is None:
         return ("Could not connect to Bitcoin RPC")
+
+    # Check if small or large and the size of progress  bars
+    rows, columns = subprocess.check_output(['stty', 'size']).split()
+    small_display = pickle_it('load', 'small_display.pkl')
+    if small_display:
+        bar_size = int(int(columns)) - 35
+    else:
+        bar_size = int(int(columns) / 3) - 35
+
+    # Get Blockchaininfo from Bitcoin RPC
     bci = rpc_connection.getblockchaininfo()
+
     tabs = []
+
+    # Testnet, Mainnet, etc...
     tabs.append([" Chain", bci['chain']])
-    tabs.append(["Synch", bci['verificationprogress']])
+
+    # Create Synch progress bar
+    try:
+        perc_c = int(bci['verificationprogress']) * 100
+        synch_bar = printProgressBar(iteration=round(perc_c, 2),
+                                     total=100,
+                                     suffix=(f'{round(perc_c, 2)}%'),
+                                     length=bar_size,
+                                     perc=True,
+                                     printEnd='',
+                                     max_min=(0, 100))
+    except Exception:
+        synch_bar = "Error checking synch completion"
+
+    tabs.append([" Synch", synch_bar])
+
+    # Initial BLOCK Download & other info
+    if bci['initialblockdownload'] is True:
+        ver_str = success('Success ✅')
+    else:
+        ver_str = warning('Downloading...')
+    tabs.append([" Initial Block Download", ver_str])
+    tabs.append(
+        [" Blockchain Size",
+         jformat(bci['initialblockdownload'], 0) + 'GB'])
+    pruned = bci['pruned']
+    if pruned is True:
+        tabs.append([warning(" Prunned Chain?"), warning(pruned)])
+    else:
+        tabs.append([success(" Prunned Chain?"), success(pruned)])
+    try:
+        segwit = bci['softforks']['segwit']['active']
+        if segwit is True:
+            tabs.append([success(" Segwit"), "Ready  ✅"])
+    except Exception:
+        pass
+    try:
+        taproot = bci['softforks']['taproot']['active']
+        if taproot is True:
+            tabs.append([success(" Taproot"), "Ready  ✅"])
+    except Exception:
+        pass
+
     btc_tabs = tabulate(tabs, colalign=["left", "right"])
+
+    pickle_it('save', 'data_rpc.pkl', btc_tabs)
     return (btc_tabs)
 
 
