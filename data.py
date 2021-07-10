@@ -790,7 +790,7 @@ def data_btc_rpc_info(use_cache=True):
     return_str += net_tabs
 
     # Wallet Info
-    return_str = '\nBitcoin Core Wallet Info\n-------------------------\n'
+    return_str += '\nBitcoin Core Wallet Info\n-------------------------\n'
     wallets = rpc_connect().getbalances()
     try:
         confirmed = float(wallets['mine']['trusted'])
@@ -805,7 +805,6 @@ def data_btc_rpc_info(use_cache=True):
     tabs = []
     tabs.append(["Confirmed", jformat(confirmed, 8)])
     tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
-    tabs.append(["------------", "--------"])
     tabs.append(["Total", jformat(total, 8)])
     wallet_tabs = tabulate(tabs, colalign=["left", "right"])
     return_str += wallet_tabs
