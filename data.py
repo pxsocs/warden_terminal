@@ -756,19 +756,13 @@ def data_btc_rpc_info(use_cache=True):
     tabs.append([" Synch", synch_bar])
 
     # Initial BLOCK Download & other info
-    if bci['initialblockdownload'] is True:
-        ver_str = success('Success ✅')
-    else:
-        ver_str = warning(f"Downloading... {bci['initialblockdownload']}")
-    tabs.append([" Initial Block Download", ver_str])
-    tabs.append(
-        [" Blockchain Size",
-         jformat(bci['initialblockdownload'], 0) + 'GB'])
+
+    tabs.append(["Blockchain Size", humanbytes(bci['size_on_disk'])])
     pruned = bci['pruned']
     if pruned is True:
-        tabs.append(["Prunned Chain?", warning(str(pruned))])
+        tabs.append(["Prunned", warning("Prunned [!]")])
     else:
-        tabs.append(["Prunned Chain?", success(str(pruned))])
+        tabs.append(["Prunned", "Not Prunned  ✅"])
     try:
         segwit = bci['softforks']['segwit']['active']
         if segwit is True:
@@ -818,6 +812,26 @@ def main():
 
 # HELPERS ------------------------------------------
 # Function to load and save data into pickles
+def humanbytes(B):
+    'Return the given bytes as a human friendly KB, MB, GB, or TB string'
+    B = float(B)
+    KB = float(1024)
+    MB = float(KB**2)  # 1,048,576
+    GB = float(KB**3)  # 1,073,741,824
+    TB = float(KB**4)  # 1,099,511,627,776
+
+    if B < KB:
+        return '{0} {1}'.format(B, 'Bytes' if 0 == B > 1 else 'Byte')
+    elif KB <= B < MB:
+        return '{0:.2f} KB'.format(B / KB)
+    elif MB <= B < GB:
+        return '{0:.2f} MB'.format(B / MB)
+    elif GB <= B < TB:
+        return '{0:.2f} GB'.format(B / GB)
+    elif TB <= B:
+        return '{0:.2f} TB'.format(B / TB)
+
+
 def pickle_it(action='load', filename=None, data=None):
     home_path = os.path.dirname(os.path.abspath(__file__))
     filename = 'static/save/' + filename
