@@ -736,7 +736,7 @@ def data_btc_rpc_info(use_cache=True):
     bci = rpc_connection.getblockchaininfo()
 
     tabs = []
-    tabs.append(["Blockchain Information", ""])
+    tabs.append([muted("\nBlockchain Info"), ""])
     # Testnet, Mainnet, etc...
     tabs.append(["Chain", bci['chain']])
 
@@ -777,13 +777,13 @@ def data_btc_rpc_info(use_cache=True):
         pass
 
     # Network Info
-    tabs.append(["Network Information", ""])
+    tabs.append([muted("\nNetwork Info"), ""])
     network = rpc_connect().getnetworkinfo()
     tabs.append(['Bitcoin Core Version', network['subversion']])
     tabs.append(['Connections', jformat(network['connections'], 0)])
 
     # Wallet Info
-    tabs.append(["Bitcoin Core Wallet Info", ""])
+    tabs.append([muted("\nBitcoin Core Wallet Info"), ""])
     wallets = rpc_connect().getbalances()
     try:
         confirmed = float(wallets['mine']['trusted'])
