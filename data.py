@@ -163,7 +163,7 @@ def data_large_price(price=None, change=None, chg_str=None):
             msg += error(f'24hr Change: {chg_str}%\n')
         if chg < -5:
             msg += muted(
-                f"Bitcoin dropping? Buy the dip!\nTime to stack some sats. ")
+                "Bitcoin dropping? Buy the dip!\nTime to stack some sats. ")
 
     return_fig = muted(return_fig)
     return_fig += msg

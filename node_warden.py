@@ -103,10 +103,11 @@ def create_tor():
             exit()
 
 
-def check_version():
+def check_version(upgrade_args):
     from dashboard import version
     current_version = version()
     logging.info(f"Running WARden version: {current_version}")
+    pickle_it('save', 'restart.pkl', False)
     with yaspin(
             text=f"Checking for updates. Running version: {current_version}",
             color="green") as spinner:
@@ -139,21 +140,38 @@ def check_version():
             spinner.fail("🟡 ")
             spinner.write(
                 warning(f"    Update available - version: {remote_version}"))
-            import click
+
             print(f"    [i] You are running version: {current_version}")
-            if click.confirm(warning('    [?] Would you like to upgrade?'),
-                             default=False):
-                print(" ---------------------------------------")
-                print(yellow("Upgrading from GitHub: ")),
-                import subprocess
-                subprocess.run("git fetch --all", shell=True)
-                subprocess.run("git reset --hard origin/master", shell=True)
-                print(yellow("Installing Python Package Requirements")),
-                subprocess.run("pip3 install -r requirements.txt", shell=True)
-                print(" ---------------------------------------")
-                print(success("  ✅ Done Upgrading"))
+
+            if (upgrade_args is True):
+                import click
+                if click.confirm(warning('    [?] Would you like to upgrade?'),
+                                 default=False):
+                    print(" ---------------------------------------")
+                    print(yellow("Upgrading from GitHub: ")),
+                    import subprocess
+                    subprocess.run("git fetch --all", shell=True)
+                    subprocess.run("git reset --hard origin/master",
+                                   shell=True)
+                    print(yellow("Installing Python Package Requirements")),
+                    subprocess.run("pip3 install -r requirements.txt",
+                                   shell=True)
+                    print(" ---------------------------------------")
+                    print(success("  ✅ Done Upgrading"))
+                    upgrade = False
+                    pickle_it('save', 'restart.pkl', True)
+            else:
+                logging.info(
+                    error(
+                        "An Upgrade is available for the WARden. Run the app with the --upgrade argument to update to the latest version."
+                    ))
+                print(
+                    error(
+                        "    [i] run the app with --upgrade argument to upgrade"
+                    ))
 
         print("")
+        pickle_it('save', 'upgrade.pkl', upgrade)
 
 
 def greetings():
@@ -306,7 +324,7 @@ def check_screen_size():
         if small_display:
             print(
                 yellow(
-                    "    [i] Small display detected. Will cycle through widgets. Pressing (M) on main screen will force multi gadget display."
+                    "    [i] Small display detected.\n        Will cycle through widgets.\n        Pressing (M) on main screen will force multi gadget display."
                 ))
         print("")
 
@@ -449,6 +467,11 @@ def main(quiet=None):
         else:
             quiet = False
 
+    if 'upgrade' in sys.argv:
+        upgrade = True
+    else:
+        upgrade = False
+
     if quiet is False or quiet is None:
         clear_screen()
         logo()
@@ -461,7 +484,7 @@ def main(quiet=None):
         logging.info(muted("Starting main program..."))
         config = load_config()
         tor = create_tor()
-        check_version()
+        check_version(upgrade)
         check_screen_size()
         check_cryptocompare()
         check_btc_rpc()

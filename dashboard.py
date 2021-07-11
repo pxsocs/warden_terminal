@@ -65,8 +65,21 @@ def main_dashboard(config, tor):
             r_time = time_ago(r_time)
         except Exception:
             r_time = warning("No recent data")
-        txt = u' WARden Node Edition (Version: ' + version() + emoji.emojize(
-            ') | twitter :bird: @alphaazeta')
+
+        upgrade_available = pickle_it('load', 'upgrade.pkl')
+        restart = pickle_it('load', 'restart.pkl')
+        msg_add = None
+        if upgrade_available is True:
+            msg_add = ' [UPGRADE AVAILABLE] '
+        if restart is True:
+            msg_add = ' [RESTART THE APP] '
+
+        if msg_add is not None:
+            txt = ' WARden Node Edition (Version: ' + version() + str(
+                msg_add) + emoji.emojize(') | twitter :bird: @alphaazeta')
+        else:
+            txt = ' WARden Node Edition (Version: ' + version(
+            ) + emoji.emojize(') | twitter :bird: @alphaazeta')
 
         btc = btc_price_data()
 
