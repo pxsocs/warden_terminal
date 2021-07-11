@@ -103,7 +103,7 @@ def create_tor():
             exit()
 
 
-def check_version(upgrade_args):
+def check_version(upgrade_args=True):
     from dashboard import version
     current_version = version()
     logging.info(f"Running WARden version: {current_version}")
@@ -469,10 +469,10 @@ def main(quiet=None):
         else:
             quiet = False
 
-    if 'upgrade' in sys.argv:
-        upgrade = True
-    else:
-        upgrade = False
+    # if 'upgrade' in sys.argv:
+    upgrade = True
+    # else:
+    # upgrade = False
 
     if quiet is False or quiet is None:
         clear_screen()
