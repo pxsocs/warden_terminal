@@ -55,8 +55,8 @@ def version():
 
 def main_dashboard(config, tor):
     def update_header(layout, message=None, message_type=None):
-        # Create Header
 
+        # Create Header
         try:
             r_time = pickle_it('load', 'last_price_refresh.pkl')
         except Exception:
@@ -98,6 +98,11 @@ def main_dashboard(config, tor):
         if message:
             txt += ' | ' + message
 
+        small_display = pickle_it('load', 'small_display.pkl')
+        if small_display is True:
+            txt = ("WARden Node Edition | " +
+                   f"BTC ${jformat(btc_price, 0)} " + " | " + r_time)
+
         header_text = urwid.Text(txt, align='right')
         header = urwid.AttrMap(header_text, 'titlebar')
         layout.header = header
@@ -122,9 +127,14 @@ def main_dashboard(config, tor):
 
         lst_menu.append([f'(M) to toggle multi view [{multi_str}] |  '])
         lst_menu.append(['(Q) to quit'])
-        menu = urwid.Text(lst_menu, align='center')
-        layout.footer = menu
-        return (menu)
+        small_display = pickle_it('load', 'small_display.pkl')
+        if small_display is True:
+            layout.footer = None
+            return None
+        else:
+            menu = urwid.Text(lst_menu, align='center')
+            layout.footer = menu
+            return (menu)
 
     # Class to Create URWID box window to receive data
     class Box:

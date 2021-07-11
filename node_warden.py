@@ -296,7 +296,8 @@ def check_screen_size():
         rows, columns = subprocess.check_output(['stty', 'size']).split()
         rows = int(rows)
         columns = int(columns)
-
+        xs_display = False
+        small_display = False
         # min dimensions are recommended at 60 x 172
         if rows < 60 or columns < 172:
             small_display = True
@@ -306,11 +307,11 @@ def check_screen_size():
             # the refresh variable on config.ini determines how many seconds
             # to wait between refreshes
             config['MAIN']['auto_scroll'] = 'True'
+            if columns < 50 or rows < 20:
+                xs_display = True
+                config['MAIN']['large_text_font'] = 'small'
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
-
-        else:
-            small_display = False
 
         cycle = int(0)
         pickle_it('save', 'cycle.pkl', cycle)
@@ -319,6 +320,7 @@ def check_screen_size():
         message = f"Screen size is {str(rows)} rows x {str(columns)} columns"
         spinner.write(success("    " + message))
         logging.info(message)
+        pickle_it('save', 'xs_display.pkl', xs_display)
         pickle_it('save', 'small_display.pkl', small_display)
         pickle_it('save', 'multi_toggle.pkl', False)
         if small_display:

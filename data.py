@@ -720,6 +720,10 @@ def data_btc_rpc_info(use_cache=True):
     from rpc import rpc_connect, btc_network
     btc_network = btc_network()
     rpc_connection = rpc_connect()
+    try:
+        rpc_connection.getblockchaininfo()
+    except Exception:
+        rpc_connection = None
     if rpc_connection is None:
         return ("Could not connect to Bitcoin RPC")
 
