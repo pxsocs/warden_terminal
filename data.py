@@ -163,7 +163,7 @@ def data_large_price(price=None, change=None, chg_str=None):
             msg += error(f'24hr Change: {chg_str}%\n')
         if chg < -5:
             msg += muted(
-                f"Bitcoin dropping? Buy the dip!\nTime to stack some sats. ")
+                "Bitcoin dropping? Buy the dip!\nTime to stack some sats. ")
 
     return_fig = muted(return_fig)
     return_fig += msg
@@ -720,6 +720,10 @@ def data_btc_rpc_info(use_cache=True):
     from rpc import rpc_connect, btc_network
     btc_network = btc_network()
     rpc_connection = rpc_connect()
+    try:
+        rpc_connection.getblockchaininfo()
+    except Exception:
+        rpc_connection = None
     if rpc_connection is None:
         return ("Could not connect to Bitcoin RPC")
 

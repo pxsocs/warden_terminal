@@ -55,8 +55,8 @@ def version():
 
 def main_dashboard(config, tor):
     def update_header(layout, message=None, message_type=None):
-        # Create Header
 
+        # Create Header
         try:
             r_time = pickle_it('load', 'last_price_refresh.pkl')
         except Exception:
@@ -65,8 +65,21 @@ def main_dashboard(config, tor):
             r_time = time_ago(r_time)
         except Exception:
             r_time = warning("No recent data")
-        txt = u' WARden Node Edition (Version: ' + version() + emoji.emojize(
-            ') | twitter :bird: @alphaazeta')
+
+        upgrade_available = pickle_it('load', 'upgrade.pkl')
+        restart = pickle_it('load', 'restart.pkl')
+        msg_add = None
+        if upgrade_available is True:
+            msg_add = ' [UPGRADE AVAILABLE] '
+        if restart is True:
+            msg_add = ' [RESTART THE APP] '
+
+        if msg_add is not None:
+            txt = ' WARden Node Edition (Version: ' + version() + str(
+                msg_add) + emoji.emojize(') | twitter :bird: @alphaazeta')
+        else:
+            txt = ' WARden Node Edition (Version: ' + version(
+            ) + emoji.emojize(') | twitter :bird: @alphaazeta')
 
         btc = btc_price_data()
 
@@ -84,6 +97,11 @@ def main_dashboard(config, tor):
 
         if message:
             txt += ' | ' + message
+
+        small_display = pickle_it('load', 'small_display.pkl')
+        if small_display is True:
+            txt = ("WARden Node Edition | " +
+                   f"BTC ${jformat(btc_price, 0)} " + " | " + r_time)
 
         header_text = urwid.Text(txt, align='right')
         header = urwid.AttrMap(header_text, 'titlebar')
@@ -109,9 +127,14 @@ def main_dashboard(config, tor):
 
         lst_menu.append([f'(M) to toggle multi view [{multi_str}] |  '])
         lst_menu.append(['(Q) to quit'])
-        menu = urwid.Text(lst_menu, align='center')
-        layout.footer = menu
-        return (menu)
+        small_display = pickle_it('load', 'small_display.pkl')
+        if small_display is True:
+            layout.footer = None
+            return None
+        else:
+            menu = urwid.Text(lst_menu, align='center')
+            layout.footer = menu
+            return (menu)
 
     # Class to Create URWID box window to receive data
     class Box:
