@@ -530,9 +530,14 @@ def main(quiet=None):
         data_logger(use_cache=False)
 
     # Kick off data upgrades as background jobs
+    try:
+        price_refresh = config['MAIN'].get('price_refresh_interval')
+    except Exception:
+        price_refresh = 15
+
     job_defaults = {'coalesce': False, 'max_instances': 1}
     scheduler = BackgroundScheduler(job_defaults=job_defaults)
-    scheduler.add_job(price_grabs, 'interval', seconds=15)
+    scheduler.add_job(price_grabs, 'interval', seconds=price_refresh)
     scheduler.add_job(node_web_grabs, 'interval', seconds=15)
     scheduler.add_job(sys_grabs, 'interval', seconds=1)
     scheduler.start()

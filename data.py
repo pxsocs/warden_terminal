@@ -232,6 +232,17 @@ def data_btc_price(use_cache=True):
     # Get prices in different currencies
     tabs = []
     btc_usd_price = 0
+
+    # Get Update Time
+    try:
+        r_time = pickle_it('load', 'last_price_refresh.pkl')
+    except Exception:
+        r_time = warning("Loading...")
+    try:
+        r_time = time_ago(r_time)
+    except Exception:
+        r_time = warning("Error")
+
     for fx in currencies:
         try:
             try:
@@ -247,7 +258,6 @@ def data_btc_price(use_cache=True):
                 low = price_data['DISPLAY']['BTC'][fx]['LOWDAY']
 
             chg_str = price_data['DISPLAY']['BTC'][fx]['CHANGEPCTDAY']
-            last_up_str = price_data['DISPLAY']['BTC'][fx]['LASTUPDATE']
             market = muted(price_data['DISPLAY']['BTC'][fx]['LASTMARKET'])
             try:
                 chg = float(chg_str)
@@ -265,7 +275,7 @@ def data_btc_price(use_cache=True):
                 fx = info(fx)
             tabs.append([
                 u'  ' + fx, price_str, chg_str, low + ' - ' + high, market,
-                last_up_str
+                r_time
             ])
 
         except Exception as e:
