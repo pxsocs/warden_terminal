@@ -182,10 +182,19 @@ def data_large_block(use_cache=True):
     font = ft_config.get('large_text_font')
     # If a price is provided, it won't refresh
     latest_block = pickle_it(action='load', filename='block.pkl')
+
     custom_fig = pyfiglet.Figlet(font=font)
     return_fig = custom_fig.renderText(jformat(latest_block, 0))
     return_fig = yellow(return_fig)
     return_fig += muted("Block Height")
+    block_time = pickle_it('load', 'recent_block.pkl')
+    if block_time is not None:
+        if block_time != 'file not found':
+            minutes_ago = (datetime.now() - datetime.fromtimestamp(block_time))
+            minutes_ago = minutes_ago.seconds // 60 % 60
+            txt = f"\n\n Block mined {time_ago(block_time)}"
+            txt += "\nOn average blocks come in every 10 minutes"
+            return_fig += txt
     pickle_it('save', 'data_large_block.pkl', return_fig)
     return (return_fig)
 
@@ -613,6 +622,11 @@ def data_mempool(use_cache=True):
 
     mp_tabs = []
     gradient_color = 0
+    try:
+        pickle_it('save', 'recent_block.pkl', mp_blocks[0]['timestamp'])
+    except Exception:
+        pickle_it('save', 'recent_block.pkl', None)
+
     for block in mp_blocks:
         mp_tabs.append([
             time_ago(block['timestamp']),

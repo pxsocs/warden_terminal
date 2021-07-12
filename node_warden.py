@@ -531,7 +531,10 @@ def main(quiet=None):
 
     # Kick off data upgrades as background jobs
     try:
-        price_refresh = config['MAIN'].get('price_refresh_interval')
+        price_refresh = config['MAIN'].getint('price_refresh_interval')
+        if price_refresh is None:
+            price_refresh = 15
+
     except Exception:
         price_refresh = 15
 
