@@ -192,8 +192,22 @@ def data_large_block(use_cache=True):
         if block_time != 'file not found':
             minutes_ago = (datetime.now() - datetime.fromtimestamp(block_time))
             minutes_ago = minutes_ago.seconds // 60 % 60
-            txt = f"\n\n Block mined {time_ago(block_time)}"
-            txt += "\nOn average blocks come in every 10 minutes"
+            # Source for these ranges:
+            # https://www.reddit.com/r/btc/comments/6v5ee7/block_times_and_probabilities/
+            clr_txt = ''
+            if minutes_ago < 10:
+                clr_txt = success(time_ago(block_time))
+            elif (minutes_ago >= 10) and (minutes_ago <= 20):
+                clr_txt = warning(time_ago(block_time))
+            elif minutes_ago > 20:
+                clr_txt = error(time_ago(block_time))
+            elif minutes_ago > 50 and minutes_ago < 90:
+                clr_txt += '\nThis is a slow block but expected to happen once a day'
+            elif minutes_ago >= 90 and minutes_ago < 120:
+                clr_txt += '\nThis is a slow block.\n90min blocks are expected to happen\nonly once every 2 months'
+            elif minutes_ago >= 120:
+                clr_txt += '\nThis is a VERY slow block.\n120min blocks are expected to happen\nonly once every 3 years'
+            txt = f"\n\n Block mined {clr_txt}"
             return_fig += txt
     pickle_it('save', 'data_large_block.pkl', return_fig)
     return (return_fig)
