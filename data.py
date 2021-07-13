@@ -182,10 +182,33 @@ def data_large_block(use_cache=True):
     font = ft_config.get('large_text_font')
     # If a price is provided, it won't refresh
     latest_block = pickle_it(action='load', filename='block.pkl')
+
     custom_fig = pyfiglet.Figlet(font=font)
     return_fig = custom_fig.renderText(jformat(latest_block, 0))
     return_fig = yellow(return_fig)
     return_fig += muted("Block Height")
+    block_time = pickle_it('load', 'recent_block.pkl')
+    if block_time is not None:
+        if block_time != 'file not found':
+            minutes_ago = (datetime.now() - datetime.fromtimestamp(block_time))
+            minutes_ago = minutes_ago.seconds // 60 % 60
+            # Source for these ranges:
+            # https://www.reddit.com/r/btc/comments/6v5ee7/block_times_and_probabilities/
+            clr_txt = ''
+            if minutes_ago < 10:
+                clr_txt = success(time_ago(block_time))
+            elif (minutes_ago >= 10) and (minutes_ago <= 20):
+                clr_txt = warning(time_ago(block_time))
+            elif minutes_ago > 20:
+                clr_txt = error(time_ago(block_time))
+            elif minutes_ago > 50 and minutes_ago < 90:
+                clr_txt += '\nThis is a slow block but expected to happen once a day'
+            elif minutes_ago >= 90 and minutes_ago < 120:
+                clr_txt += '\nThis is a slow block.\n90min blocks are expected to happen\nonly once every 2 months'
+            elif minutes_ago >= 120:
+                clr_txt += '\nThis is a VERY slow block.\n120min blocks are expected to happen\nonly once every 3 years'
+            txt = f"\n\n Block mined {clr_txt}"
+            return_fig += txt
     pickle_it('save', 'data_large_block.pkl', return_fig)
     return (return_fig)
 
@@ -232,6 +255,17 @@ def data_btc_price(use_cache=True):
     # Get prices in different currencies
     tabs = []
     btc_usd_price = 0
+
+    # Get Update Time
+    try:
+        r_time = pickle_it('load', 'last_price_refresh.pkl')
+    except Exception:
+        r_time = warning("Loading...")
+    try:
+        r_time = time_ago(r_time)
+    except Exception:
+        r_time = warning("Error")
+
     for fx in currencies:
         try:
             try:
@@ -247,7 +281,6 @@ def data_btc_price(use_cache=True):
                 low = price_data['DISPLAY']['BTC'][fx]['LOWDAY']
 
             chg_str = price_data['DISPLAY']['BTC'][fx]['CHANGEPCTDAY']
-            last_up_str = price_data['DISPLAY']['BTC'][fx]['LASTUPDATE']
             market = muted(price_data['DISPLAY']['BTC'][fx]['LASTMARKET'])
             try:
                 chg = float(chg_str)
@@ -265,7 +298,7 @@ def data_btc_price(use_cache=True):
                 fx = info(fx)
             tabs.append([
                 u'  ' + fx, price_str, chg_str, low + ' - ' + high, market,
-                last_up_str
+                r_time
             ])
 
         except Exception as e:
@@ -603,6 +636,11 @@ def data_mempool(use_cache=True):
 
     mp_tabs = []
     gradient_color = 0
+    try:
+        pickle_it('save', 'recent_block.pkl', mp_blocks[0]['timestamp'])
+    except Exception:
+        pickle_it('save', 'recent_block.pkl', None)
+
     for block in mp_blocks:
         mp_tabs.append([
             time_ago(block['timestamp']),
