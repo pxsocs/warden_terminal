@@ -825,34 +825,43 @@ def data_btc_rpc_info(use_cache=True):
 
     # Wallet Info
     tabs.append([muted("Wallet Info"), ""])
-    wallets = rpc_connect().getbalances()
+    wallets = False
     try:
-        confirmed = float(wallets['mine']['trusted'])
+        wallets = rpc_connect().getbalances()
+
+        try:
+            confirmed = float(wallets['mine']['trusted'])
+        except Exception:
+            confirmed = 0
+        try:
+            unconfirmed = float(wallets['mine']['immature'])
+        except Exception:
+            unconfirmed = 0
+        total = confirmed + unconfirmed
+        tabs.append(["Confirmed", jformat(confirmed, 8)])
+        tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
+        tabs.append(["Total", jformat(total, 8)])
+        wallets = True
+
     except Exception:
-        confirmed = 0
-    try:
-        unconfirmed = float(wallets['mine']['immature'])
-    except Exception:
-        unconfirmed = 0
-    total = confirmed + unconfirmed
-    tabs.append(["Confirmed", jformat(confirmed, 8)])
-    tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
-    tabs.append(["Total", jformat(total, 8)])
+        wallets = False
+        tabs.append(["Wallets", "Could not load"])
 
     # Transaction Info
-    txs = rpc_connect().listtransactions()
-    max_time = 0
-    try:
-        for tx in txs:
-            if tx['time'] > max_time:
-                max_time = tx['time']
-    except Exception:
+    if wallets is True:
+        txs = rpc_connect().listtransactions()
         max_time = 0
+        try:
+            for tx in txs:
+                if tx['time'] > max_time:
+                    max_time = tx['time']
+        except Exception:
+            max_time = 0
 
-    if max_time > 0:
-        time_max = datetime.utcfromtimestamp(max_time)
-        str_ago = time_ago(time_max)
-        tabs.append([success("Latest Transaction"), success(str_ago)])
+        if max_time > 0:
+            time_max = datetime.utcfromtimestamp(max_time)
+            str_ago = time_ago(time_max)
+            tabs.append([success("Latest Transaction"), success(str_ago)])
 
     return_str = tabulate(tabs,
                           colalign=["left", "right"],

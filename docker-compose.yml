@@ -1,20 +1,22 @@
 version: "3.7"
 
-services:
-  web:
-    image: pxsocs/node_warden:latest
-    restart: on-failure
-    stop_grace_period: 1m
-    ports:
-      - "$APP_BTC_RPC_EXPLORER_PORT:$APP_BTC_RPC_EXPLORER_PORT"
+x-logging: &default-logging
+  driver: journald
+  options:
+    tag: "umbrel-app {{.Name}}"
 
+services:
+  warden:
+    image: pxsocs/node_warden:latest
+    logging: *default-logging
+    restart: on-failure
     tty: true
+    stop_grace_period: 1m
 
     environment:
       # Docker requirements
       BTCEXP_HOST: 0.0.0.0
       # Bitcoin Core
-      BTCEXP_BITCOIN_NETWORK: $BITCOIN_NETWORK
       BTCEXP_BITCOIND_HOST: $BITCOIN_IP
       BTCEXP_BITCOIND_PORT: $BITCOIN_RPC_PORT
       BTCEXP_BITCOIND_USER: $BITCOIN_RPC_USER
@@ -33,9 +35,5 @@ services:
       # Disable RPC
       BTCEXP_RPC_ALLOWALL: "false"
       BTCEXP_BASIC_AUTH_PASSWORD: ""
-      # Tor proxy environment variables
-      TOR_PROXY_IP: $TOR_PROXY_IP
-      TOR_PROXY_PORT: $TOR_PROXY_PORT
-
-    networks:
-      default:
+      # BTC RPC EXPLORER IP
+      APP_BTC_RPC_EXPLORER_IP: $APP_BTC_RPC_EXPLORER_IP
