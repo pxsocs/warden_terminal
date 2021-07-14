@@ -192,6 +192,12 @@ def main_dashboard(config, tor):
                       valign='middle',
                       top=3).line_box
 
+    moscow_time_block = Box(loader_text='Getting Block Height...',
+                            height=12,
+                            text_align='center',
+                            valign='middle',
+                            top=3).line_box
+
     large_price = Box(loader_text='Getting BTC Price...',
                       height=12,
                       text_align='center',
@@ -250,7 +256,7 @@ def main_dashboard(config, tor):
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
-        sys_box, large_block, large_message
+        sys_box, large_block, large_message, moscow_time_block
     ]
 
     if rpc_running is True:
@@ -376,12 +382,18 @@ def main_dashboard(config, tor):
         data = translate_text_for_urwid(data_large_price())
         large_price.base_widget.set_text(data)
 
+        data = translate_text_for_urwid(data_large_price(moscow_time=True))
+        moscow_time_block.base_widget.set_text(data)
+
         update_header(layout)
         main_loop.draw_screen()
         main_loop.set_alarm_in(5, btc_updater)
 
     def tor_updater(_loop, __data):
-        data = translate_text_for_urwid(data_tor())
+        try:
+            data = translate_text_for_urwid(data_tor())
+        except Exception:
+            pass
         tor_box.base_widget.set_text(data)
         main_loop.set_alarm_in(1, tor_updater)
 

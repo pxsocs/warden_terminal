@@ -119,7 +119,7 @@ def btc_price_data():
     return (price_data)
 
 
-def data_large_price(price=None, change=None, chg_str=None):
+def data_large_price(price=None, change=None, chg_str=None, moscow_time=False):
     from node_warden import load_config
     config = load_config(quiet=True)
     ft_config = config['MAIN']
@@ -145,6 +145,13 @@ def data_large_price(price=None, change=None, chg_str=None):
             return_fig = custom_fig.renderText('Loading...')
             return (return_fig)
 
+    if moscow_time is True:
+        moscow_price = 100000000 / btc_price
+        return_fig = yellow(custom_fig.renderText(jformat(moscow_price, 0)))
+        return_fig += success('\nSats per dollar\n')
+        return_fig += muted('Moscow Time')
+        return (return_fig)
+
     return_fig = custom_fig.renderText('$  ' + jformat(btc_price, 0))
     return_fig = yellow(return_fig)
 
@@ -155,15 +162,15 @@ def data_large_price(price=None, change=None, chg_str=None):
     if chg_str != '-':
         msg = '\n'
         if chg >= 0:
-            msg += success(f'24hr Change: +{chg_str}%\n')
+            msg += '24hr Change: ' + success(f'{chg_str}%\n')
         if chg > 5:
-            msg += (info("[NgU] ") + muted("Looks like Bitcoin is pumping "))
+            msg += (muted("[NgU] ") +
+                    success("Looks like Bitcoin is pumping "))
 
         if chg < 0:
-            msg += error(f'24hr Change: {chg_str}%\n')
+            msg += '24hr Change: ' + error(f'{chg_str}%\n')
         if chg < -5:
-            msg += muted(
-                "Bitcoin dropping? Buy the dip!\nTime to stack some sats. ")
+            msg += muted("Good time to stack some sats")
 
     return_fig = muted(return_fig)
     return_fig += msg

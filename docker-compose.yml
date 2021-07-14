@@ -5,6 +5,9 @@ x-logging: &default-logging
   options:
     tag: "umbrel-app {{.Name}}"
 
+volumes:
+  - /dev/tty:/dev/tty
+
 services:
   warden:
     image: pxsocs/node_warden:latest
