@@ -580,9 +580,9 @@ def main(quiet=None):
         check_version(upgrade)
         check_screen_size()
         check_cryptocompare()
-        check_btc_rpc()
         check_umbrel()
         check_os()
+        check_btc_rpc()
         login_tip()
         greetings()
 
