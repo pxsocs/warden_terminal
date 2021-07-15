@@ -2,6 +2,7 @@
 
 import pyttsx3
 import requests
+import re
 from yaspin import yaspin
 
 import configparser
@@ -377,17 +378,88 @@ def check_btc_rpc():
 
 
 def check_umbrel():
+    # Let's check if running inside an Umbrel OS System
+    # This is done by trying to access the getumbrel/manager container
+    # and getting the environment variables inside that container
+    with yaspin(text="Checking if running inside Umbrel OS",
+                color="green") as spinner:
+
+        try:
+            exec_command = [
+                'docker', 'exec', 'manager', 'bash', '-c', '"export"'
+            ]
+            result = subprocess.run(exec_command,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            if result.returncode != 0:
+                raise KeyError
+            # Create a list split by ENTER
+            result = result.stdout.decode('utf-8').split('\n')
+
+            finder_list = [
+                'BITCOIN_P2P_PORT',
+                'BITCOIN_RPC_PASSWORD',
+                'BITCOIN_RPC_PORT',
+                'BITCOIN_RPC_USER',
+                'DEVICE_HOSTNAME',
+                'DEVICE_HOSTS',
+                'TOR_PROXY_IP',
+                'TOR_PROXY_PORT',
+                'NODE_VERSION',
+            ]
+            # Ex:
+            # declare -x BITCOIN_P2P_PORT="18444"
+            finder_dict = {}
+            for element in result:
+                if any(env_var in element for env_var in finder_list):
+                    elem_list = element.split('=')
+                    # Get the last item in the first string separated by space
+                    # like BITCOIN_P2P_PORT above
+                    key_item = elem_list[0].split(' ')[-1]
+                    value_item = elem_list[1].replace('"', '')
+                    # Device hosts are usually split by commas:
+                    if key_item == 'DEVICE_HOSTS':
+                        value_item = value_item.split(',')
+                    finder_dict[key_item] = value_item
+            inside_umbrel = True
+            pickle_it('save', 'umbrel_dict.pkl', finder_dict)
+            spinner.ok("✅ ")
+            spinner.write(success(f"    Running Umbrel OS"))
+        except Exception:
+            inside_umbrel = False
+            spinner.fail("🟡 ")
+            spinner.write(warning("    Umbrel OS not found"))
+
+        pickle_it('save', 'inside_umbrel.pkl', inside_umbrel)
+
     #  Try to ping umbrel.local and check for installed apps
     print("")
-    umbrel = False
+    if inside_umbrel is True:
+        umbrel = True
+    else:
+        umbrel = False
     pickle_it('save', 'umbrel.pkl', umbrel)
     mempool = False
     config = load_config(True)
     config_file = os.path.join(basedir, 'config.ini')
     try:
-        url = config['UMBREL']['url']
+        if inside_umbrel is True:
+            try:
+                url = finder_dict['DEVICE_HOSTS'][0]
+                # End URL in / if not there
+                if url[-1] != '/':
+                    url += '/'
+                    if 'http' not in url:
+                        url = 'http://' + url
+
+            except Exception:
+                url = config['UMBREL']['url']
+        else:
+            url = config['UMBREL']['url']
     except Exception:
+        # As a last alternative, try the default
         url = 'http://umbrel.local/'
+
     with yaspin(text=f"Checking if Umbrel @ {url} is reachable",
                 color="green") as spinner:
         # Test if this url can be reached
