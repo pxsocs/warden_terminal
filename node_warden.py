@@ -201,7 +201,12 @@ def check_cryptocompare():
     with yaspin(text=f"Testing price grab from Cryptocompare",
                 color="green") as spinner:
         config = load_config(True)
-        api_key = config['API'].get('cryptocompare')
+        try:
+            api_key = pickle_it('load', 'cryptocompare_api.pkl')
+            if api_key == 'file not found':
+                raise KeyError
+        except Exception:
+            api_key = config['API'].get('cryptocompare')
         # tickers should be in comma sep string format like "BTC,ETH,LTC" and "USD,EUR"
         baseURL = (
             "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC" +
@@ -254,9 +259,22 @@ def check_cryptocompare():
                         '    -----------------------------------------------------------------'
                     )
                     print(
-                        blue(
+                        yellow(
                             '    Go to: https://www.cryptocompare.com/cryptopian/api-keys'
                         ))
+                    print(
+                        yellow(
+                            '    To get an API Key. Keys from cryptocompare are free.'
+                        ))
+                    print(
+                        yellow(
+                            '    [Tip] Get a disposable email to signup and protect privacy.'
+                        ))
+                    print(
+                        yellow(
+                            '    Services like https://temp-mail.org/en/ work well.'
+                        ))
+
                     print(muted("    Current API:"))
                     print(f"    {api_key}")
                     new_key = input('    Enter new API key (Q to quit): ')
@@ -271,6 +289,7 @@ def check_cryptocompare():
                 btc_price = (data['DISPLAY']['BTC']['USD']['PRICE'])
                 spinner.ok("✅ ")
                 spinner.write(success(f"    BTC price is: {btc_price}"))
+                pickle_it('save', 'cryptocompare_api.pkl', api_key)
                 return
             except Exception:
                 spinner.fail("💥 ")
