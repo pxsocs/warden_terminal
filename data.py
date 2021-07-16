@@ -834,21 +834,27 @@ def data_btc_rpc_info(use_cache=True):
     tabs.append([muted("Wallet Info"), ""])
     wallets = False
     try:
-        wallets = rpc_connect().getbalances()
+        any_wallets = rpc_connection.listwallets()
+        if any_wallets == []:
+            tabs.append(["Wallets", "No Wallets Found"])
+            wallets = False
+        else:
 
-        try:
-            confirmed = float(wallets['mine']['trusted'])
-        except Exception:
-            confirmed = 0
-        try:
-            unconfirmed = float(wallets['mine']['immature'])
-        except Exception:
-            unconfirmed = 0
-        total = confirmed + unconfirmed
-        tabs.append(["Confirmed", jformat(confirmed, 8)])
-        tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
-        tabs.append(["Total", jformat(total, 8)])
-        wallets = True
+            wallets = rpc_connect().getbalances()
+
+            try:
+                confirmed = float(wallets['mine']['trusted'])
+            except Exception:
+                confirmed = 0
+            try:
+                unconfirmed = float(wallets['mine']['immature'])
+            except Exception:
+                unconfirmed = 0
+            total = confirmed + unconfirmed
+            tabs.append(["Confirmed", jformat(confirmed, 8)])
+            tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
+            tabs.append(["Total", jformat(total, 8)])
+            wallets = True
 
     except Exception:
         wallets = False
