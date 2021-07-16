@@ -493,14 +493,10 @@ def check_umbrel():
                 url += ':3006/'
                 if 'http' not in url:
                     url = 'http://' + url
-                print(url)
-            except Exception as e:
-                print(e)
+            except Exception:
                 url = config['MEMPOOL']['url']
 
             try:
-                print('---')
-                print(url)
                 result = tor_request(url)
                 if not isinstance(result, requests.models.Response):
                     raise Exception(f'Did not get a return from {url}')
