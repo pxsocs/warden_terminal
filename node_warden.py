@@ -449,7 +449,7 @@ def check_umbrel():
                     url += '/'
                     if 'http' not in url:
                         url = 'http://' + url
-            except Exception as e:
+            except Exception:
                 url = config['UMBREL']['url']
         else:
             url = config['UMBREL']['url']
@@ -482,7 +482,7 @@ def check_umbrel():
         pickle_it('save', 'umbrel.pkl', inside_umbrel)
         with yaspin(text="Checking if Mempool.space app is installed",
                     color="green") as spinner:
-
+            finder_dict = pickle_it('load', 'umbrel_dict.pkl')
             try:
                 for host in finder_dict['DEVICE_HOSTS']:
                     if 'umbrel' in host:
