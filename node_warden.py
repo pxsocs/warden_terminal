@@ -406,7 +406,7 @@ def check_umbrel():
             finder_dict = {}
             for element in result:
                 if any(env_var in element for env_var in finder_list):
-                    elem_list = element.split('=')
+                    elem_list = element.split('=', 1)
                     try:
                         element[1] = element[1].replace('"', '')
                         element[1] = element[1].replace("'", "")
