@@ -407,8 +407,11 @@ def check_umbrel():
             for element in result:
                 if any(env_var in element for env_var in finder_list):
                     elem_list = element.split('=')
-                    element[1] = element[1].replace('"', '')
-                    element[1] = element[1].replace("'", "")
+                    try:
+                        element[1] = element[1].replace('"', '')
+                        element[1] = element[1].replace("'", "")
+                    except Exception:
+                        pass
                     # Get the last item in the first string separated by space
                     # like BITCOIN_P2P_PORT above
                     value_item = elem_list[1]
