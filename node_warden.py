@@ -296,7 +296,6 @@ def check_cryptocompare():
                 spinner.fail("💥 ")
                 spinner.write(
                     warning("    CryptoCompare Returned an UNKNOWN error"))
-                print(data)
 
         return (data)
 
@@ -370,7 +369,7 @@ def check_btc_rpc():
                 chain = bci['chain']
                 pickle_it('save', 'rpc_running.pkl', True)
                 spinner.ok("✅ ")
-                spinner.write(success(f"    RPC reached on chain {chain}"))
+                spinner.write(success(f"    RPC reached: Chain {chain}"))
             except Exception as e:
                 spinner.fail("🟡 ")
                 spinner.write(
