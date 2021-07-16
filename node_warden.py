@@ -416,6 +416,7 @@ def check_umbrel():
                         value_item = value_item.split(',')
                     finder_dict[key_item] = value_item
             inside_umbrel = True
+            print(finder_dict)
             pickle_it('save', 'umbrel_dict.pkl', finder_dict)
             spinner.ok("✅ ")
             spinner.write(success("    Running Umbrel OS"))
@@ -428,11 +429,7 @@ def check_umbrel():
 
     #  Try to ping umbrel.local and check for installed apps
     print("")
-    if inside_umbrel is True:
-        umbrel = True
-    else:
-        umbrel = False
-    pickle_it('save', 'umbrel.pkl', umbrel)
+    pickle_it('save', 'umbrel.pkl', inside_umbrel)
     mempool = False
     config = load_config(True)
     config_file = os.path.join(basedir, 'config.ini')
@@ -465,18 +462,18 @@ def check_umbrel():
                 raise Exception(f'Reached {url} but an error occured.')
             spinner.ok("✅ ")
             spinner.write(success(f"    Umbrel ☂️  found on {url}"))
-            umbrel = True
+            inside_umbrel = True
         except Exception as e:
             spinner.fail("🟡 ")
             spinner.write(warning("    Umbrel not found:" + str(e)))
 
-    if umbrel:
+    if inside_umbrel:
         if 'onion' in url:
             url_parsed = ['[Hidden Onion address]']
         else:
             url_parsed = url
         logging.info(success(f"Umbrel ☂️  running on {url_parsed}"))
-        pickle_it('save', 'umbrel.pkl', umbrel)
+        pickle_it('save', 'umbrel.pkl', inside_umbrel)
         with yaspin(text=f"Checking if Mempool.space app is installed",
                     color="green") as spinner:
             url = config['MEMPOOL']['url']
