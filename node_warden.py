@@ -416,7 +416,6 @@ def check_umbrel():
                         value_item = value_item.split(',')
                     finder_dict[key_item] = value_item
             inside_umbrel = True
-            print(finder_dict)
             pickle_it('save', 'umbrel_dict.pkl', finder_dict)
             spinner.ok("✅ ")
             spinner.write(success("    Running Umbrel OS"))
@@ -442,8 +441,10 @@ def check_umbrel():
                     url += '/'
                     if 'http' not in url:
                         url = 'http://' + url
-
-            except Exception:
+                print("ok")
+                print(url)
+            except Exception as e:
+                print(e)
                 url = config['UMBREL']['url']
         else:
             url = config['UMBREL']['url']
