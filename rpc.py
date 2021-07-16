@@ -44,6 +44,8 @@ def rpc_connect():
             rpc_port = os.environ.get('BTCEXP_BITCOIND_PORT')
 
     try:
+        rpc_ip = rpc_ip.replace('http', '')
+        rpc_ip = rpc_ip.replace('/', '')
         print(f"http://{rpc_user}:{rpc_password}@{rpc_ip}:{rpc_port}")
         rpc_connection = AuthServiceProxy(
             f"http://{rpc_user}:{rpc_password}@{rpc_ip}:{rpc_port}",

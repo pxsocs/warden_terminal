@@ -501,7 +501,7 @@ def check_umbrel():
                 mempool = True
             except Exception as e:
                 spinner.fail("🟡 ")
-                spinner.write(warning("    Umbrel not found:" + str(e)))
+                spinner.write(warning("    " + str(e)))
 
     if mempool:
         config['MEMPOOL']['url'] = 'http://umbrel.local:3006/'
