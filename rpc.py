@@ -11,7 +11,9 @@ def rpc_connect():
     from node_warden import pickle_it
     inside_umbrel = pickle_it('load', 'inside_umbrel.pkl')
     if inside_umbrel is True:
+        print('inside')
         umbrel_dict = pickle_it('load', 'umbrel_dict.pkl')
+        print(umbrel_dict)
         if umbrel_dict != 'file not found':
             try:
                 rpc_user = umbrel_dict['RPC_USER']
@@ -42,6 +44,7 @@ def rpc_connect():
             rpc_port = os.environ.get('BTCEXP_BITCOIND_PORT')
 
     try:
+        print(f"http://{rpc_user}:{rpc_password}@{rpc_ip}:{rpc_port}")
         rpc_connection = AuthServiceProxy(
             f"http://{rpc_user}:{rpc_password}@{rpc_ip}:{rpc_port}",
             timeout=60)

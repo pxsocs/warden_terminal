@@ -357,7 +357,7 @@ def check_btc_rpc():
     rpc_running = False
     pickle_it('save', 'rpc_running.pkl', rpc_running)
 
-    with yaspin(text=f"Checking if Bitcoin RPC is reachable",
+    with yaspin(text="Checking if Bitcoin RPC is reachable",
                 color="green") as spinner:
         from rpc import rpc_connect
         rpc = rpc_connect()
@@ -445,10 +445,7 @@ def check_umbrel():
                     url += '/'
                     if 'http' not in url:
                         url = 'http://' + url
-                print("ok")
-                print(url)
             except Exception as e:
-                print(e)
                 url = config['UMBREL']['url']
         else:
             url = config['UMBREL']['url']
@@ -461,8 +458,6 @@ def check_umbrel():
         # Test if this url can be reached
         try:
             result = tor_request(url)
-            print(result)
-            print(result.ok)
             if not isinstance(result, requests.models.Response):
                 raise Exception(f'Did not get a return from {url}')
             if not result.ok:
