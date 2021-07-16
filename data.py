@@ -803,6 +803,14 @@ def data_btc_rpc_info(use_cache=True):
 
     tabs.append(["Synch", synch_bar])
 
+    # Uptime
+
+    try:
+        uptime = rpc_connection.uptime()
+        tabs.append(["Uptime", f"{uptime} seconds"])
+    except Exception:
+        pass
+
     # Initial BLOCK Download & other info
 
     tabs.append(["Blockchain Size", humanbytes(bci['size_on_disk'])])
