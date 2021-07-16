@@ -480,7 +480,7 @@ def check_umbrel():
             url_parsed = url
         logging.info(success(f"Umbrel ☂️  running on {url_parsed}"))
         pickle_it('save', 'umbrel.pkl', inside_umbrel)
-        with yaspin(text=f"Checking if Mempool.space app is installed",
+        with yaspin(text="Checking if Mempool.space app is installed",
                     color="green") as spinner:
             url = config['MEMPOOL']['url']
             try:

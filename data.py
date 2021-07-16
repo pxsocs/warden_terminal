@@ -850,10 +850,18 @@ def data_btc_rpc_info(use_cache=True):
                 unconfirmed = float(wallets['mine']['immature'])
             except Exception:
                 unconfirmed = 0
-            total = confirmed + unconfirmed
-            tabs.append(["Confirmed", jformat(confirmed, 8)])
-            tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
-            tabs.append(["Total", jformat(total, 8)])
+            from node_warden import load_config
+            config = load_config(quiet=True)
+            if not config['MAIN'].getboolean('hide_private_info'):
+                total = confirmed + unconfirmed
+                tabs.append(["Confirmed", jformat(confirmed, 8)])
+                tabs.append(["Unconfirmed", jformat(unconfirmed, 8)])
+                tabs.append(["Total", jformat(total, 8)])
+            else:
+                tabs.append(["Confirmed", yellow("** HIDDEN **")])
+                tabs.append(["Unconfirmed", yellow("** HIDDEN **")])
+                tabs.append(["Total", yellow("** HIDDEN **")])
+
             wallets = True
 
     except Exception:
