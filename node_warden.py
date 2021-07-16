@@ -406,12 +406,13 @@ def check_umbrel():
             finder_dict = {}
             for element in result:
                 if any(env_var in element for env_var in finder_list):
+                    element = element.replace('"', '')
+                    element = element.replace("'", "")
                     elem_list = element.split('=')
                     # Get the last item in the first string separated by space
                     # like BITCOIN_P2P_PORT above
+                    value_item = elem_list[1]
                     key_item = elem_list[0].split(' ')[-1]
-                    value_item = elem_list[1].replace('"', '')
-                    value_item = elem_list[1].replace("'", "")
                     # Device hosts are usually split by commas:
                     if key_item == 'DEVICE_HOSTS':
                         value_item = value_item.split(',')
