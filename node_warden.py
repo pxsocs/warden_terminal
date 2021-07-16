@@ -482,7 +482,20 @@ def check_umbrel():
         pickle_it('save', 'umbrel.pkl', inside_umbrel)
         with yaspin(text="Checking if Mempool.space app is installed",
                     color="green") as spinner:
-            url = config['MEMPOOL']['url']
+
+            try:
+                for host in finder_dict['DEVICE_HOSTS']:
+                    if 'umbrel' in host:
+                        url = host
+                        break
+                url = finder_dict['DEVICE_HOSTS'][1]
+                # End URL in / if not there
+                url += ':3006/'
+                if 'http' not in url:
+                    url = 'http://' + url
+            except Exception as e:
+                url = config['MEMPOOL']['url']
+
             try:
                 result = tor_request(url)
                 if not isinstance(result, requests.models.Response):
