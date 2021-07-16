@@ -16,7 +16,7 @@ def rpc_connect():
             try:
                 rpc_user = umbrel_dict['BITCOIN_RPC_USER']
                 rpc_password = umbrel_dict['BITCOIN_RPC_PASSWORD']
-                url = umbrel_dict['DEVICE_HOSTS'][0]
+                url = umbrel_dict['DEVICEE_HOSTNAME']
                 # End URL in / if not there
                 if url[-1] != '/':
                     url += '/'

@@ -445,7 +445,7 @@ def check_umbrel():
     try:
         if inside_umbrel is True:
             try:
-                url = finder_dict['DEVICE_HOSTS'][0]
+                url = finder_dict['DEVICE_HOSTNAME']
                 # End URL in / if not there
                 if url[-1] != '/':
                     url += '/'
