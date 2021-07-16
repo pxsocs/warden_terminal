@@ -411,6 +411,7 @@ def check_umbrel():
                     # like BITCOIN_P2P_PORT above
                     key_item = elem_list[0].split(' ')[-1]
                     value_item = elem_list[1].replace('"', '')
+                    value_item = elem_list[1].replace("'", "")
                     # Device hosts are usually split by commas:
                     if key_item == 'DEVICE_HOSTS':
                         value_item = value_item.split(',')
