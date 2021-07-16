@@ -386,7 +386,7 @@ def check_umbrel():
 
         try:
             exec_command = [
-                'docker', 'exec', 'manager', 'bash', '-c', '"export"'
+                'docker', 'exec', 'middleware', 'sh', '-c', '"export"'
             ]
             result = subprocess.run(exec_command,
                                     stdout=subprocess.PIPE,
@@ -397,15 +397,9 @@ def check_umbrel():
             result = result.stdout.decode('utf-8').split('\n')
 
             finder_list = [
-                'BITCOIN_P2P_PORT',
-                'BITCOIN_RPC_PASSWORD',
-                'BITCOIN_RPC_PORT',
-                'BITCOIN_RPC_USER',
-                'DEVICE_HOSTNAME',
-                'DEVICE_HOSTS',
-                'TOR_PROXY_IP',
-                'TOR_PROXY_PORT',
-                'NODE_VERSION',
+                'BITCOIN_HOST', 'RPC_PASSWORD', 'RPC_PORT', 'RPC_USER',
+                'HOSTNAME', 'DEVICE_HOSTS', 'PORT', 'LND_HOST', 'LND_NETWORK',
+                'YARN_VERSION'
             ]
             # Ex:
             # declare -x BITCOIN_P2P_PORT="18444"
@@ -424,7 +418,7 @@ def check_umbrel():
             inside_umbrel = True
             pickle_it('save', 'umbrel_dict.pkl', finder_dict)
             spinner.ok("✅ ")
-            spinner.write(success(f"    Running Umbrel OS"))
+            spinner.write(success("    Running Umbrel OS"))
         except Exception:
             inside_umbrel = False
             spinner.fail("🟡 ")

@@ -14,16 +14,16 @@ def rpc_connect():
         umbrel_dict = pickle_it('load', 'umbrel_dict.pkl')
         if umbrel_dict != 'file not found':
             try:
-                rpc_user = umbrel_dict['BITCOIN_RPC_USER']
-                rpc_password = umbrel_dict['BITCOIN_RPC_PASSWORD']
-                url = umbrel_dict['DEVICEE_HOSTNAME']
+                rpc_user = umbrel_dict['RPC_USER']
+                rpc_password = umbrel_dict['RPC_PASSWORD']
+                url = umbrel_dict['BITCOIN_HOST']
                 # End URL in / if not there
                 if url[-1] != '/':
                     url += '/'
                     if 'http' not in url:
                         url = 'http://' + url
                 rpc_ip = url
-                rpc_port = umbrel_dict['BITCOIN_RPC_PORT']
+                rpc_port = umbrel_dict['RPC_PORT']
             except Exception:
                 inside_umbrel = False
     else:
