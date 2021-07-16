@@ -493,7 +493,9 @@ def check_umbrel():
                 url += ':3006/'
                 if 'http' not in url:
                     url = 'http://' + url
+                print(url)
             except Exception as e:
+                print(e)
                 url = config['MEMPOOL']['url']
 
             try:
