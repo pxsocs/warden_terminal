@@ -499,10 +499,11 @@ def check_umbrel():
                 url = config['MEMPOOL']['url']
 
             try:
+                print('---')
+                print(url)
                 result = tor_request(url)
                 if not isinstance(result, requests.models.Response):
-                    raise Exception(
-                        'Did not get a return from http://umbrel.local:3006/')
+                    raise Exception(f'Did not get a return from {url}')
                 if not result.ok:
                     raise Exception(
                         'Reached Mempool app but an error occured.')
