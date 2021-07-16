@@ -408,8 +408,8 @@ def check_umbrel():
                 if any(env_var in element for env_var in finder_list):
                     elem_list = element.split('=', 1)
                     try:
-                        element[1] = element[1].replace('"', '')
-                        element[1] = element[1].replace("'", "")
+                        elem_list[1] = elem_list[1].replace('"', '')
+                        elem_list[1] = elem_list[1].replace("'", "")
                     except Exception:
                         pass
                     # Get the last item in the first string separated by space
