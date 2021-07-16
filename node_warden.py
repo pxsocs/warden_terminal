@@ -461,6 +461,8 @@ def check_umbrel():
         # Test if this url can be reached
         try:
             result = tor_request(url)
+            print(result)
+            print(result.ok)
             if not isinstance(result, requests.models.Response):
                 raise Exception(f'Did not get a return from {url}')
             if not result.ok:
