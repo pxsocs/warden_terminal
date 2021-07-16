@@ -6,21 +6,44 @@ from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 def rpc_connect():
     from node_warden import load_config
     config = load_config(True)
-    # Get the config info as default
-    if config['BITCOIN_RPC'].get('ip_address') != 'None':
-        rpc_user = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_USER')
-        rpc_password = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_PASS')
-        rpc_ip = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_HOST')
-        rpc_port = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_PORT')
+    # Check if running inside umbrel OS and if environmental variables
+    # are available
+    from node_warden import pickle_it
+    inside_umbrel = pickle_it('load', 'inside_umbrel.pkl')
+    if inside_umbrel is True:
+        umbrel_dict = pickle_it('load', 'umbrel_dict.pkl')
+        if umbrel_dict != 'file not found':
+            try:
+                rpc_user = umbrel_dict['RPC_USER']
+                rpc_password = umbrel_dict['RPC_PASSWORD']
+                url = umbrel_dict['BITCOIN_HOST']
+                # End URL in / if not there
+                if url[-1] != '/':
+                    url += '/'
+                    if 'http' not in url:
+                        url = 'http://' + url
+                rpc_ip = url
+                rpc_port = umbrel_dict['RPC_PORT']
+            except Exception:
+                inside_umbrel = False
     else:
-        # If not, let's try to get the environment variables
-        # These are standard for Umbrel for example
-        rpc_user = os.environ.get('BTCEXP_BITCOIND_USER')
-        rpc_password = os.environ.get('BTCEXP_BITCOIND_PASS')
-        rpc_ip = os.environ.get('BTCEXP_BITCOIND_HOST')
-        rpc_port = os.environ.get('BTCEXP_BITCOIND_PORT')
+        # Get the config info as default
+        if config['BITCOIN_RPC'].get('ip_address') != 'None':
+            rpc_user = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_USER')
+            rpc_password = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_PASS')
+            rpc_ip = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_HOST')
+            rpc_port = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_PORT')
+        else:
+            # If not, let's try to get the environment variables
+            # These are standard for Umbrel for example
+            rpc_user = os.environ.get('BTCEXP_BITCOIND_USER')
+            rpc_password = os.environ.get('BTCEXP_BITCOIND_PASS')
+            rpc_ip = os.environ.get('BTCEXP_BITCOIND_HOST')
+            rpc_port = os.environ.get('BTCEXP_BITCOIND_PORT')
 
     try:
+        rpc_ip = rpc_ip.replace('http:', '')
+        rpc_ip = rpc_ip.replace('/', '')
         rpc_connection = AuthServiceProxy(
             f"http://{rpc_user}:{rpc_password}@{rpc_ip}:{rpc_port}",
             timeout=60)

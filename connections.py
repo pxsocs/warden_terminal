@@ -64,14 +64,14 @@ def test_tor():
     return response
 
 
-def tor_request(url, tor_only=True, method="get", headers=None):
+def tor_request(url, tor_only=False, method="get", headers=None):
     # Tor requests takes arguments:
     # url:       url to get or post
     # tor_only:  request will only be executed if tor is available
     # method:    'get or' 'post'
     # Store TOR Status here to avoid having to check on all http requests
     TOR = test_tor()
-    if 'umbrel.local' in url:
+    if 'umbrel' in url and 'local' in url:
         try:
             if method == "get":
                 request = requests.get(url, timeout=10)

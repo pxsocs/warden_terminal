@@ -2,6 +2,7 @@
 
 import pyttsx3
 import requests
+import re
 from yaspin import yaspin
 
 import configparser
@@ -295,7 +296,6 @@ def check_cryptocompare():
                 spinner.fail("💥 ")
                 spinner.write(
                     warning("    CryptoCompare Returned an UNKNOWN error"))
-                print(data)
 
         return (data)
 
@@ -356,7 +356,7 @@ def check_btc_rpc():
     rpc_running = False
     pickle_it('save', 'rpc_running.pkl', rpc_running)
 
-    with yaspin(text=f"Checking if Bitcoin RPC is reachable",
+    with yaspin(text="Checking if Bitcoin RPC is reachable",
                 color="green") as spinner:
         from rpc import rpc_connect
         rpc = rpc_connect()
@@ -369,7 +369,7 @@ def check_btc_rpc():
                 chain = bci['chain']
                 pickle_it('save', 'rpc_running.pkl', True)
                 spinner.ok("✅ ")
-                spinner.write(success(f"    RPC reached on chain {chain}"))
+                spinner.write(success(f"    RPC reached: Chain {chain}"))
             except Exception as e:
                 spinner.fail("🟡 ")
                 spinner.write(
@@ -377,17 +377,86 @@ def check_btc_rpc():
 
 
 def check_umbrel():
+    # Let's check if running inside an Umbrel OS System
+    # This is done by trying to access the getumbrel/manager container
+    # and getting the environment variables inside that container
+    with yaspin(text="Checking if running inside Umbrel OS",
+                color="green") as spinner:
+
+        try:
+            exec_command = [
+                'docker', 'exec', 'middleware', 'sh', '-c', '"export"'
+            ]
+            result = subprocess.run(exec_command,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            if result.returncode != 0:
+                raise KeyError
+            # Create a list split by ENTER
+            result = result.stdout.decode('utf-8').split('\n')
+
+            finder_list = [
+                'BITCOIN_HOST', 'RPC_PASSWORD', 'RPC_PORT', 'RPC_USER',
+                'HOSTNAME', 'DEVICE_HOSTS', 'PORT', 'LND_HOST', 'LND_NETWORK',
+                'YARN_VERSION'
+            ]
+            # Ex:
+            # declare -x BITCOIN_P2P_PORT="18444"
+            finder_dict = {}
+            for element in result:
+                if any(env_var in element for env_var in finder_list):
+                    elem_list = element.split('=', 1)
+                    try:
+                        elem_list[1] = elem_list[1].replace('"', '')
+                        elem_list[1] = elem_list[1].replace("'", "")
+                    except Exception:
+                        pass
+                    # Get the last item in the first string separated by space
+                    # like BITCOIN_P2P_PORT above
+                    value_item = elem_list[1]
+                    key_item = elem_list[0].split(' ')[-1]
+                    # Device hosts are usually split by commas:
+                    if key_item == 'DEVICE_HOSTS':
+                        value_item = value_item.split(',')
+                    finder_dict[key_item] = value_item
+            inside_umbrel = True
+            pickle_it('save', 'umbrel_dict.pkl', finder_dict)
+            spinner.ok("✅ ")
+            spinner.write(success("    Running Umbrel OS"))
+        except Exception:
+            inside_umbrel = False
+            spinner.fail("🟡 ")
+            spinner.write(warning("    Umbrel OS not found"))
+
+        pickle_it('save', 'inside_umbrel.pkl', inside_umbrel)
+
     #  Try to ping umbrel.local and check for installed apps
     print("")
-    umbrel = False
-    pickle_it('save', 'umbrel.pkl', umbrel)
+    pickle_it('save', 'umbrel.pkl', inside_umbrel)
     mempool = False
     config = load_config(True)
     config_file = os.path.join(basedir, 'config.ini')
     try:
-        url = config['UMBREL']['url']
+        if inside_umbrel is True:
+            try:
+                for host in finder_dict['DEVICE_HOSTS']:
+                    if 'umbrel' in host:
+                        url = host
+                        break
+                url = finder_dict['DEVICE_HOSTS'][1]
+                # End URL in / if not there
+                if url[-1] != '/':
+                    url += '/'
+                    if 'http' not in url:
+                        url = 'http://' + url
+            except Exception as e:
+                url = config['UMBREL']['url']
+        else:
+            url = config['UMBREL']['url']
     except Exception:
+        # As a last alternative, try the default
         url = 'http://umbrel.local/'
+
     with yaspin(text=f"Checking if Umbrel @ {url} is reachable",
                 color="green") as spinner:
         # Test if this url can be reached
@@ -399,19 +468,19 @@ def check_umbrel():
                 raise Exception(f'Reached {url} but an error occured.')
             spinner.ok("✅ ")
             spinner.write(success(f"    Umbrel ☂️  found on {url}"))
-            umbrel = True
+            inside_umbrel = True
         except Exception as e:
             spinner.fail("🟡 ")
             spinner.write(warning("    Umbrel not found:" + str(e)))
 
-    if umbrel:
+    if inside_umbrel:
         if 'onion' in url:
             url_parsed = ['[Hidden Onion address]']
         else:
             url_parsed = url
         logging.info(success(f"Umbrel ☂️  running on {url_parsed}"))
-        pickle_it('save', 'umbrel.pkl', umbrel)
-        with yaspin(text=f"Checking if Mempool.space app is installed",
+        pickle_it('save', 'umbrel.pkl', inside_umbrel)
+        with yaspin(text="Checking if Mempool.space app is installed",
                     color="green") as spinner:
             url = config['MEMPOOL']['url']
             try:
@@ -434,7 +503,7 @@ def check_umbrel():
                 mempool = True
             except Exception as e:
                 spinner.fail("🟡 ")
-                spinner.write(warning("    Umbrel not found:" + str(e)))
+                spinner.write(warning("    " + str(e)))
 
     if mempool:
         config['MEMPOOL']['url'] = 'http://umbrel.local:3006/'
@@ -508,9 +577,9 @@ def main(quiet=None):
         check_version(upgrade)
         check_screen_size()
         check_cryptocompare()
-        check_btc_rpc()
         check_umbrel()
         check_os()
+        check_btc_rpc()
         login_tip()
         greetings()
 
