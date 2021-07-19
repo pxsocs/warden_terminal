@@ -370,6 +370,7 @@ def check_btc_rpc():
                 pickle_it('save', 'rpc_running.pkl', True)
                 spinner.ok("✅ ")
                 spinner.write(success(f"    RPC reached: Chain {chain}"))
+                logging.info("[Bitcoin Core] RPC is available")
             except Exception as e:
                 spinner.fail("🟡 ")
                 spinner.write(
@@ -423,6 +424,7 @@ def check_umbrel():
             pickle_it('save', 'umbrel_dict.pkl', finder_dict)
             spinner.ok("✅ ")
             spinner.write(success("    Running Umbrel OS"))
+            logging.info("[Umbrel] Running Umbrel OS")
         except Exception:
             inside_umbrel = False
             spinner.fail("🟡 ")
