@@ -29,10 +29,10 @@ def rpc_connect():
     else:
         # Get the config info as default
         if config['BITCOIN_RPC'].get('ip_address') != 'None':
-            rpc_user = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_USER')
-            rpc_password = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_PASS')
-            rpc_ip = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_HOST')
-            rpc_port = config['BITCOIN_RPC'].get('BTCEXP_BITCOIND_PORT')
+            rpc_user = config['BITCOIN_RPC'].get('user')
+            rpc_password = config['BITCOIN_RPC'].get('password')
+            rpc_ip = config['BITCOIN_RPC'].get('ip_address')
+            rpc_port = config['BITCOIN_RPC'].get('port')
         else:
             # If not, let's try to get the environment variables
             # These are standard for Umbrel for example
