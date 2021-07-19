@@ -370,6 +370,7 @@ def check_btc_rpc():
                 pickle_it('save', 'rpc_running.pkl', True)
                 spinner.ok("✅ ")
                 spinner.write(success(f"    RPC reached: Chain {chain}"))
+                logging.info("[Bitcoin Core] RPC is available")
             except Exception as e:
                 spinner.fail("🟡 ")
                 spinner.write(
@@ -423,6 +424,7 @@ def check_umbrel():
             pickle_it('save', 'umbrel_dict.pkl', finder_dict)
             spinner.ok("✅ ")
             spinner.write(success("    Running Umbrel OS"))
+            logging.info("[Umbrel] Running Umbrel OS")
         except Exception:
             inside_umbrel = False
             spinner.fail("🟡 ")
@@ -449,7 +451,7 @@ def check_umbrel():
                     url += '/'
                     if 'http' not in url:
                         url = 'http://' + url
-            except Exception as e:
+            except Exception:
                 url = config['UMBREL']['url']
         else:
             url = config['UMBREL']['url']
@@ -482,12 +484,24 @@ def check_umbrel():
         pickle_it('save', 'umbrel.pkl', inside_umbrel)
         with yaspin(text="Checking if Mempool.space app is installed",
                     color="green") as spinner:
-            url = config['MEMPOOL']['url']
+            finder_dict = pickle_it('load', 'umbrel_dict.pkl')
+            try:
+                for host in finder_dict['DEVICE_HOSTS']:
+                    if 'umbrel' in host:
+                        url = host
+                        break
+                url = finder_dict['DEVICE_HOSTS'][1]
+                # End URL in / if not there
+                url += ':3006/'
+                if 'http' not in url:
+                    url = 'http://' + url
+            except Exception:
+                url = config['MEMPOOL']['url']
+
             try:
                 result = tor_request(url)
                 if not isinstance(result, requests.models.Response):
-                    raise Exception(
-                        'Did not get a return from http://umbrel.local:3006/')
+                    raise Exception(f'Did not get a return from {url}')
                 if not result.ok:
                     raise Exception(
                         'Reached Mempool app but an error occured.')
