@@ -790,7 +790,7 @@ def data_btc_rpc_info(use_cache=True):
 
     # Create Synch progress bar
     try:
-        perc_c = int(bci['verificationprogress'] * 100)
+        perc_c = int(float(bci['verificationprogress']) * 100)
         synch_bar = printProgressBar(iteration=round(perc_c, 2),
                                      total=100,
                                      suffix=(f'{round(perc_c, 2)}%'),
