@@ -277,9 +277,7 @@ def check_cryptocompare():
 
                                 try:
                                     request = tor_request(baseURL)
-                                    print(baseURL)
                                     data = request.json()
-                                    print(data)
                                     btc_price = (
                                         data['DISPLAY']['BTC']['USD']['PRICE'])
                                     spinner.ok("✅ ")
