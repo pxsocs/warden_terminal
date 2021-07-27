@@ -906,7 +906,10 @@ def data_btc_rpc_info(use_cache=True):
 def data_sync():
     # Displays a large sync status
     # under [MAIN][message_widget]
-    synch_bar, perc_c = pickle_it('load', 'synch_status.pkl')
+    try:
+        synch_bar, perc_c = pickle_it('load', 'synch_status.pkl')
+    except Exception:
+        return None
     from node_warden import load_config
     config = load_config(quiet=True)
     ft_config = config['MAIN']
@@ -919,7 +922,7 @@ def data_sync():
     custom_fig = pyfiglet.Figlet(font=font)
     return_fig = custom_fig.renderText(message)
     return_fig = yellow(return_fig)
-    return_fig += muted('\nBlockchain Sync\n')
+    return_fig += muted('\nBlockchain Sync Status\n')
     return (return_fig)
 
 
