@@ -790,7 +790,8 @@ def data_btc_rpc_info(use_cache=True):
 
     # Create Synch progress bar
     try:
-        perc_c = int(bci['verificationprogress']) * 100
+        perc_c = float(bci['verificationprogress']) * 100
+        perc_c = 100 if perc_c > 99.95 else perc_c
         synch_bar = printProgressBar(iteration=round(perc_c, 2),
                                      total=100,
                                      suffix=(f'{round(perc_c, 2)}%'),
@@ -800,6 +801,8 @@ def data_btc_rpc_info(use_cache=True):
                                      max_min=(0, 100))
     except Exception:
         synch_bar = "Error checking synch completion"
+
+    pickle_it('save', 'synch_status.pkl', [synch_bar, perc_c])
 
     tabs.append(["Synch", synch_bar])
 
@@ -900,6 +903,39 @@ def data_btc_rpc_info(use_cache=True):
     return (return_str)
 
 
+def data_sync():
+    # Displays a large sync status
+    # under [MAIN][message_widget]
+    try:
+        synch_bar, perc_c = pickle_it('load', 'synch_status.pkl')
+    except Exception:
+        return None
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    ft_config = config['MAIN']
+    font = ft_config.get('large_text_font')
+    try:
+        message = f'{round(perc_c, 2)}%'
+    except Exception:
+        return None
+    # If a price is provided, it won't refresh
+    custom_fig = pyfiglet.Figlet(font=font)
+    return_fig = custom_fig.renderText(message)
+    return_fig = yellow(return_fig)
+    return_fig += muted('\nBlockchain Sync Status\n')
+
+    inside_umbrel = pickle_it('load', 'inside_umbrel.pkl')
+    raspiblitz = pickle_it('load', 'raspiblitz_detected.pkl')
+
+    if inside_umbrel is True:
+        return_fig += success('Umbrel Node Running\n')
+
+    if raspiblitz is True:
+        return_fig += success('Raspiblitz Node Running\n')
+
+    return (return_fig)
+
+
 def main():
     arg = sys.argv[1]
     if arg == 'data_btc_rpc_info':
@@ -924,6 +960,8 @@ def main():
         print(data_large_price())
     if arg == 'data_large_block':
         print(data_large_block())
+    if arg == 'data_sync':
+        print(data_sync())
     if arg == 'data_whitepaper':
         data_whitepaper()
 

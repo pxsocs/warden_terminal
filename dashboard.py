@@ -14,7 +14,8 @@ from ansi_management import (time_ago, warning, success, error, info,
 from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
                   data_whitepaper, data_sys, pickle_it, data_logger,
-                  data_large_block, data_large_message, data_btc_rpc_info)
+                  data_large_block, data_large_message, data_btc_rpc_info,
+                  data_sync)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -192,6 +193,12 @@ def main_dashboard(config, tor):
                       valign='middle',
                       top=3).line_box
 
+    sync_block = Box(loader_text='Checking Node Sync...',
+                     height=12,
+                     text_align='center',
+                     valign='middle',
+                     top=3).line_box
+
     moscow_time_block = Box(loader_text='Getting Block Height...',
                             height=12,
                             text_align='center',
@@ -256,7 +263,7 @@ def main_dashboard(config, tor):
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
-        sys_box, large_block, large_message, moscow_time_block
+        sys_box, sync_block, large_block, large_message, moscow_time_block
     ]
 
     if rpc_running is True:
@@ -370,6 +377,11 @@ def main_dashboard(config, tor):
         rpc_box.base_widget.set_text(data)
         main_loop.set_alarm_in(5, rpc_updater)
 
+    def sync_updater(_loop, __data):
+        data = translate_text_for_urwid(data_sync())
+        sync_block.base_widget.set_text(data)
+        main_loop.set_alarm_in(1, sync_updater)
+
     def large_block_updater(_loop, __data):
         data = translate_text_for_urwid(data_large_block())
         large_block.base_widget.set_text(data)
@@ -468,6 +480,7 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(0, refresh)
     main_loop.set_alarm_in(0, check_for_pump)
     main_loop.set_alarm_in(0, large_block_updater)
+    main_loop.set_alarm_in(0, sync_updater)
     main_loop.set_alarm_in(0, btc_updater)
     main_loop.set_alarm_in(0, sys_updater)
     main_loop.set_alarm_in(0, rpc_updater)

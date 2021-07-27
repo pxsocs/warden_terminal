@@ -377,11 +377,80 @@ def check_btc_rpc():
                     warning(f"    Bitcoin RPC returned an error: {e}"))
 
 
+def check_raspiblitz():
+    # We can also check if running inside a raspiblitz and get
+    # additional node and bitcoin.conf info.
+    raspiblitz_detected = False
+    with yaspin(text="Checking if running inside Raspiblitz Node",
+                color="green") as spinner:
+        try:
+            raspi_file = '/home/admin/raspiblitz.info'
+            # Check if exists
+            if not os.path.isfile(raspi_file):
+                raise FileNotFoundError
+            raspiblitz_detected = True
+            # Save data to dictionary
+            filename = open(raspi_file, "r")
+            d = {}
+            for line in filename:
+                if "=" in line:
+                    key, val = map(str.strip, line.split("="))
+                    d[key] = val
+            # Save this for later
+            pickle_it('save', 'raspi_dict.pkl', d)
+
+            # {
+            # 'baseimage': 'raspios_arm64',
+            # 'cpu': 'aarch64',
+            # 'network': 'bitcoin',
+            # 'chain': 'main',
+            # 'fsexpanded': '1',
+            # 'displayClass': 'hdmi',
+            # 'displayType': '',
+            # 'setupStep': '100',
+            # 'fundRecovery': '0',
+            # 'undervoltageReports': '0'}
+
+            # Now we can get the bitcoin.conf data
+            bitcoin_filename = '/mnt/hdd/bitcoin/bitcoin.conf'
+            filename = open(bitcoin_filename, "r")
+            for line in filename:
+                if "=" in line:
+                    key, val = map(str.strip, line.split("="))
+                    d[key] = val
+
+            # Save this for later
+            pickle_it('save', 'raspi_bitcoin.pkl', d)
+
+            # Try to get Current RaspiBlitz Version
+            try:
+                version_file = '/home/admin/_version.info'
+                filename = open(version_file, "r")
+                for line in filename:
+                    if "=" in line:
+                        key, val = map(str.strip, line.split("="))
+                        d[key] = val
+                rpi_version = d['codeVersion'].strip('"')
+            except Exception:
+                rpi_version = "<undetected>"
+            spinner.ok("✅ ")
+            spinner.write(success("    RaspiBlitz Node Detected"))
+            logging.info(f"[RaspiBlitz] Running version {rpi_version}")
+
+        except Exception:
+            raspiblitz_detected = False
+            spinner.fail("🟡 ")
+            spinner.write(warning("    Raspiblitz node not detected"))
+
+        pickle_it('save', 'raspiblitz_detected.pkl', raspiblitz_detected)
+
+
 def check_umbrel():
     # Let's check if running inside an Umbrel OS System
     # This is done by trying to access the getumbrel/manager container
     # and getting the environment variables inside that container
-    with yaspin(text="Checking if running inside Umbrel OS",
+    print("")
+    with yaspin(text="Checking if running inside Umbrel OS Node",
                 color="green") as spinner:
 
         try:
@@ -592,6 +661,7 @@ def main(quiet=None):
         check_screen_size()
         check_cryptocompare()
         check_umbrel()
+        check_raspiblitz()
         check_os()
         check_btc_rpc()
         login_tip()
