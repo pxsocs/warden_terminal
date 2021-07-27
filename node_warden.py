@@ -660,6 +660,7 @@ def main(quiet=None):
         check_screen_size()
         check_cryptocompare()
         check_umbrel()
+        check_raspiblitz()
         check_os()
         check_btc_rpc()
         login_tip()
