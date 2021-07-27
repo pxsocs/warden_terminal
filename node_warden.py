@@ -201,33 +201,30 @@ def greetings():
 def check_cryptocompare():
     with yaspin(text=f"Testing price grab from Cryptocompare",
                 color="green") as spinner:
-        config = load_config(True)
         try:
             api_key = pickle_it('load', 'cryptocompare_api.pkl')
             if api_key == 'file not found':
                 raise KeyError
-        except Exception:
-            api_key = config['API'].get('cryptocompare')
-        # tickers should be in comma sep string format like "BTC,ETH,LTC" and "USD,EUR"
-        baseURL = (
-            "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC" +
-            "&tsyms=USD&api_key=" + api_key)
-        try:
-            request = tor_request(baseURL)
-        except requests.exceptions.ConnectionError:
-            spinner.fail("💥 ")
-            spinner.write(
-                warning("    Connection Error - check internet connection"))
-            exit()
 
-        try:
+            baseURL = (
+                "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
+                + "&tsyms=USD&api_key=" + api_key)
+
+            try:
+                request = tor_request(baseURL)
+            except requests.exceptions.ConnectionError:
+                spinner.fail("💥 ")
+                spinner.write(
+                    warning(
+                        "    Connection Error - check internet connection"))
+                exit()
+            request = tor_request(baseURL)
             data = request.json()
         except Exception:
             data = {'Response': 'Error', 'Message': request}
 
         try:
             if data['Response'] == 'Error':
-                config_file = os.path.join(basedir, 'config.ini')
                 spinner.write(
                     warning("    CryptoCompare Returned an error" +
                             data['Message']))
@@ -330,9 +327,7 @@ def check_cryptocompare():
                     new_key = input('    Enter new API key (Q to quit): ')
                     if new_key == 'Q' or new_key == 'q':
                         exit()
-                    config['API']['cryptocompare'] = new_key
-                    with open(config_file, 'w') as configfile:
-                        config.write(configfile)
+                    pickle_it('save', 'cryptocompare_api.pkl', new_key)
                     check_cryptocompare()
         except KeyError:
             try:

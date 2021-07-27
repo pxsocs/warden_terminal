@@ -52,9 +52,8 @@ def fxsymbol(fx, output='symbol'):
 
 
 def multiple_price_grab(tickers, fx):
-    from node_warden import load_config
-    config = load_config(quiet=True)
-    api_key = config['API'].get('cryptocompare')
+    from node_warden import pickle_it
+    api_key = pickle_it('load', 'cryptocompare_api.pkl')
     # tickers should be in comma sep string format like "BTC,ETH,LTC" and "USD,EUR"
     baseURL = \
         "https://min-api.cryptocompare.com/data/pricemultifull?fsyms="\
