@@ -267,7 +267,7 @@ def main_dashboard(config, tor):
     ]
 
     if rpc_running is True:
-        widget_list.append(rpc_box, sync_block)
+        widget_list.append([rpc_box, sync_block])
 
     try:
         small_display = pickle_it('load', 'small_display.pkl')
