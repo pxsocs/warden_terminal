@@ -491,7 +491,7 @@ def data_sys(use_cache=True):
     tabs += '\n\nStorage\n---------------'
     try:
         import shutil
-        partitions = ['/mnt/data', 'mnt/hdd', '/']
+        partitions = ['/mnt/data', 'mnt/hdd', '/mnt/storage']
 
         for partition in partitions:
             try:

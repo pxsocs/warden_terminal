@@ -220,8 +220,8 @@ def check_cryptocompare():
                 exit()
             request = tor_request(baseURL)
             data = request.json()
-        except Exception:
-            data = {'Response': 'Error', 'Message': request}
+        except Exception as e:
+            data = {'Response': 'Error', 'Message': e}
 
         try:
             if data['Response'] == 'Error':
@@ -284,8 +284,8 @@ def check_cryptocompare():
                                     pickle_it('save', 'cryptocompare_api.pkl',
                                               legacy_key)
                                     return
-                                except Exception as e:
-                                    print(e)
+                                except Exception:
+                                    pass
 
                         except Exception:
                             pass

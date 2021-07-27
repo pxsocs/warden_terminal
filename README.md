@@ -50,31 +50,39 @@ docker run -it node_warden
 
 ## FAQ:
 
-### Can I auto load warden on start up on PI?
+### Can I auto load warden on boot?
 
-Yes. follow the steps below:
+Yes. Follow the steps below:
 
-1. Edit the file launcer.sh and make sure it is pointing to the correct directory where warden terminal is. You can check the folder path by typing `pwd` while inside the WARden folder.
-
-Should return something like:
-
-> /home/umbrel/warden_terminal
-
-Take note of this folder then:
+1. Take note of current folder where WARden is running. Type:
 
 ```bash
-nano launcher.sh
+pwd
 ```
 
-And change the cd home/...... to your folder above. CTRL+X and Y to save and exit.
+Should return something like: `/home/admin/warden_terminal`. Note that down.
 
-2. Change the file permission of `launcher.sh`
+2. Edit the file launcer.sh and make sure it is pointing to the correct directory.
 
 ```bash
-chmod 755 launcher.sh
+sudo nano launcher.sh
 ```
 
-3. Add it as a cron job
+Change the `cd /home/......` to your folder above. CTRL+X -- Y -- [ENTER] to save and exit.
+
+3. Change the file permission of `launcher.sh`
+
+```bash
+sudo chmod 755 launcher.sh
+```
+
+Test that it runs:
+
+```bash
+sh launcher.sh
+```
+
+4. Add it to rc.local
 
 ```bash
 sudo crontab -e
@@ -82,19 +90,21 @@ sudo crontab -e
 
 If prompted to select an editor, choose `/bin/nano`.
 
-Scroll to the end of the file - last line and include the following line. **Make sure to change the directory to the one you noted with `pwd` above**
+Scroll to the end of the file - and include the following line. **Make sure to change the directory to the one you noted with `pwd` above. And keep `exit 0` as the last line.**
 
 ```bash
-@reboot sh /home/umbrel/<your folder>/warden_terminal/launcher.sh &
+<<<<INCLUDE AT END AND KEEP EXIT 0 AS FINAL LINE>>>
+sh /home/admin/warden_terminal/launcher.sh
+exit 0
 ```
 
 CTRL + X
 Y to save
 
-4. Reboot
+5. Reboot
 
 ```bash
-sudo reboot
+sudo reboot now
 ```
 
 ### Getting a message that Tor is not running
