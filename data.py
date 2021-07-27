@@ -923,6 +923,16 @@ def data_sync():
     return_fig = custom_fig.renderText(message)
     return_fig = yellow(return_fig)
     return_fig += muted('\nBlockchain Sync Status\n')
+
+    inside_umbrel = pickle_it('load', 'inside_umbrel.pkl')
+    raspiblitz = pickle_it('load', 'raspiblitz_detected.pkl')
+
+    if inside_umbrel is True:
+        return_fig += success('Umbrel Node Running\n')
+
+    if raspiblitz is True:
+        return_fig += success('Raspiblitz Node Running\n')
+
     return (return_fig)
 
 
