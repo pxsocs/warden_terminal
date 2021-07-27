@@ -18,13 +18,12 @@ def rpc_connect():
             try:
                 rpc_user = raspi_dict['rpcuser']
                 rpc_password = raspi_dict['rpcpassword']
-                rpc_port = raspi_dict['main.rpcport']
                 rpc_bind = raspi_dict['main.rpcbind']
                 rpc_ip, rpc_port = rpc_bind.split(":")
             except Exception:
                 raspiblitz = False
 
-    if inside_umbrel is True:
+    elif inside_umbrel is True:
         umbrel_dict = pickle_it('load', 'umbrel_dict.pkl')
         if umbrel_dict != 'file not found':
             try:
@@ -40,6 +39,7 @@ def rpc_connect():
                 rpc_port = umbrel_dict['RPC_PORT']
             except Exception:
                 inside_umbrel = False
+
     else:
         # Get the config info as default
         if config['BITCOIN_RPC'].get('ip_address') != 'None':

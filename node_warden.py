@@ -430,7 +430,7 @@ def check_raspiblitz():
                     if "=" in line:
                         key, val = map(str.strip, line.split("="))
                         d[key] = val
-                rpi_version = d['codeVersion']
+                rpi_version = d['codeVersion'].strip('"')
             except Exception:
                 rpi_version = "<undetected>"
             spinner.ok("✅ ")
@@ -449,6 +449,7 @@ def check_umbrel():
     # Let's check if running inside an Umbrel OS System
     # This is done by trying to access the getumbrel/manager container
     # and getting the environment variables inside that container
+    print("")
     with yaspin(text="Checking if running inside Umbrel OS Node",
                 color="green") as spinner:
 
@@ -660,7 +661,8 @@ def main(quiet=None):
         check_screen_size()
         check_cryptocompare()
         check_umbrel()
-        check_raspiblitz()
+        check_rasp
+        iblitz()
         check_os()
         check_btc_rpc()
         login_tip()
