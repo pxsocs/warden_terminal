@@ -10,6 +10,20 @@ def rpc_connect():
     # are available
     from node_warden import pickle_it
     inside_umbrel = pickle_it('load', 'inside_umbrel.pkl')
+    raspiblitz = pickle_it('load', 'raspiblitz_detected.pkl')
+
+    if raspiblitz is True:
+        raspi_dict = pickle_it('load', 'raspi_bitcoin.pkl')
+        if raspi_dict != 'file not found':
+            try:
+                rpc_user = raspi_dict['rpcuser']
+                rpc_password = raspi_dict['rpcpassword']
+                rpc_port = raspi_dict['main.rpcport']
+                rpc_bind = raspi_dict['main.rpcbind']
+                rpc_ip, rpc_port = rpc_bind.split(":")
+            except Exception:
+                raspiblitz = False
+
     if inside_umbrel is True:
         umbrel_dict = pickle_it('load', 'umbrel_dict.pkl')
         if umbrel_dict != 'file not found':
