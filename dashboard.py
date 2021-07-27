@@ -263,11 +263,11 @@ def main_dashboard(config, tor):
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
-        sys_box, sync_block, large_block, large_message, moscow_time_block
+        sys_box, large_block, large_message, moscow_time_block
     ]
 
     if rpc_running is True:
-        widget_list.append(rpc_box)
+        widget_list.append(rpc_box, sync_block)
 
     try:
         small_display = pickle_it('load', 'small_display.pkl')
@@ -378,8 +378,11 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(5, rpc_updater)
 
     def sync_updater(_loop, __data):
-        data = translate_text_for_urwid(data_sync())
-        sync_block.base_widget.set_text(data)
+        try:
+            data = translate_text_for_urwid(data_sync())
+            sync_block.base_widget.set_text(data)
+        except Exception:
+            pass
         main_loop.set_alarm_in(1, sync_updater)
 
     def large_block_updater(_loop, __data):

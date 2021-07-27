@@ -228,25 +228,74 @@ def check_cryptocompare():
         try:
             if data['Response'] == 'Error':
                 config_file = os.path.join(basedir, 'config.ini')
-                spinner.fail("💥 ")
-                spinner.write(warning("    CryptoCompare Returned an error"))
-                print("    " + data['Message'])
+                spinner.write(
+                    warning("    CryptoCompare Returned an error" +
+                            data['Message']))
                 if data['Message'] == 'You are over your rate limit please upgrade your account!':
                     # First try to get a random API KEY
-                    if config['API'].getboolean('random') is not True:
-                        print(
-                            "    Looks like you are over the API Limit. Will try to generate a random API."
-                        )
-                        size = 16
-                        import binascii
-                        random_key = binascii.b2a_hex(os.urandom(size))
-                        config['API']['random'] = 'True'
-                        config['API']['cryptocompare'] = str(
-                            random_key.decode("utf-8"))
-                        with open(config_file, 'w') as configfile:
-                            config.write(configfile)
-                        check_cryptocompare()
+                    # ++++++++++++++++++++++++++
+                    #  GENERATE RANDOM
+                    # ++++++++++++++++++++++++++
+                    spinner.write(warning("    Trying a random API Key..."))
+                    size = 16
+                    import binascii
+                    random_key = (binascii.b2a_hex(
+                        os.urandom(size))).decode("utf-8")
+                    baseURL = (
+                        "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
+                        + "&tsyms=USD&api_key=" + random_key)
+
+                    try:
+                        request = tor_request(baseURL)
+                        data = request.json()
+                        btc_price = (data['DISPLAY']['BTC']['USD']['PRICE'])
+                        spinner.ok("✅ ")
+                        spinner.write(
+                            success(f"    BTC price is: {btc_price}"))
+                        pickle_it('save', 'cryptocompare_api.pkl', random_key)
                         return
+                    except Exception:
+                        spinner.write(
+                            warning("    Trying one of old API Keys..."))
+                        # ++++++++++++++++++++++++++
+                        #  Load Legacy
+                        # ++++++++++++++++++++++++++
+                        try:
+                            # RANDOM Generator failed. Let's use one of the
+                            # legacy api keys stored under cryptocompare_api.keys
+                            filename = 'cryptocompare_api.keys'
+                            file = open(filename, 'r')
+                            for line in file:
+                                legacy_key = str(line)
+                                spinner.write(
+                                    warning(
+                                        f"    Trying one of old API Keys... {legacy_key}"
+                                    ))
+                                baseURL = (
+                                    "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
+                                    + "&tsyms=USD&api_key=" + legacy_key)
+
+                                try:
+                                    request = tor_request(baseURL)
+                                    data = request.json()
+                                    btc_price = (
+                                        data['DISPLAY']['BTC']['USD']['PRICE'])
+                                    spinner.ok("✅ ")
+                                    spinner.write(
+                                        success(
+                                            f"    BTC price is: {btc_price}"))
+                                    pickle_it('save', 'cryptocompare_api.pkl',
+                                              legacy_key)
+                                    return
+                                except Exception as e:
+                                    print(e)
+
+                        except Exception:
+                            pass
+
+                    spinner.fail("[!]")
+                    spinner.write(
+                        error("    Failed to get API Key - read below."))
 
                     print(
                         '    -----------------------------------------------------------------'
