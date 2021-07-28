@@ -745,16 +745,24 @@ def main(quiet=None):
 
 
 if __name__ == '__main__':
-    # Load default TTY from config
-    config = load_config(quiet=True)
+    # Let's check users logged in and different TTY options
+    # By default, outputs to console only but when running on a
+    # node, it makes sense to output to the attached display
+    tty = '/dev/tty'
     try:
+        # Load TTY from config if changed
+        config = load_config(quiet=True)
         tty = config['MAIN'].get('tty')
-    except Exception:
-        tty = '/dev/tty'
-    # Redirect tty output
-    with open(tty, 'rb') as inf, open(tty, 'wb') as outf:
-        os.dup2(inf.fileno(), 0)
-        os.dup2(outf.fileno(), 1)
-        os.dup2(outf.fileno(), 2)
-        main()
-        goodbye()
+        # Redirect tty output
+        with open(tty, 'rb') as inf, open(tty, 'wb') as outf:
+            os.dup2(inf.fileno(), 0)
+            os.dup2(outf.fileno(), 1)
+            os.dup2(outf.fileno(), 2)
+
+    except Exception as e:
+        print(
+            warning(
+                f"    [!] Could not redirect to selected output. Error: {e} "))
+
+    main()
+    goodbye()

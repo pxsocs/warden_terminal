@@ -1,6 +1,5 @@
-from time import time
-
 import requests
+from time import time
 
 
 def test_tor():
@@ -101,7 +100,7 @@ def tor_request(url, tor_only=False, method="get", headers=None):
         except (
                 requests.exceptions.ConnectionError,
                 requests.exceptions.ReadTimeout,
-        ) as e:
+        ):
             return "ConnectionError"
     else:
         if tor_only:
