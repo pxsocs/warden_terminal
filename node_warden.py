@@ -354,7 +354,7 @@ def check_screen_size():
         # min dimensions are recommended at 60 x 172
         if rows < 60 or columns < 172:
             small_display = True
-            config = load_config()
+            config = load_config(quiet=True)
             config_file = os.path.join(basedir, 'config.ini')
             # When starting, always enable auto scroll through widgets
             # the refresh variable on config.ini determines how many seconds
@@ -368,10 +368,10 @@ def check_screen_size():
 
         cycle = int(0)
         pickle_it('save', 'cycle.pkl', cycle)
-
-        spinner.ok("🖥️ ")
         message = f"Screen size is {str(rows)} rows x {str(columns)} columns"
-        spinner.write(success("    " + message))
+        spinner.text = (success(message))
+        spinner.ok("✅ ")
+
         logging.info(message)
         pickle_it('save', 'xs_display.pkl', xs_display)
         pickle_it('save', 'small_display.pkl', small_display)
@@ -415,6 +415,7 @@ def check_raspiblitz():
     # We can also check if running inside a raspiblitz and get
     # additional node and bitcoin.conf info.
     raspiblitz_detected = False
+    print("")
     with yaspin(text="Checking if running inside Raspiblitz Node ⚡",
                 color="green") as spinner:
         try:
