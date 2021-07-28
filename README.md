@@ -34,6 +34,13 @@ pip3 install -r requirements.txt
 python3 node_warden.py
 ```
 
+## Enjoyed the app?
+
+Consider making a donation.
+
+tipping.me (Lightning): https://tippin.me/@alphaazeta
+onchain: bc1q4fmyksw40vktte9n6822e0aua04uhmlez34vw5gv72zlcmrkz46qlu7aem
+
 ## FAQ:
 
 ### Getting a message that Tor is not running
