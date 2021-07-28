@@ -26,12 +26,58 @@ Clone the git repository into any directory:
 git clone https://github.com/pxsocs/warden_terminal
 ```
 
-Then run:
+Install Requirements:
 
 ```bash
 cd warden_terminal
 pip3 install -r requirements.txt
+```
+
+Run the app:
+
+```bash
 python3 node_warden.py
+```
+
+**Optional if your node has a monitor attached and you want to force display to that monitor.**
+
+If you are running a RaspiBlitz, MyNode or Umbrel, and installing through SSH follow this steps.
+
+Find out which is the primary display:
+
+```bash
+who -a
+```
+
+Should output something like:
+
+```s
+admin@raspberrypi:~/warden_terminal $ who -a
+
+           system boot  1970-01-01 01:00
+pi       + tty1         2021-07-27 22:19 00:21        1097
+           run-level 3  2021-07-27 22:19
+admin    + pts/0        2021-07-28 14:55   .          7503 (192.168.1.123)
+```
+
+Take note of the system boot output. In the case above `tty1`.
+
+Then run the below, replacing `tty1` if needed:
+
+```bash
+sudo chmod 666 /dev/tty1
+```
+
+Edit the config.ini file and change the `tty = /dev/tty` line to `tty = /dev/tty1` in this case:
+
+```bash
+nano config.ini
+```
+
+Save and close the file and run the program:
+
+```bash
+python3 node_warden.py &
 ```
 
 ## Enjoyed the app?
