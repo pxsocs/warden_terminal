@@ -2,7 +2,6 @@
 
 import pyttsx3
 import requests
-import re
 from yaspin import yaspin
 
 import configparser
@@ -40,6 +39,7 @@ def load_config(quiet=False):
         CONFIG.read(config_file)
         return (CONFIG)
 
+    print("")
     with yaspin(text="Loading config.ini", color="cyan") as spinner:
 
         # Check that config file exists
@@ -138,7 +138,7 @@ def check_version(upgrade_args=True):
             spinner.write(success("    You are running the latest version"))
 
         if upgrade:
-            spinner.fail("🟡 ")
+            spinner.fail("[i] ")
             spinner.write(
                 warning(f"    Update available - version: {remote_version}"))
 
@@ -199,147 +199,137 @@ def greetings():
 
 
 def check_cryptocompare():
-    with yaspin(text=f"Testing price grab from Cryptocompare",
+    with yaspin(text="Testing price grab from Cryptocompare",
                 color="green") as spinner:
+        data = {'Response': None, 'Message': None}
         try:
             api_key = pickle_it('load', 'cryptocompare_api.pkl')
-            if api_key == 'file not found':
-                raise KeyError
-
-            baseURL = (
-                "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
-                + "&tsyms=USD&api_key=" + api_key)
-
-            try:
+            if api_key != 'file not found':
+                baseURL = (
+                    "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
+                    + "&tsyms=USD&api_key=" + api_key)
                 request = tor_request(baseURL)
-            except requests.exceptions.ConnectionError:
-                spinner.fail("💥 ")
-                spinner.write(
-                    warning(
-                        "    Connection Error - check internet connection"))
-                exit()
-            request = tor_request(baseURL)
-            data = request.json()
+                data = request.json()
+                data = request.json()
+                btc_price = (data['DISPLAY']['BTC']['USD']['PRICE'])
+                spinner.text = (success(f"BTC price is: {btc_price}"))
+                spinner.ok("✅ ")
+                pickle_it('save', 'cryptocompare_api.pkl', api_key)
+                return
+            else:
+                data = {'Response': 'Error', 'Message': 'No API Key is set'}
         except Exception as e:
-            data = {'Response': 'Error', 'Message': e}
+            data = {'Response': 'Error', 'Message': str(e)}
 
         try:
             if data['Response'] == 'Error':
-                spinner.write(
-                    warning("    CryptoCompare Returned an error" +
-                            data['Message']))
-                if data['Message'] == 'You are over your rate limit please upgrade your account!':
-                    # First try to get a random API KEY
-                    # ++++++++++++++++++++++++++
-                    #  GENERATE RANDOM
-                    # ++++++++++++++++++++++++++
-                    spinner.write(warning("    Trying a random API Key..."))
-                    size = 16
-                    import binascii
-                    random_key = (binascii.b2a_hex(
-                        os.urandom(size))).decode("utf-8")
-                    baseURL = (
-                        "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
-                        + "&tsyms=USD&api_key=" + random_key)
+                spinner.color = 'yellow'
+                spinner.text = "CryptoCompare Returned an error " + data[
+                    'Message']
 
+                # First try to get a random API KEY
+                # ++++++++++++++++++++++++++
+                #  GENERATE RANDOM
+                # ++++++++++++++++++++++++++
+                spinner.text = "Trying a random API Key..."
+                size = 16
+                import binascii
+                random_key = (binascii.b2a_hex(
+                    os.urandom(size))).decode("utf-8")
+                baseURL = (
+                    "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
+                    + "&tsyms=USD&api_key=" + random_key)
+
+                try:
+                    request = tor_request(baseURL)
+                    data = request.json()
+                    btc_price = (data['DISPLAY']['BTC']['USD']['PRICE'])
+                    spinner.text = (success(f"BTC price is: {btc_price}"))
+                    spinner.ok("✅ ")
+                    pickle_it('save', 'cryptocompare_api.pkl', random_key)
+                    return
+                except Exception:
+                    spinner.text = (warning("Trying one of old API Keys..."))
+                    # ++++++++++++++++++++++++++
+                    #  Load Legacy
+                    # ++++++++++++++++++++++++++
                     try:
-                        request = tor_request(baseURL)
-                        data = request.json()
-                        btc_price = (data['DISPLAY']['BTC']['USD']['PRICE'])
-                        spinner.ok("✅ ")
-                        spinner.write(
-                            success(f"    BTC price is: {btc_price}"))
-                        pickle_it('save', 'cryptocompare_api.pkl', random_key)
-                        return
+                        # RANDOM Generator failed. Let's use one of the
+                        # legacy api keys stored under cryptocompare_api.keys
+                        filename = 'cryptocompare_api.keys'
+                        file = open(filename, 'r')
+                        for line in file:
+                            legacy_key = str(line)
+                            spinner.text = (warning(
+                                f"Trying one of old API Keys... {legacy_key}"))
+                            baseURL = (
+                                "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
+                                + "&tsyms=USD&api_key=" + legacy_key)
+
+                            try:
+                                request = tor_request(baseURL)
+                                data = request.json()
+                                btc_price = (
+                                    data['DISPLAY']['BTC']['USD']['PRICE'])
+                                spinner.text = (
+                                    success(f"BTC price is: {btc_price}"))
+                                spinner.ok("✅ ")
+                                pickle_it('save', 'cryptocompare_api.pkl',
+                                          legacy_key)
+                                return
+                            except Exception:
+                                pass
+
                     except Exception:
-                        spinner.write(
-                            warning("    Trying one of old API Keys..."))
-                        # ++++++++++++++++++++++++++
-                        #  Load Legacy
-                        # ++++++++++++++++++++++++++
-                        try:
-                            # RANDOM Generator failed. Let's use one of the
-                            # legacy api keys stored under cryptocompare_api.keys
-                            filename = 'cryptocompare_api.keys'
-                            file = open(filename, 'r')
-                            for line in file:
-                                legacy_key = str(line)
-                                spinner.write(
-                                    warning(
-                                        f"    Trying one of old API Keys... {legacy_key}"
-                                    ))
-                                baseURL = (
-                                    "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
-                                    + "&tsyms=USD&api_key=" + legacy_key)
+                        pass
 
-                                try:
-                                    request = tor_request(baseURL)
-                                    data = request.json()
-                                    btc_price = (
-                                        data['DISPLAY']['BTC']['USD']['PRICE'])
-                                    spinner.ok("✅ ")
-                                    spinner.write(
-                                        success(
-                                            f"    BTC price is: {btc_price}"))
-                                    pickle_it('save', 'cryptocompare_api.pkl',
-                                              legacy_key)
-                                    return
-                                except Exception:
-                                    pass
+                spinner.text = (error("Failed to get API Key - read below."))
+                spinner.fail("[!]")
 
-                        except Exception:
-                            pass
+                print(
+                    '    -----------------------------------------------------------------'
+                )
+                print(yellow("    Looks like you need to get an API Key. "))
+                print(yellow("    The WARden comes with a shared key that"))
+                print(yellow("    eventually gets to the call limit."))
+                print(
+                    '    -----------------------------------------------------------------'
+                )
+                print(
+                    yellow(
+                        '    Go to: https://www.cryptocompare.com/cryptopian/api-keys'
+                    ))
+                print(
+                    yellow(
+                        '    To get an API Key. Keys from cryptocompare are free.'
+                    ))
+                print(
+                    yellow(
+                        '    [Tip] Get a disposable email to signup and protect privacy.'
+                    ))
+                print(
+                    yellow(
+                        '    Services like https://temp-mail.org/en/ work well.'
+                    ))
 
-                    spinner.fail("[!]")
-                    spinner.write(
-                        error("    Failed to get API Key - read below."))
-
-                    print(
-                        '    -----------------------------------------------------------------'
-                    )
-                    print(
-                        yellow("    Looks like you need to get an API Key. "))
-                    print(
-                        yellow("    The WARden comes with a shared key that"))
-                    print(yellow("    eventually gets to the call limit."))
-                    print(
-                        '    -----------------------------------------------------------------'
-                    )
-                    print(
-                        yellow(
-                            '    Go to: https://www.cryptocompare.com/cryptopian/api-keys'
-                        ))
-                    print(
-                        yellow(
-                            '    To get an API Key. Keys from cryptocompare are free.'
-                        ))
-                    print(
-                        yellow(
-                            '    [Tip] Get a disposable email to signup and protect privacy.'
-                        ))
-                    print(
-                        yellow(
-                            '    Services like https://temp-mail.org/en/ work well.'
-                        ))
-
-                    print(muted("    Current API:"))
-                    print(f"    {api_key}")
-                    new_key = input('    Enter new API key (Q to quit): ')
-                    if new_key == 'Q' or new_key == 'q':
-                        exit()
-                    pickle_it('save', 'cryptocompare_api.pkl', new_key)
-                    check_cryptocompare()
+                print(muted("    Current API:"))
+                print(f"    {api_key}")
+                new_key = input('    Enter new API key (Q to quit): ')
+                if new_key == 'Q' or new_key == 'q':
+                    exit()
+                pickle_it('save', 'cryptocompare_api.pkl', new_key)
+                check_cryptocompare()
         except KeyError:
             try:
                 btc_price = (data['DISPLAY']['BTC']['USD']['PRICE'])
                 spinner.ok("✅ ")
-                spinner.write(success(f"    BTC price is: {btc_price}"))
+                spinner.write(success(f"BTC price is: {btc_price}"))
                 pickle_it('save', 'cryptocompare_api.pkl', api_key)
                 return
             except Exception:
+                spinner.text = (
+                    warning("CryptoCompare Returned an UNKNOWN error"))
                 spinner.fail("💥 ")
-                spinner.write(
-                    warning("    CryptoCompare Returned an UNKNOWN error"))
 
         return (data)
 
@@ -405,8 +395,8 @@ def check_btc_rpc():
         from rpc import rpc_connect
         rpc = rpc_connect()
         if rpc is None:
-            spinner.fail("🟡 ")
-            spinner.write(warning("    Bitcoin RPC unreachable"))
+            spinner.fail("[i] ")
+            spinner.write(warning("     Bitcoin RPC unreachable"))
         else:
             try:
                 bci = rpc.getblockchaininfo()
@@ -416,7 +406,7 @@ def check_btc_rpc():
                 spinner.write(success(f"    RPC reached: Chain {chain}"))
                 logging.info("[Bitcoin Core] RPC is available")
             except Exception as e:
-                spinner.fail("🟡 ")
+                spinner.fail("[i] ")
                 spinner.write(
                     warning(f"    Bitcoin RPC returned an error: {e}"))
 
@@ -425,7 +415,7 @@ def check_raspiblitz():
     # We can also check if running inside a raspiblitz and get
     # additional node and bitcoin.conf info.
     raspiblitz_detected = False
-    with yaspin(text="Checking if running inside Raspiblitz Node",
+    with yaspin(text="Checking if running inside Raspiblitz Node ⚡",
                 color="green") as spinner:
         try:
             raspi_file = '/home/admin/raspiblitz.info'
@@ -477,14 +467,14 @@ def check_raspiblitz():
                 rpi_version = d['codeVersion'].strip('"')
             except Exception:
                 rpi_version = "<undetected>"
-            spinner.ok("✅ ")
+            spinner.ok("⚡ ")
             spinner.write(success("    RaspiBlitz Node Detected"))
-            logging.info(f"[RaspiBlitz] Running version {rpi_version}")
+            logging.info(f"[RaspiBlitz] ⚡ Version {rpi_version}")
 
         except Exception:
             raspiblitz_detected = False
-            spinner.fail("🟡 ")
-            spinner.write(warning("    Raspiblitz node not detected"))
+            spinner.fail("[i] ")
+            spinner.write(warning("     Raspiblitz node not detected"))
 
         pickle_it('save', 'raspiblitz_detected.pkl', raspiblitz_detected)
 
@@ -540,8 +530,8 @@ def check_umbrel():
             logging.info("[Umbrel] Running Umbrel OS")
         except Exception:
             inside_umbrel = False
-            spinner.fail("🟡 ")
-            spinner.write(warning("    Umbrel OS not found"))
+            spinner.fail("[i] ")
+            spinner.write(warning("     Umbrel OS not found"))
 
         pickle_it('save', 'inside_umbrel.pkl', inside_umbrel)
 
@@ -585,8 +575,8 @@ def check_umbrel():
             spinner.write(success(f"    Umbrel ☂️  found on {url}"))
             inside_umbrel = True
         except Exception as e:
-            spinner.fail("🟡 ")
-            spinner.write(warning("    Umbrel not found:" + str(e)))
+            spinner.fail("[i] ")
+            spinner.write(warning("     Umbrel not found:" + str(e)))
 
     if inside_umbrel:
         if 'onion' in url:
@@ -629,7 +619,7 @@ def check_umbrel():
 
                 mempool = True
             except Exception as e:
-                spinner.fail("🟡 ")
+                spinner.fail("[i] ")
                 spinner.write(warning("    " + str(e)))
 
     if mempool:
@@ -766,5 +756,16 @@ def main(quiet=None):
 
 
 if __name__ == '__main__':
-    main()
-    goodbye()
+    # Load default TTY from config
+    config = load_config(quiet=True)
+    try:
+        tty = config['MAIN'].get('tty')
+    except Exception:
+        tty = '/dev/tty'
+    # Redirect tty output
+    with open(tty, 'rb') as inf, open(tty, 'wb') as outf:
+        os.dup2(inf.fileno(), 0)
+        os.dup2(outf.fileno(), 1)
+        os.dup2(outf.fileno(), 2)
+        main()
+        goodbye()
