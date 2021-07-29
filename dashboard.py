@@ -376,7 +376,7 @@ def main_dashboard(config, tor):
     def rpc_updater(_loop, __data):
         data = translate_text_for_urwid(data_btc_rpc_info())
         rpc_box.base_widget.set_text(data)
-        main_loop.set_alarm_in(5, rpc_updater)
+        main_loop.set_alarm_in(1, rpc_updater)
 
     def sync_updater(_loop, __data):
         try:
@@ -403,7 +403,7 @@ def main_dashboard(config, tor):
 
         update_header(layout)
         main_loop.draw_screen()
-        main_loop.set_alarm_in(5, btc_updater)
+        main_loop.set_alarm_in(1, btc_updater)
 
     def tor_updater(_loop, __data):
         try:

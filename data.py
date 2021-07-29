@@ -226,7 +226,7 @@ def data_large_message(use_cache=True):
     from node_warden import load_config
     config = load_config(quiet=True)
     ft_config = config['MAIN']
-    font = ft_config.get('large_text_font')
+    font = 'small'
     try:
         message = ft_config.get('message_widget')
     except Exception:

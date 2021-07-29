@@ -400,6 +400,7 @@ def check_btc_rpc():
 
 
 def check_raspiblitz():
+
     # We can also check if running inside a raspiblitz and get
     # additional node and bitcoin.conf info.
     raspiblitz_detected = False
@@ -459,6 +460,29 @@ def check_raspiblitz():
             spinner.ok("⚡ ")
             spinner.write(success("    RaspiBlitz Node Detected"))
             logging.info(f"[RaspiBlitz] ⚡ Version {rpi_version}")
+            config = load_config(quiet=True)
+            if config['MAIN'].getboolean('output_to_monitor') is True:
+                spinner.write(
+                    success("    Switching Output to RaspiBlitz Monitor..."))
+                try:
+                    tty = '/dev/tty1'
+                    redirect_tty(tty)
+                except Exception as e:
+                    logging.info(
+                        error(
+                            f"[RaspiBlitz] [IMPORTANT] Could not redirect output to the default monitor."
+                        ))
+                    logging.info(error(f"[RaspiBlitz] [IMPORTANT] Error: {e}"))
+                    logging.info(
+                        error(f"[RaspiBlitz] [IMPORTANT] Run at Terminal:"))
+                    logging.info(
+                        error(
+                            f"[RaspiBlitz] [IMPORTANT] $ sudo chmod 666 /dev/tty1"
+                        ))
+                    logging.info(
+                        error(
+                            f"[RaspiBlitz] [IMPORTANT] to grant access and restart app."
+                        ))
 
         except Exception:
             raspiblitz_detected = False
@@ -517,6 +541,29 @@ def check_umbrel():
             spinner.ok("✅ ")
             spinner.write(success("    Running Umbrel OS"))
             logging.info("[Umbrel] Running Umbrel OS")
+            config = load_config(True)
+            if config['MAIN'].getboolean('output_to_monitor') is True:
+                spinner.write(
+                    success("    Switching Output to Umbrel Monitor..."))
+                try:
+                    tty = '/dev/tty1'
+                    redirect_tty(tty)
+                except Exception as e:
+                    logging.info(
+                        error(
+                            "[UMBREL] [IMPORTANT] Could not redirect output to the default monitor."
+                        ))
+                    logging.info(error(f"[UMBREL] [IMPORTANT] Error: {e}"))
+                    logging.info(
+                        error(f"[UMBREL] [IMPORTANT] Run at Terminal:"))
+                    logging.info(
+                        error(
+                            "[UMBREL] [IMPORTANT] $ sudo chmod 666 /dev/tty1"))
+                    logging.info(
+                        error(
+                            "[UMBREL] [IMPORTANT] to grant access and restart app."
+                        ))
+
         except Exception:
             inside_umbrel = False
             spinner.fail("[i] ")
@@ -655,6 +702,13 @@ def pickle_it(action='load', filename=None, data=None):
             return ("saved")
 
 
+def redirect_tty(tty):
+    with open(tty, 'rb') as inf, open(tty, 'wb') as outf:
+        os.dup2(inf.fileno(), 0)
+        os.dup2(outf.fileno(), 1)
+        os.dup2(outf.fileno(), 2)
+
+
 def main(quiet=None):
     # Main Variables
     if quiet is None:
@@ -754,15 +808,14 @@ if __name__ == '__main__':
         config = load_config(quiet=True)
         tty = config['MAIN'].get('tty')
         # Redirect tty output
-        with open(tty, 'rb') as inf, open(tty, 'wb') as outf:
-            os.dup2(inf.fileno(), 0)
-            os.dup2(outf.fileno(), 1)
-            os.dup2(outf.fileno(), 2)
+        if tty != '/dev/tty':
+            redirect_tty(tty)
 
     except Exception as e:
         print(
             warning(
-                f"    [!] Could not redirect to selected output. Error: {e} "))
+                f"    [!] Could not redirect to selected output {tty}. Error: {e} "
+            ))
 
     main()
     goodbye()
