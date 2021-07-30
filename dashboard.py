@@ -102,10 +102,10 @@ def main_dashboard(config, tor):
 
         small_display = pickle_it('load', 'small_display.pkl')
         if small_display is True:
-            txt = ("WARden Node Edition | " +
-                   f"BTC ${jformat(btc_price, 0)} " + " | " + r_time)
+            txt = ' WARden Version: ' + version(
+            ) + " | " f"BTC ${jformat(btc_price, 0)} " + " | " + r_time
 
-        header_text = urwid.Text(txt, align='right')
+        header_text = urwid.Text(txt, align='left')
         header = urwid.AttrMap(header_text, 'titlebar')
         layout.header = header
 
