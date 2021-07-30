@@ -14,3 +14,5 @@ packaging==20.8
 psutil
 apscheduler
 python-bitcoinrpc
+beautifulsoup4
+numpy

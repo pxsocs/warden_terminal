@@ -1,5 +1,6 @@
 # Upon the first import of non standard libraries, if not found
 
+from pickle import load
 import pyttsx3
 import requests
 from yaspin import yaspin
@@ -8,7 +9,7 @@ import configparser
 import subprocess
 from data import (data_btc_rpc_info, data_large_block, data_logger, data_login,
                   data_mempool, data_random_satoshi, data_sys, data_tor,
-                  data_btc_price)
+                  data_btc_price, data_specter)
 import logging
 import os
 import sys
@@ -399,7 +400,60 @@ def check_btc_rpc():
                     warning(f"    Bitcoin RPC returned an error: {e}"))
 
 
+def clean_url(url, port=None):
+    if url[-1] == '/':
+        url = url[:-1]
+    if 'http' not in url:
+        url = 'http://' + url
+    if port is None:
+        url = f'{url}/'
+    else:
+        url = f'{url}:{port}/'
+    return (url)
+
+
+def check_nodetype():
+    # Checks which node is running and save urls to different apps
+    raspiblitz_detected = pickle_it('load', 'raspiblitz_detected.pkl')
+    umbrel_detected = pickle_it('load', 'umbrel.pkl')
+    local_ip = pickle_it('load', 'ip.pkl')
+    node = None
+    config = load_config(quiet=True)
+    # CHECK RASPIBLITZ --------------------
+    try:
+        if raspiblitz_detected is True:
+            # Adjust IP addreses and URLs
+            if local_ip is not None:
+                try:
+                    specter_port = config['SPECTER']['specter_port']
+                except Exception:
+                    specter_port = '25441'
+                specter_ip = clean_url(local_ip, specter_port)
+                pickle_it('save', 'specter_ip.pkl', specter_ip)
+            node = "raspiblitz"
+    except Exception:
+        pass
+
+    # CHECK UMBREL ------------------------
+    try:
+        if umbrel_detected is True:
+            try:
+                specter_port = config['SPECTER']['specter_port']
+            except Exception:
+                specter_port = '25441'
+            if config['UMBREL']['url'] != 'None':
+                specter_ip = config['UMBREL']['url']
+            specter_ip = clean_url(specter_ip, specter_port)
+            pickle_it('save', 'specter_ip.pkl', specter_ip)
+            node = "umbrel"
+    except Exception:
+        pass
+
+    return node
+
+
 def check_raspiblitz():
+
     # We can also check if running inside a raspiblitz and get
     # additional node and bitcoin.conf info.
     raspiblitz_detected = False
@@ -460,6 +514,30 @@ def check_raspiblitz():
             spinner.write(success("    RaspiBlitz Node Detected"))
             logging.info(f"[RaspiBlitz] ⚡ Version {rpi_version}")
 
+            config = load_config(quiet=True)
+            if config['MAIN'].getboolean('output_to_monitor') is True:
+                spinner.write(
+                    success("    Switching Output to RaspiBlitz Monitor..."))
+                try:
+                    tty = '/dev/tty1'
+                    redirect_tty(tty)
+                except Exception as e:
+                    logging.info(
+                        error(
+                            f"[RaspiBlitz] [IMPORTANT] Could not redirect output to the default monitor."
+                        ))
+                    logging.info(error(f"[RaspiBlitz] [IMPORTANT] Error: {e}"))
+                    logging.info(
+                        error(f"[RaspiBlitz] [IMPORTANT] Run at Terminal:"))
+                    logging.info(
+                        error(
+                            f"[RaspiBlitz] [IMPORTANT] $ sudo chmod 666 /dev/tty1"
+                        ))
+                    logging.info(
+                        error(
+                            f"[RaspiBlitz] [IMPORTANT] to grant access and restart app."
+                        ))
+
         except Exception:
             raspiblitz_detected = False
             spinner.fail("[i] ")
@@ -473,6 +551,7 @@ def check_umbrel():
     # This is done by trying to access the getumbrel/manager container
     # and getting the environment variables inside that container
     print("")
+    pickle_it('save', 'umbrel_detected.pkl', False)
     with yaspin(text="Checking if running inside Umbrel OS Node",
                 color="green") as spinner:
 
@@ -517,6 +596,29 @@ def check_umbrel():
             spinner.ok("✅ ")
             spinner.write(success("    Running Umbrel OS"))
             logging.info("[Umbrel] Running Umbrel OS")
+            config = load_config(True)
+            if config['MAIN'].getboolean('output_to_monitor') is True:
+                spinner.write(
+                    success("    Switching Output to Umbrel Monitor..."))
+                try:
+                    tty = '/dev/tty1'
+                    redirect_tty(tty)
+                except Exception as e:
+                    logging.info(
+                        error(
+                            "[UMBREL] [IMPORTANT] Could not redirect output to the default monitor."
+                        ))
+                    logging.info(error(f"[UMBREL] [IMPORTANT] Error: {e}"))
+                    logging.info(
+                        error(f"[UMBREL] [IMPORTANT] Run at Terminal:"))
+                    logging.info(
+                        error(
+                            "[UMBREL] [IMPORTANT] $ sudo chmod 666 /dev/tty1"))
+                    logging.info(
+                        error(
+                            "[UMBREL] [IMPORTANT] to grant access and restart app."
+                        ))
+
         except Exception:
             inside_umbrel = False
             spinner.fail("[i] ")
@@ -617,6 +719,28 @@ def check_umbrel():
             config.write(configfile)
 
 
+def check_specter():
+    # CURRENTLY ONLY WORKS WHERE NO AUTH IS NEEDED
+    # DEFAULT FOR UMBREL FOR EXAMPLE
+    print("")
+    pickle_it('save', 'specter_txs.pkl', None)
+    with yaspin(text="Checking if Specter Server 👻 is running",
+                color="green") as spinner:
+        try:
+            from specter_importer import Specter
+            specter = Specter()
+            txs = specter.refresh_txs(load=False)
+            if '[Specter Error]' in txs:
+                raise Exception(txs)
+            pickle_it('save', 'specter_txs.pkl', txs)
+            spinner.ok("✅ ")
+            spinner.write(success("    Specter Server Running"))
+        except Exception:
+            pickle_it('save', 'specter_txs.pkl', None)
+            spinner.fail("[i] ")
+            spinner.write(warning("     Specter Server not found"))
+
+
 def check_os():
     try:
         rasp_file = '/sys/firmware/devicetree/base/model'
@@ -655,7 +779,25 @@ def pickle_it(action='load', filename=None, data=None):
             return ("saved")
 
 
+def redirect_tty(tty):
+    with open(tty, 'rb') as inf, open(tty, 'wb') as outf:
+        os.dup2(inf.fileno(), 0)
+        os.dup2(outf.fileno(), 1)
+        os.dup2(outf.fileno(), 2)
+
+
+def store_local_ip():
+    try:
+        from connections import get_local_ip
+        ip = get_local_ip()
+        pickle_it('save', 'ip.pkl', ip)
+    except Exception:
+        pickle_it('save', 'ip.pkl', None)
+
+
 def main(quiet=None):
+    # Store Local IP Address
+    store_local_ip()
     # Main Variables
     if quiet is None:
         if 'quiet' in sys.argv:
@@ -683,8 +825,11 @@ def main(quiet=None):
         check_version(upgrade)
         check_screen_size()
         check_cryptocompare()
+        # Find if a node is present
         check_umbrel()
         check_raspiblitz()
+        check_nodetype()
+        check_specter()
         check_os()
         check_btc_rpc()
         login_tip()
@@ -718,6 +863,9 @@ def main(quiet=None):
         if rpc_running:
             data_btc_rpc_info(use_cache=False)
         data_random_satoshi(use_cache=False)
+        specter_txs = pickle_it('save', 'specter_txs.pkl')
+        if specter_txs is not None:
+            data_specter(use_cache=False)
 
     def sys_grabs():
         data_login(use_cache=False)
@@ -739,7 +887,7 @@ def main(quiet=None):
     scheduler.add_job(node_web_grabs, 'interval', seconds=15)
     scheduler.add_job(sys_grabs, 'interval', seconds=1)
     scheduler.start()
-    print(success("✅ Background jobs running"))
+    print(success("✅  Background jobs running"))
     main_dashboard(config, tor)
     scheduler.shutdown(wait=False)
 
@@ -754,15 +902,14 @@ if __name__ == '__main__':
         config = load_config(quiet=True)
         tty = config['MAIN'].get('tty')
         # Redirect tty output
-        with open(tty, 'rb') as inf, open(tty, 'wb') as outf:
-            os.dup2(inf.fileno(), 0)
-            os.dup2(outf.fileno(), 1)
-            os.dup2(outf.fileno(), 2)
+        if tty != '/dev/tty':
+            redirect_tty(tty)
 
     except Exception as e:
         print(
             warning(
-                f"    [!] Could not redirect to selected output. Error: {e} "))
+                f"    [!] Could not redirect to selected output {tty}. Error: {e} "
+            ))
 
     main()
     goodbye()

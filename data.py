@@ -226,7 +226,7 @@ def data_large_message(use_cache=True):
     from node_warden import load_config
     config = load_config(quiet=True)
     ft_config = config['MAIN']
-    font = ft_config.get('large_text_font')
+    font = 'small'
     try:
         message = ft_config.get('message_widget')
     except Exception:
@@ -235,6 +235,85 @@ def data_large_message(use_cache=True):
     custom_fig = pyfiglet.Figlet(font=font)
     return_fig = custom_fig.renderText(message)
     return_fig = yellow(return_fig)
+    return (return_fig)
+
+
+def data_specter(use_cache=True):
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    if use_cache is True:
+        cached = pickle_it('load', 'data_specter.pkl')
+        if cached != 'file not found' and cached is not None:
+            return (cached)
+
+    # Refresh Txs
+    try:
+        from specter_importer import Specter
+        specter = Specter()
+        txs = specter.refresh_txs(load=False)
+        if '[Specter Error]' in txs:
+            return 'Error getting transactions'
+        pickle_it('save', 'specter_txs.pkl', txs)
+    except Exception:
+        txs = None
+        return
+
+    # Txs found, now get relevant data and format for output
+    hidden = config['MAIN'].getboolean('hide_private_info')
+    font = config['MAIN'].get('large_text_font')
+    last_tx_time = 0
+    last_tx_block = 0
+    balance = 0
+    return_fig = ""
+
+    for tx in txs['txlist']:
+        if tx['category'] == 'send':
+            multiplier = -1
+        else:
+            multiplier = 1
+        balance += tx['amount'] * multiplier
+        if tx['blockheight'] > last_tx_block:
+            last_tx_block = tx['blockheight']
+        if tx['time'] > last_tx_time:
+            last_tx_time = tx['time']
+
+    ft_config = config['MAIN']
+    font = ft_config.get('large_text_font')
+    custom_fig = pyfiglet.Figlet(font=font)
+
+    return_fig = 'Specter Server Balance\n'
+    return_fig += '----------------------\n\n'
+
+    if balance < 1:
+        balance = jformat(balance * 100000000, 0)
+        sats = True
+    else:
+        balance = jformat(balance, 4)
+        sats = False
+
+    if hidden is False:
+        return_fig += custom_fig.renderText(balance)
+        if sats is True:
+            return_fig += "Sats\n"
+        else:
+            return_fig += "Bitcoin\n"
+        return_fig = yellow(return_fig)
+
+    else:
+        return_fig += custom_fig.renderText('<Hidden>')
+        return_fig = yellow(return_fig)
+        return_fig += "Balance Hidden\nPress 'H' to display\n"
+
+    return_fig += f'Last activity at block {jformat(last_tx_block, 0)}'
+    current_block = pickle_it('load', 'block.pkl')
+    if current_block != 'file not found':
+        return_fig += f'\n{jformat(current_block - last_tx_block, 0)} blocks ago'
+
+    tx_time = datetime.fromtimestamp(last_tx_time)
+    return_fig += f'\non {tx_time}\n{time_ago(tx_time)}'
+
+    pickle_it('save', 'data_specter.pkl', return_fig)
+
     return (return_fig)
 
 
@@ -964,6 +1043,8 @@ def main():
         print(data_sync())
     if arg == 'data_whitepaper':
         data_whitepaper()
+    if arg == 'data_specter':
+        print(data_specter(use_cache=False))
 
 
 # HELPERS ------------------------------------------
