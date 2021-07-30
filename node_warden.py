@@ -9,7 +9,7 @@ import configparser
 import subprocess
 from data import (data_btc_rpc_info, data_large_block, data_logger, data_login,
                   data_mempool, data_random_satoshi, data_sys, data_tor,
-                  data_btc_price)
+                  data_btc_price, data_specter)
 import logging
 import os
 import sys
@@ -415,35 +415,41 @@ def clean_url(url, port=None):
 def check_nodetype():
     # Checks which node is running and save urls to different apps
     raspiblitz_detected = pickle_it('load', 'raspiblitz_detected.pkl')
-    umbrel_detected = pickle_it('load', 'umbrel_detected.pkl')
+    umbrel_detected = pickle_it('load', 'umbrel.pkl')
     local_ip = pickle_it('load', 'ip.pkl')
-
+    node = None
+    config = load_config(quiet=True)
     # CHECK RASPIBLITZ --------------------
     try:
         if raspiblitz_detected is True:
             # Adjust IP addreses and URLs
             if local_ip is not None:
-                specter_port = '25441'
+                try:
+                    specter_port = config['SPECTER']['specter_port']
+                except Exception:
+                    specter_port = '25441'
                 specter_ip = clean_url(local_ip, specter_port)
                 pickle_it('save', 'specter_ip.pkl', specter_ip)
-            return ("raspiblitz")
+            node = "raspiblitz"
     except Exception:
         pass
 
     # CHECK UMBREL ------------------------
     try:
         if umbrel_detected is True:
-            if local_ip is not None:
+            try:
+                specter_port = config['SPECTER']['specter_port']
+            except Exception:
                 specter_port = '25441'
-                specter_ip = clean_url(local_ip, specter_port)
-                pickle_it('save', 'specter_ip.pkl', specter_ip)
-            return ("umbrel")
+            if config['UMBREL']['url'] != 'None':
+                specter_ip = config['UMBREL']['url']
+            specter_ip = clean_url(specter_ip, specter_port)
+            pickle_it('save', 'specter_ip.pkl', specter_ip)
+            node = "umbrel"
     except Exception:
         pass
 
-    # None found ---------------------------
-    pickle_it('save', 'specter_ip.pkl', None)
-    return None
+    return node
 
 
 def check_raspiblitz():
@@ -587,7 +593,6 @@ def check_umbrel():
                     finder_dict[key_item] = value_item
             inside_umbrel = True
             pickle_it('save', 'umbrel_dict.pkl', finder_dict)
-            pickle_it('save', 'umbrel_detected.pkl', True)
             spinner.ok("✅ ")
             spinner.write(success("    Running Umbrel OS"))
             logging.info("[Umbrel] Running Umbrel OS")
@@ -718,12 +723,15 @@ def check_specter():
     # CURRENTLY ONLY WORKS WHERE NO AUTH IS NEEDED
     # DEFAULT FOR UMBREL FOR EXAMPLE
     print("")
+    pickle_it('save', 'specter_txs.pkl', None)
     with yaspin(text="Checking if Specter Server 👻 is running",
                 color="green") as spinner:
         try:
             from specter_importer import Specter
             specter = Specter()
             txs = specter.refresh_txs(load=False)
+            if '[Specter Error]' in txs:
+                raise Exception(txs)
             pickle_it('save', 'specter_txs.pkl', txs)
             spinner.ok("✅ ")
             spinner.write(success("    Specter Server Running"))
@@ -818,10 +826,10 @@ def main(quiet=None):
         check_screen_size()
         check_cryptocompare()
         # Find if a node is present
-        if check_nodetype is None:
-            check_umbrel()
-        if check_nodetype is None:
-            check_raspiblitz()
+        check_umbrel()
+        check_raspiblitz()
+        check_nodetype()
+        check_specter()
         check_os()
         check_btc_rpc()
         login_tip()
@@ -855,6 +863,9 @@ def main(quiet=None):
         if rpc_running:
             data_btc_rpc_info(use_cache=False)
         data_random_satoshi(use_cache=False)
+        specter_txs = pickle_it('save', 'specter_txs.pkl')
+        if specter_txs is not None:
+            data_specter(use_cache=False)
 
     def sys_grabs():
         data_login(use_cache=False)
@@ -876,7 +887,7 @@ def main(quiet=None):
     scheduler.add_job(node_web_grabs, 'interval', seconds=15)
     scheduler.add_job(sys_grabs, 'interval', seconds=1)
     scheduler.start()
-    print(success("✅ Background jobs running"))
+    print(success("✅  Background jobs running"))
     main_dashboard(config, tor)
     scheduler.shutdown(wait=False)
 

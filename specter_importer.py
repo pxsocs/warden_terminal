@@ -14,9 +14,15 @@ import numpy as np
 class Specter():
     def __init__(self):
         config = load_config(True)
-
-        # URL Lists
-        self.base_url = config['SPECTER']['specter_url']
+        # URL Lists - Defaults to whatever is on config.ini
+        # Otherwise tries to get whatever was autodetected
+        if config['SPECTER']['specter_url'] == 'None':
+            self.base_url = pickle_it('load', 'specter_ip.pkl')
+            if self.base_url is None:
+                # Nothing is setup, default to standard
+                self.base_url = 'http://umbrel.local:25441/'
+        else:
+            self.base_url = config['SPECTER']['specter_url']
         if self.base_url[-1] != '/':
             self.base_url += '/'
         self.login_url = self.base_url + 'auth/login'

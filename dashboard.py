@@ -1,4 +1,5 @@
 import logging
+import pickle
 import emoji
 import urwid
 import subprocess
@@ -15,7 +16,7 @@ from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
                   data_whitepaper, data_sys, pickle_it, data_logger,
                   data_large_block, data_large_message, data_btc_rpc_info,
-                  data_sync)
+                  data_sync, data_specter)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -213,6 +214,12 @@ def main_dashboard(config, tor):
 
     rpc_box = Box(loader_text='Getting Bitcoin Core Info [RPC]...').line_box
 
+    specter_box = Box(loader_text='Connecting to Specter Server...',
+                      height=12,
+                      text_align='center',
+                      valign='middle',
+                      top=3).line_box
+
     # Create the Large Price Box
     tor_box_size = 10
     tor_box = Box(loader_text='Checking Tor Status...',
@@ -269,6 +276,10 @@ def main_dashboard(config, tor):
     if rpc_running is True:
         widget_list.append(rpc_box)
         widget_list.append(sync_block)
+
+    specter_ip = pickle_it('load', 'specter_ip.pkl')
+    if specter_ip is not None:
+        widget_list.append(specter_box)
 
     try:
         small_display = pickle_it('load', 'small_display.pkl')
@@ -428,6 +439,11 @@ def main_dashboard(config, tor):
         mp_box.base_widget.set_text(data)
         main_loop.set_alarm_in(1, mp_updater)
 
+    def specter_updater(_loop, __data):
+        data = translate_text_for_urwid(data_specter())
+        specter_box.base_widget.set_text(data)
+        main_loop.set_alarm_in(1, specter_updater)
+
     def sys_updater(_loop, __data):
         data = translate_text_for_urwid(data_sys())
         sys_box.base_widget.set_text(data)
@@ -484,6 +500,7 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(0, refresh)
     main_loop.set_alarm_in(0, check_for_pump)
     main_loop.set_alarm_in(0, large_block_updater)
+    main_loop.set_alarm_in(0, specter_updater)
     main_loop.set_alarm_in(0, sync_updater)
     main_loop.set_alarm_in(0, btc_updater)
     main_loop.set_alarm_in(0, sys_updater)
