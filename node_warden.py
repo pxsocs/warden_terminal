@@ -1,5 +1,5 @@
 # Upon the first import of non standard libraries, if not found
-
+from pathlib import Path
 from pickle import load
 import pyttsx3
 import requests
@@ -29,6 +29,8 @@ from ansi_management import (warning, success, error, info, clear_screen,
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 debug_file = os.path.join(basedir, 'debug.log')
+# Check if critical paths exist
+Path(basedir + '/static/save').mkdir(parents=True, exist_ok=True)
 
 
 def load_config(quiet=False):
@@ -774,9 +776,12 @@ def pickle_it(action='load', filename=None, data=None):
         except Exception:
             return ("file not found")
     else:
-        with open(filename, 'wb') as handle:
-            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            return ("saved")
+        try:
+            with open(filename, 'wb') as handle:
+                pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                return ("saved")
+        except Exception:
+            return ('failed')
 
 
 def redirect_tty(tty):

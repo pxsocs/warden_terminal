@@ -175,6 +175,41 @@ def data_large_price(price=None, change=None, chg_str=None, moscow_time=False):
     return_fig = muted(return_fig)
     return_fig += msg
 
+    position = 0
+    try:
+        if config['MAIN'].get('hide_private_info') is True:
+            raise Exception('Not displaying position - hidden')
+        position = config['PORTFOLIO'].getfloat('position_btc')
+        if position == '' or position is None:
+            raise Exception('No BTC Position Found')
+        if position != 0:
+            price_str = btc_price
+            value = cleanfloat(price_str) * position
+            sats = False
+            decs = 4
+            if position < 1 and position > -1:
+                sats = True
+                position = position * 100000000
+                decs = 0
+            position_str = jformat(position, decs)
+
+            if sats is True:
+                position_str += ' sats'
+            else:
+                position_str = '₿ ' + position_str
+
+            position_tab = []
+            position_tab.append(
+                ['Portfolio', position_str, '$ ' + jformat(value, 2)])
+
+            position_tabs = tabulate(position_tab,
+                                     colalign=["left", "center", "right"])
+
+            return_fig += '\n\n' + position_tabs
+
+    except Exception:
+        pass
+
     return (return_fig)
 
 
@@ -455,6 +490,41 @@ def data_btc_price(use_cache=True):
     except Exception as e:
         er_st = error(f' Error getting GBTC data: {e}')
         tabs += er_st
+
+    position = 0
+    try:
+        if config['MAIN'].get('hide_private_info') is True:
+            raise Exception('Not displaying position - hidden')
+        position = config['PORTFOLIO'].getfloat('position_btc')
+        if position == '' or position is None:
+            raise Exception('No BTC Position Found')
+        if position != 0:
+            price_str = price_data['RAW']['BTC']['USD']['PRICE']
+            value = cleanfloat(price_str) * position
+            sats = False
+            decs = 4
+            if position < 1 and position > -1:
+                sats = True
+                position = position * 100000000
+                decs = 0
+            position_str = jformat(position, decs)
+
+            if sats is True:
+                position_str += ' sats'
+            else:
+                position_str = '₿ ' + position_str
+
+            position_tab = []
+            position_tab.append(
+                ['Portfolio', position_str, '$ ' + jformat(value, 2)])
+
+            position_tabs = tabulate(position_tab,
+                                     colalign=["left", "center", "right"])
+
+            tabs += '\n\n' + position_tabs
+
+    except Exception:
+        pass
 
     tabs += (
         f"\n\n Last Refresh on: {info(datetime.now().strftime('%H:%M:%S'))}")
@@ -1000,7 +1070,10 @@ def data_sync():
     # If a price is provided, it won't refresh
     custom_fig = pyfiglet.Figlet(font=font)
     return_fig = custom_fig.renderText(message)
-    return_fig = yellow(return_fig)
+    if round(perc_c, 2) < 99.95:
+        return_fig = yellow(return_fig)
+    else:
+        return_fig = success(return_fig)
     return_fig += muted('\nBlockchain Sync Status\n')
 
     inside_umbrel = pickle_it('load', 'inside_umbrel.pkl')
@@ -1022,7 +1095,7 @@ def main():
     if arg == 'data_umbrel':
         print(data_umbrel())
     if arg == 'data_btc_price':
-        print(data_btc_price())
+        print(data_btc_price(use_cache=False))
     if arg == 'data_tor':
         print(data_tor())
     if arg == 'data_login':
