@@ -843,15 +843,15 @@ def data_logger(use_cache=True):
 
     from node_warden import debug_file
     try:
-        lines = 8
+        lines = 40
         log_txt = tail(debug_file, lines)
         return_str = []
         for element in log_txt:
             if 'INFO' in element:
                 return_str.append(info(element))
-            elif 'ERROR' in log_txt:
+            elif 'ERROR' in element:
                 return_str.append(error(element))
-            elif 'WARN' in log_txt:
+            elif 'WARN' in element:
                 return_str.append(warning(element))
             else:
                 return_str.append((element))
