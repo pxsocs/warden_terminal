@@ -386,7 +386,7 @@ def check_screen_size():
                     "    [i] Small display detected.\n        Will cycle through widgets.\n        Pressing (M) on main screen will force multi gadget display."
                 ))
             logging.info(
-                'Small Screen Deteced. Cycling through screens. [S] to toggle.'
+                'Small Screen Detected. Cycling through screens. [S] to toggle.'
             )
         print("")
 
