@@ -5,9 +5,6 @@ x-logging: &default-logging
   options:
     tag: "umbrel-app {{.Name}}"
 
-volumes:
-  - /dev/tty:/dev/tty
-
 services:
   warden:
     image: pxsocs/node_warden:latest
@@ -15,6 +12,9 @@ services:
     restart: on-failure
     tty: true
     stop_grace_period: 1m
+
+    volumes:
+      - /dev/tty1:/dev/tty1
 
     environment:
       # Docker requirements

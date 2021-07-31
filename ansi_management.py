@@ -105,6 +105,8 @@ def time_ago(time=False):
 
 
 def cleanfloat(text):  # Function to clean CSV fields - leave only digits and .
+    if isinstance(text, float):
+        return text
     if text is None:
         return (0)
     acceptable = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "-"]
