@@ -12,6 +12,7 @@ RUN python3 -m pip install -r requirements.txt
 
 # Install Tor
 RUN apt-get install -y tor
+RUN apt-get install -y git
 
 # These are Tor ports
 EXPOSE 9050
