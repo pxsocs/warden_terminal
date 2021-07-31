@@ -69,8 +69,14 @@ def data_login(use_cache=True):
         if cached != 'file not found' and cached is not None:
             return (cached)
     tabs = []
-    processes = subprocess.check_output("last")
-    processes = list(processes.splitlines())
+    try:
+        processes = subprocess.check_output("last")
+        processes = list(processes.splitlines())
+    except Exception as e:
+        tabs = muted(
+            f'List of users logged in to this computer could not be retrieved. Error {e}'
+        )
+        return tabs
     for process in processes:
         try:
             process = process.decode("utf-8")
