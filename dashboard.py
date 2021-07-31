@@ -129,7 +129,6 @@ def main_dashboard(config, tor):
 
         lst_menu.append([f'(M) to toggle multi view [{multi_str}] |  '])
         lst_menu.append(['(Q) to quit'])
-        small_display = pickle_it('load', 'small_display.pkl')
         if small_display is True:
             layout.footer = None
             return None
@@ -180,74 +179,53 @@ def main_dashboard(config, tor):
     quote_box = Box(loader_text='Loading Prices...').line_box
 
     large_message = Box(loader_text='Loading...',
-                        height=12,
                         text_align='center',
-                        valign='middle',
-                        top=3).line_box
+                        valign='middle').line_box
 
     large_message.base_widget.set_text(
         translate_text_for_urwid(data_large_message()))
 
     large_block = Box(loader_text='Getting Block Height...',
-                      height=12,
                       text_align='center',
-                      valign='middle',
-                      top=3).line_box
+                      valign='middle').line_box
 
     sync_block = Box(loader_text='Checking Node Sync...',
-                     height=12,
                      text_align='center',
-                     valign='middle',
-                     top=3).line_box
+                     valign='middle').line_box
 
-    moscow_time_block = Box(loader_text='Getting Block Height...',
-                            height=12,
-                            text_align='center',
-                            valign='middle',
-                            top=3).line_box
+    moscow_time_block = Box(
+        loader_text='Getting Block Height...',
+        text_align='center',
+        valign='middle',
+    ).line_box
 
     large_price = Box(loader_text='Getting BTC Price...',
-                      height=12,
                       text_align='center',
-                      valign='middle',
-                      top=3).line_box
+                      valign='middle').line_box
 
     rpc_box = Box(loader_text='Getting Bitcoin Core Info [RPC]...').line_box
 
     specter_box = Box(loader_text='Connecting to Specter Server...',
-                      height=12,
                       text_align='center',
-                      valign='middle',
-                      top=3).line_box
+                      valign='middle').line_box
 
     # Create the Large Price Box
-    tor_box_size = 10
-    tor_box = Box(loader_text='Checking Tor Status...',
-                  height=tor_box_size).line_box
+    tor_box = Box(loader_text='Checking Tor Status...').line_box
 
     # Create user login Box
-    login_box_size = 12
-    login_box = Box(loader_text='Loading User Logins...',
-                    height=login_box_size).line_box
+    login_box = Box(loader_text='Loading User Logins...').line_box
 
     # Create MemPool Box
-    mp_box_size = 24
-    mp_box = Box(loader_text='Loading Mempool...', height=mp_box_size).line_box
+    mp_box = Box(loader_text='Loading Mempool...').line_box
 
     # Create SysInfo Box
-    sys_box_size = 24
-    sys_box = Box(loader_text='Loading System Info...',
-                  height=sys_box_size).line_box
+    sys_box = Box(loader_text='Loading System Info...').line_box
 
     # Create Logger Box
-    logger_box_size = 20
-    logger_box = Box(loader_text='Loading Message Log...',
-                     height=logger_box_size).line_box
+    logger_box = Box(loader_text='Loading Message Log...').line_box
 
     # Create the Satoshi Quotes Box
-    satoshi_box_size = 20
-    satoshi_box = Box(loader_text='Loading Satoshi Wisdom...',
-                      height=satoshi_box_size).line_box
+    satoshi_box = Box(loader_text='Loading Satoshi Wisdom...').line_box
 
     # Assemble the widgets
     header = 'Loading...'
@@ -277,8 +255,8 @@ def main_dashboard(config, tor):
         widget_list.append(rpc_box)
         widget_list.append(sync_block)
 
-    specter_ip = pickle_it('load', 'specter_ip.pkl')
-    if specter_ip is not None:
+    specter_txs = pickle_it('load', 'specter_txs.pkl')
+    if specter_txs is not None:
         widget_list.append(specter_box)
 
     try:

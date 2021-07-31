@@ -332,6 +332,19 @@ def login_tip():
         tips = json.load(tips_json)["did_you_know"]
     tip = tips[randrange(len(tips))]
     logging.info(tip)
+    instructions = {
+        "[H]": "Show / Hide Private Info",
+        "[Arrows]": "Scroll Through Screens",
+        "[S]": "Auto Scroll On / Off",
+        "[M]": "Force Multi Widgets (large screens)",
+        "[D]": "Download Bitcoin Whitepaper",
+        "[A]": "Audio On / Off",
+        "[Q]": "Quit the app"
+    }
+    string = '----------\n              Keyboard Commands:\n'
+    for key, val in instructions.items():
+        string += '              ' + key + ' ' + val + '\n'
+    logging.info(string)
 
 
 def check_screen_size():
@@ -372,6 +385,9 @@ def check_screen_size():
                 yellow(
                     "    [i] Small display detected.\n        Will cycle through widgets.\n        Pressing (M) on main screen will force multi gadget display."
                 ))
+            logging.info(
+                'Small Screen Deteced. Cycling through screens. [S] to toggle.'
+            )
         print("")
 
 
@@ -400,6 +416,8 @@ def check_btc_rpc():
                 spinner.fail("[i] ")
                 spinner.write(
                     warning(f"    Bitcoin RPC returned an error: {e}"))
+                logging.warning(
+                    warning("Could not reach Bitcoin RPC. Check config.ini."))
 
 
 def clean_url(url, port=None):
@@ -450,6 +468,13 @@ def check_nodetype():
             node = "umbrel"
     except Exception:
         pass
+
+    if node is None:
+        logging.warning(
+            "[WARN] Could not autodetect a Bitcoin Node running. Check config.ini."
+        )
+    else:
+        logging.info("[INFO] Autodetected node: {node}")
 
     return node
 
@@ -697,8 +722,10 @@ def check_umbrel():
             try:
                 result = tor_request(url)
                 if not isinstance(result, requests.models.Response):
+                    logging.error("[MEMPOOL] Could not connect to {url}")
                     raise Exception(f'Did not get a return from {url}')
                 if not result.ok:
+                    logging.error("[MEMPOOL] Could not connect to {url}")
                     raise Exception(
                         'Reached Mempool app but an error occured.')
 
@@ -709,9 +736,10 @@ def check_umbrel():
                     success(
                         f"    Mempool.space app found on {url}. Latest block is: {block_height}"
                     ))
-
+                logging.info("[MEMPOOL] Connected at {url}")
                 mempool = True
             except Exception as e:
+                logging.error("[MEMPOOL] Error {e}")
                 spinner.fail("[i] ")
                 spinner.write(warning("    " + str(e)))
 
@@ -737,10 +765,14 @@ def check_specter():
             pickle_it('save', 'specter_txs.pkl', txs)
             spinner.ok("✅ ")
             spinner.write(success("    Specter Server Running"))
+            logging.info("[SPECTER] Specter Server Detected")
         except Exception:
             pickle_it('save', 'specter_txs.pkl', None)
             spinner.fail("[i] ")
             spinner.write(warning("     Specter Server not found"))
+            logging.warning(
+                "[WARN] Could not autodetect Specter Server. Check config.ini for settings."
+            )
 
 
 def check_os():
@@ -915,6 +947,7 @@ if __name__ == '__main__':
             warning(
                 f"    [!] Could not redirect to selected output {tty}. Error: {e} "
             ))
+        logging.error(f"[ERROR] Could not connect to {tty}. Error {e}.")
 
     main()
     goodbye()
