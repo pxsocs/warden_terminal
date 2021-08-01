@@ -893,10 +893,13 @@ def pickle_it(action='load', filename=None, data=None):
 
 
 def redirect_tty(tty):
-    with open(tty, 'rb') as inf, open(tty, 'wb') as outf:
-        os.dup2(inf.fileno(), 0)
-        os.dup2(outf.fileno(), 1)
-        os.dup2(outf.fileno(), 2)
+    try:
+        with open(tty, 'rb') as inf, open(tty, 'wb') as outf:
+            os.dup2(inf.fileno(), 0)
+            os.dup2(outf.fileno(), 1)
+            os.dup2(outf.fileno(), 2)
+    except Exception:
+        pass
 
 
 def store_local_ip():
