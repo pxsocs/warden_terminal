@@ -509,8 +509,14 @@ def check_mynode():
                 d = {}
                 d['rpc_user'] = 'mynode'
                 try:
-                    with open("/mnt/hdd/mynode/settings/.btcrpcpw", "r") as f:
-                        d['rpc_password'] = f.read()
+                    with open("/mnt/hdd/mynode/settings/.btcrpc_environment",
+                              "r") as f:
+                        for line in f:
+                            if "=" in line:
+                                key, val = map(str.strip, line.split("="))
+                                d[key] = val
+                                if 'PASSWORD' in line:
+                                    d['rpc_password'] = val
                 except Exception:
                     d['rpc_password'] = "error_getting_password"
 
