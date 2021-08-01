@@ -496,14 +496,13 @@ def check_mynode():
     mynode_detected = False
     print("")
     config = load_config(quiet=True)
-    with yaspin(text="Checking if running inside MyNode ⚡",
-                color="green") as spinner:
+    with yaspin(text="Checking if running MyNode ⚡", color="green") as spinner:
         try:
             # Check if the path /var/www/mynode exists
             mynode_detected = Path('/var/www/mynode').is_dir()
             if mynode_detected is True:
                 spinner.write(
-                    success("    MyNode node Detected in this machine."))
+                    success("    MyNode node detected in this machine."))
                 logging.info("[MyNode] ⚡ Running inside MyNode")
 
                 # Now we can get the bitcoin RPC data

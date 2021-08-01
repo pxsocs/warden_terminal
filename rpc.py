@@ -11,6 +11,7 @@ def rpc_connect():
     from node_warden import pickle_it
     inside_umbrel = pickle_it('load', 'inside_umbrel.pkl')
     raspiblitz = pickle_it('load', 'raspiblitz_detected.pkl')
+    mynode = pickle_it('load', 'mynode_detected.pkl')
 
     if raspiblitz is True:
         raspi_dict = pickle_it('load', 'raspi_bitcoin.pkl')
@@ -22,6 +23,19 @@ def rpc_connect():
                 rpc_ip, rpc_port = rpc_bind.split(":")
             except Exception:
                 raspiblitz = False
+
+    elif mynode is True:
+        mynode_dict = pickle_it('load', 'mynode_bitcoin.pkl')
+        rpc_user = mynode_dict['rpc_user']
+        rpc_password = mynode_dict['rpc_password']
+        url = mynode_dict['rpc_ip']
+        # End URL in / if not there
+        if url[-1] != '/':
+            url += '/'
+            if 'http' not in url:
+                url = 'http://' + url
+        rpc_ip = url
+        rpc_port = mynode_dict['rpc_port']
 
     elif inside_umbrel is True:
         umbrel_dict = pickle_it('load', 'umbrel_dict.pkl')
