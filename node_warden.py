@@ -441,6 +441,7 @@ def check_nodetype():
     # Checks which node is running and save urls to different apps
     raspiblitz_detected = pickle_it('load', 'raspiblitz_detected.pkl')
     umbrel_detected = pickle_it('load', 'umbrel.pkl')
+    mynode_detected = pickle_it('load', 'mynode_detected.pkl')
     local_ip = pickle_it('load', 'ip.pkl')
     node = None
     config = load_config(quiet=True)
@@ -471,6 +472,13 @@ def check_nodetype():
             specter_ip = clean_url(specter_ip, specter_port)
             pickle_it('save', 'specter_ip.pkl', specter_ip)
             node = "umbrel"
+    except Exception:
+        pass
+
+    # CHECK MyNode ------------------------
+    try:
+        if mynode_detected is True:
+            node = "mynode"
     except Exception:
         pass
 
@@ -934,6 +942,7 @@ def main(quiet=None):
         # Find if a node is present
         check_umbrel()
         check_raspiblitz()
+        check_mynode()
         check_nodetype()
         check_specter()
         check_os()
