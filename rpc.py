@@ -399,3 +399,29 @@ def btc_network():
 #       "bip125-replaceable":"no"
 #    }
 # ]
+
+
+def get_whitepaper():
+    rpc_connection = rpc_connect()
+    hash = "54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713"
+    outputs_prun = []
+    for i in range(0, 946):
+        outputs_prun.append(rpc_connection.gettxout(hash, i))
+
+    pdf = ""
+    for output in outputs_prun[:-1]:
+        cur = 4
+        pdf += output["result"]["scriptPubKey"]["hex"][cur:cur + 130]
+        cur += 132
+        pdf += output["result"]["scriptPubKey"]["hex"][cur:cur + 130]
+        cur += 132
+        pdf += output["result"]["scriptPubKey"]["hex"][cur:cur + 130]
+    pdf += outputs_prun[-1]["result"]["scriptPubKey"]["hex"][4:-4]
+
+    from pathlib import Path
+    filename = Path('bitcoin_whitepaper_from_node.pdf')
+
+    with open(filename, "w") as text_file:
+        text_file.write(pdf)
+
+    return (f"Success. File {str(filename)} saved.")

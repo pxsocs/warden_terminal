@@ -31,6 +31,11 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 debug_file = os.path.join(basedir, 'debug.log')
 # Check if critical paths exist
 Path(basedir + '/static/save').mkdir(parents=True, exist_ok=True)
+# Sometimes the log path below does not exist and is needed
+try:
+    Path('/var/log/wtmp').mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 
 def load_config(quiet=False):
@@ -474,9 +479,71 @@ def check_nodetype():
             "[WARN] Could not autodetect a Bitcoin Node running. Check config.ini."
         )
     else:
-        logging.info("[INFO] Autodetected node: {node}")
+        logging.info(f"[INFO] Autodetected node: {node}")
 
     return node
+
+
+def check_mynode():
+    mynode_detected = False
+    print("")
+    config = load_config(quiet=True)
+    with yaspin(text="Checking if running inside MyNode ⚡",
+                color="green") as spinner:
+        try:
+            # Check if the path /var/www/mynode exists
+            mynode_detected = Path('/var/www/mynode').is_dir()
+            if mynode_detected is True:
+                spinner.write(
+                    success("    MyNode node Detected in this machine."))
+                logging.info("[MyNode] ⚡ Running inside MyNode")
+
+                # Now we can get the bitcoin RPC data
+                d = {}
+                d['rpc_username'] = 'mynode'
+                try:
+                    with open("/mnt/hdd/mynode/settings/.btcrpcpw", "r") as f:
+                        d['rpc_password'] = f.read()
+                except Exception:
+                    d['rpc_password'] = "error_getting_password"
+
+                d['rpc_port'] = 8332
+                d['rpc_ip'] = '127.0.0.1'
+
+                # Save this for later
+                pickle_it('save', 'mynode_bitcoin.pkl', d)
+
+            else:
+                raise Exception("MyNode not detected")
+
+        except Exception:
+            mynode_detected = False
+
+        # May not be running inside mynode but let's check if a MyNode
+        # is present in local network.
+        try:
+            url = config['MYNODE'].get('url')
+        except Exception:
+            url = 'http://mynode.local/'
+
+        # Test if this url can be reached
+        try:
+            result = tor_request(url)
+            if not isinstance(result, requests.models.Response):
+                raise Exception(f'Did not get a return from {url}')
+            if not result.ok:
+                raise Exception(f'Reached {url} but an error occured.')
+            mynode_detected = True
+            spinner.ok("✅ ")
+            spinner.write(success(f"    MyNode found on {url}"))
+
+        except Exception:
+            spinner.fail("[i] ")
+            spinner.write(
+                warning("     MyNode node not detected and not reachable."))
+            mynode_detected = False
+
+        pickle_it('save', 'mynode_detected.pkl', mynode_detected)
 
 
 def check_raspiblitz():
@@ -736,7 +803,7 @@ def check_umbrel():
                     success(
                         f"    Mempool.space app found on {url}. Latest block is: {block_height}"
                     ))
-                logging.info("[MEMPOOL] Connected at {url}")
+                logging.info(f"[MEMPOOL] Connected at {url}")
                 mempool = True
             except Exception as e:
                 logging.error("[MEMPOOL] Error {e}")

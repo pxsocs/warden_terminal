@@ -364,9 +364,6 @@ def data_btc_price(use_cache=True):
         if cached != 'file not found' and cached is not None:
             return (cached)
 
-    # from node_warden import launch_logger
-    # launch_logger()
-
     from node_warden import load_config
     config = load_config(quiet=True)
     fx_config = config['CURRENCIES']
@@ -738,8 +735,6 @@ def data_mempool(use_cache=True):
         if cached != 'file not found' and cached is not None:
             return (cached)
     from node_warden import load_config
-    from node_warden import launch_logger
-    launch_logger()
 
     config = load_config(quiet=True)
     mp_config = config['MEMPOOL']
@@ -825,20 +820,31 @@ def data_mempool(use_cache=True):
 
 
 def data_whitepaper():
-    from node_warden import launch_logger
-    launch_logger()
     logging.info("Downloading Whitepaper >> bitcoin.pdf")
+    from rpc import get_whitepaper
     try:
-        from pathlib import Path
-        filename = Path('bitcoin.pdf')
-        url = 'https://bitcoin.org/bitcoin.pdf'
-        response = tor_request(url)
-        filename.write_bytes(response.content)
-        logging.info(success("File bitcoin.pdf saved [Success]"))
-    except Exception as e:
-        logging.error(
-            warning(
-                f"    Could not download bitcoin.pdf >> error: {e} [ERROR]"))
+        wp = get_whitepaper()
+        if 'Success' not in wp:
+            message = f"Failed to get Whitepaper from your own node. Will download. Error: {wp}."
+            logging.error('[WARN] ' + message)
+            raise Exception(message)
+        return (wp)
+    except Exception:
+        try:
+            from pathlib import Path
+            filename = Path('bitcoin.pdf')
+            url = 'https://bitcoin.org/bitcoin.pdf'
+            response = tor_request(url)
+            filename.write_bytes(response.content)
+            logging.info(
+                success(
+                    "File bitcoin.pdf saved but downloaded from Bitcoin.org [Success]"
+                ))
+        except Exception as e:
+            logging.error(
+                warning(
+                    f"    Could not download bitcoin.pdf >> error: {e} [ERROR]"
+                ))
 
 
 def data_logger(use_cache=True):
