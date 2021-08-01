@@ -507,7 +507,7 @@ def check_mynode():
 
                 # Now we can get the bitcoin RPC data
                 d = {}
-                d['rpc_username'] = 'mynode'
+                d['rpc_user'] = 'mynode'
                 try:
                     with open("/mnt/hdd/mynode/settings/.btcrpcpw", "r") as f:
                         d['rpc_password'] = f.read()
