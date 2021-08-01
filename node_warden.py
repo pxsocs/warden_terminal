@@ -537,10 +537,12 @@ def check_mynode():
             spinner.ok("✅ ")
             spinner.write(success(f"    MyNode found on {url}"))
 
-        except Exception:
+        except Exception as e:
             spinner.fail("[i] ")
             spinner.write(
-                warning("     MyNode node not detected and not reachable."))
+                warning(
+                    f"     MyNode node not detected and not reachable. Error {e}"
+                ))
             mynode_detected = False
 
         pickle_it('save', 'mynode_detected.pkl', mynode_detected)
