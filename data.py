@@ -358,9 +358,9 @@ def data_specter(use_cache=True):
     # Check if txs in last 24hrs
     difference = datetime.now() - tx_time
     if difference.days == 0:
-        return_fig += "\n\n-------------------------------------------"
-        return_fig += warning("\nTransactions found during the last 24 hours")
-        return_fig += "\n-------------------------------------------"
+        return_fig += "\n\n----------------------------------------"
+        return_fig += warning("\n[!] RECENT TRANSACTIONS FOUND (24 hours)")
+        return_fig += "\n\n----------------------------------------"
 
     refresh_time = pickle_it('load', 'specter_refresh.pkl')
     if refresh_time != "file not found" or refresh_time is not None:
