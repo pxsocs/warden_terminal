@@ -351,6 +351,13 @@ def login_tip():
     for key, val in instructions.items():
         string += '              ' + key + ' ' + val + '\n'
     logging.info(string)
+    logging.info(success("Like the app? Donate:"))
+    logging.info(
+        success("tipping.me (Lightning): https://tippin.me/@alphaazeta"))
+    logging.info(
+        success(
+            "onchain bc1q4fmyksw40vktte9n6822e0aua04uhmlez34vw5gv72zlcmrkz46qlu7aem"
+        ))
 
 
 def check_screen_size():
