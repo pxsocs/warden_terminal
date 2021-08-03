@@ -285,6 +285,10 @@ def data_specter(use_cache=True):
     if use_cache is True:
         cached = pickle_it('load', 'data_specter.pkl')
         if cached != 'file not found' and cached is not None:
+            refresh_time = pickle_it('load', 'specter_refresh.pkl')
+        if refresh_time != "file not found" or refresh_time is not None:
+            cached += success(
+                f'\n\nLast server connection: {time_ago(refresh_time)}')
             return (cached)
 
     # Refresh Txs
@@ -360,14 +364,14 @@ def data_specter(use_cache=True):
     if difference.days == 0:
         return_fig += "\n\n----------------------------------------"
         return_fig += warning("\n[!] RECENT TRANSACTIONS FOUND (24 hours)")
-        return_fig += "\n\n----------------------------------------"
+        return_fig += "\n----------------------------------------"
+
+    pickle_it('save', 'data_specter.pkl', return_fig)
 
     refresh_time = pickle_it('load', 'specter_refresh.pkl')
     if refresh_time != "file not found" or refresh_time is not None:
         return_fig += success(
             f'\n\nLast server connection: {time_ago(refresh_time)}')
-
-    pickle_it('save', 'data_specter.pkl', return_fig)
 
     return (return_fig)
 
