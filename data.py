@@ -411,7 +411,7 @@ def data_btc_price(use_cache=True):
             last_price_refresh = pickle_it('load', 'last_price_refresh.pkl')
             if last_price_refresh != 'file not found':
                 cached += (
-                    f"\n\n Last Refresh {success(time_ago(last_price_refresh))}"
+                    f"\n\nLast refresh: {success(time_ago(last_price_refresh))}"
                 )
             return (cached)
 
@@ -532,7 +532,7 @@ def data_btc_price(use_cache=True):
                                      'Fair', 'Update'
                                  ],
                                  colalign=[
-                                     "center", "right", "right", "center",
+                                     "left", "right", "right", "center",
                                      "right", "right", "right"
                                  ])
             tabs += gbtc_tabs
@@ -578,7 +578,7 @@ def data_btc_price(use_cache=True):
 
     pickle_it('save', 'data_btc_price.pkl', tabs)
 
-    tabs += (f"\n\n Last Refresh {success(time_ago(last_price_refresh))}")
+    tabs += (f"\n\nLast refresh: {success(time_ago(last_price_refresh))}")
 
     return tabs
 
