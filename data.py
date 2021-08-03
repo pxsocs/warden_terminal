@@ -286,9 +286,9 @@ def data_specter(use_cache=True):
         cached = pickle_it('load', 'data_specter.pkl')
         if cached != 'file not found' and cached is not None:
             refresh_time = pickle_it('load', 'specter_refresh.pkl')
-        if refresh_time != "file not found" or refresh_time is not None:
-            cached += success(
-                f'\n\nLast server connection: {time_ago(refresh_time)}')
+            if refresh_time != "file not found" or refresh_time is not None:
+                cached += success(
+                    f'\n\nLast server connection: {time_ago(refresh_time)}')
             return (cached)
 
     # Refresh Txs
