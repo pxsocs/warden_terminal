@@ -1,5 +1,7 @@
 {
     "did_you_know": [
+        "[Like the app?] Donate <> tipping.me (Lightning): https://tippin.me/@alphaazeta",
+        "[Like the app?] Donate <> onchain bc1q4fmyksw40vktte9n6822e0aua04uhmlez34vw5gv72zlcmrkz46qlu7aem",
         "[Tip] You can edit the config.ini file for additional config options. On terminal: $nano config.ini.",
         "[Did you know?] Craig Wright is a Fraud.",
         "[Tip] On the config.ini file you can change the Bitcoin Price font by changing the large_text_font field. http://www.figlet.org/ for list of fonts",

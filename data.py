@@ -4,7 +4,7 @@ import sys
 import subprocess
 import emoji
 import pickle
-import urwid
+import pathlib
 
 from requests.api import request
 import pyfiglet
@@ -220,10 +220,36 @@ def data_large_price(price=None, change=None, chg_str=None, moscow_time=False):
 
 
 def data_large_block(use_cache=True):
+    block_time = pickle_it('load', 'recent_block.pkl')
+
     if use_cache is True:
         cached = pickle_it('load', 'data_large_block.pkl')
         if cached != 'file not found' and cached is not None:
+            if block_time is not None:
+                if block_time != 'file not found':
+                    minutes_ago = (datetime.now() -
+                                   datetime.fromtimestamp(block_time))
+                    minutes_ago = minutes_ago.seconds // 60 % 60
+                    # Source for these ranges:
+                    # https://www.reddit.com/r/btc/comments/6v5ee7/block_times_and_probabilities/
+                    clr_txt = ''
+                    if minutes_ago < 10:
+                        clr_txt = success(time_ago(block_time))
+                    elif (minutes_ago >= 10) and (minutes_ago <= 20):
+                        clr_txt = warning(time_ago(block_time))
+                    elif minutes_ago > 20:
+                        clr_txt = error(time_ago(block_time))
+                    elif minutes_ago > 50 and minutes_ago < 90:
+                        clr_txt += '\nThis is a slow block but expected to happen once a day'
+                    elif minutes_ago >= 90 and minutes_ago < 120:
+                        clr_txt += '\nThis is a slow block.\n90min blocks are expected to happen\nonly once every 2 months'
+                    elif minutes_ago >= 120:
+                        clr_txt += '\nThis is a VERY slow block.\n120min blocks are expected to happen\nonly once every 3 years'
+                    txt = f"\n\n Block mined {clr_txt}"
+                    cached += txt
+
             return (cached)
+
     from node_warden import load_config
     config = load_config(quiet=True)
     ft_config = config['MAIN']
@@ -235,7 +261,9 @@ def data_large_block(use_cache=True):
     return_fig = custom_fig.renderText(jformat(latest_block, 0))
     return_fig = yellow(return_fig)
     return_fig += muted("Block Height")
-    block_time = pickle_it('load', 'recent_block.pkl')
+
+    pickle_it('save', 'data_large_block.pkl', return_fig)
+
     if block_time is not None:
         if block_time != 'file not found':
             minutes_ago = (datetime.now() - datetime.fromtimestamp(block_time))
@@ -257,7 +285,7 @@ def data_large_block(use_cache=True):
                 clr_txt += '\nThis is a VERY slow block.\n120min blocks are expected to happen\nonly once every 3 years'
             txt = f"\n\n Block mined {clr_txt}"
             return_fig += txt
-    pickle_it('save', 'data_large_block.pkl', return_fig)
+
     return (return_fig)
 
 
@@ -285,6 +313,10 @@ def data_specter(use_cache=True):
     if use_cache is True:
         cached = pickle_it('load', 'data_specter.pkl')
         if cached != 'file not found' and cached is not None:
+            refresh_time = pickle_it('load', 'specter_refresh.pkl')
+            if refresh_time != "file not found" or refresh_time is not None:
+                cached += success(
+                    f'\n\nLast server connection: {time_ago(refresh_time)}')
             return (cached)
 
     # Refresh Txs
@@ -295,6 +327,8 @@ def data_specter(use_cache=True):
         if '[Specter Error]' in txs:
             return 'Error getting transactions'
         pickle_it('save', 'specter_txs.pkl', txs)
+        # Save latest refresh time
+        pickle_it('save', 'specter_refresh.pkl', datetime.now())
     except Exception:
         txs = None
         return
@@ -353,7 +387,19 @@ def data_specter(use_cache=True):
     tx_time = datetime.fromtimestamp(last_tx_time)
     return_fig += f'\non {tx_time}\n{time_ago(tx_time)}'
 
+    # Check if txs in last 24hrs
+    difference = datetime.now() - tx_time
+    if difference.days == 0:
+        return_fig += "\n\n----------------------------------------"
+        return_fig += warning("\n[!] RECENT TRANSACTIONS FOUND (24 hours)")
+        return_fig += "\n----------------------------------------"
+
     pickle_it('save', 'data_specter.pkl', return_fig)
+
+    refresh_time = pickle_it('load', 'specter_refresh.pkl')
+    if refresh_time != "file not found" or refresh_time is not None:
+        return_fig += success(
+            f'\n\nLast server connection: {time_ago(refresh_time)}')
 
     return (return_fig)
 
@@ -362,10 +408,12 @@ def data_btc_price(use_cache=True):
     if use_cache is True:
         cached = pickle_it('load', 'data_btc_price.pkl')
         if cached != 'file not found' and cached is not None:
+            last_price_refresh = pickle_it('load', 'last_price_refresh.pkl')
+            if last_price_refresh != 'file not found':
+                cached += (
+                    f"\n\nLast refresh: {success(time_ago(last_price_refresh))}"
+                )
             return (cached)
-
-    # from node_warden import launch_logger
-    # launch_logger()
 
     from node_warden import load_config
     config = load_config(quiet=True)
@@ -423,10 +471,8 @@ def data_btc_price(use_cache=True):
 
             if fx == primary_fx:
                 fx = info(fx)
-            tabs.append([
-                u'  ' + fx, price_str, chg_str, low + ' - ' + high, market,
-                r_time
-            ])
+            tabs.append(
+                [u'  ' + fx, price_str, chg_str, low + ' - ' + high, market])
 
         except Exception as e:
             tabs.append(['error: ' + str(e)])
@@ -438,10 +484,8 @@ def data_btc_price(use_cache=True):
     try:
         tabs = tabulate(
             tabs,
-            headers=[
-                'Fiat', 'Price', '% change', '24h Range', 'Source', 'Update'
-            ],
-            colalign=["center", "right", "right", "center", "center", "right"])
+            headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
+            colalign=["center", "right", "right", "center", "right"])
     except Exception:
         return (
             error(' >> Error getting data from CryptoCompare. Retrying...'))
@@ -488,7 +532,7 @@ def data_btc_price(use_cache=True):
                                      'Fair', 'Update'
                                  ],
                                  colalign=[
-                                     "center", "right", "right", "center",
+                                     "left", "right", "right", "center",
                                      "right", "right", "right"
                                  ])
             tabs += gbtc_tabs
@@ -532,10 +576,10 @@ def data_btc_price(use_cache=True):
     except Exception:
         pass
 
-    tabs += (
-        f"\n\n Last Refresh on: {info(datetime.now().strftime('%H:%M:%S'))}")
-
     pickle_it('save', 'data_btc_price.pkl', tabs)
+
+    tabs += (f"\n\nLast refresh: {success(time_ago(last_price_refresh))}")
+
     return tabs
 
 
@@ -548,6 +592,10 @@ def data_sys(use_cache=True):
     tabs = []
     os_info = pickle_it('load', 'os_info.pkl')
     umbrel = pickle_it('load', 'umbrel.pkl')
+
+    if os_info == 'file not found':
+        return "Error Getting Files"
+
     # Get OS info
     tabs.append([
         " OS / System",
@@ -738,8 +786,6 @@ def data_mempool(use_cache=True):
         if cached != 'file not found' and cached is not None:
             return (cached)
     from node_warden import load_config
-    from node_warden import launch_logger
-    launch_logger()
 
     config = load_config(quiet=True)
     mp_config = config['MEMPOOL']
@@ -825,20 +871,31 @@ def data_mempool(use_cache=True):
 
 
 def data_whitepaper():
-    from node_warden import launch_logger
-    launch_logger()
     logging.info("Downloading Whitepaper >> bitcoin.pdf")
+    from rpc import get_whitepaper
     try:
-        from pathlib import Path
-        filename = Path('bitcoin.pdf')
-        url = 'https://bitcoin.org/bitcoin.pdf'
-        response = tor_request(url)
-        filename.write_bytes(response.content)
-        logging.info(success("File bitcoin.pdf saved [Success]"))
-    except Exception as e:
-        logging.error(
-            warning(
-                f"    Could not download bitcoin.pdf >> error: {e} [ERROR]"))
+        wp = get_whitepaper()
+        if 'Success' not in wp:
+            message = f"Failed to get Whitepaper from your own node. Will download. Error: {wp}."
+            logging.error('[WARN] ' + message)
+            raise Exception(message)
+        return (wp)
+    except Exception:
+        try:
+            from pathlib import Path
+            filename = Path('bitcoin.pdf')
+            url = 'https://bitcoin.org/bitcoin.pdf'
+            response = tor_request(url)
+            filename.write_bytes(response.content)
+            logging.info(
+                success(
+                    "File bitcoin.pdf saved but downloaded from Bitcoin.org [Success]"
+                ))
+        except Exception as e:
+            logging.error(
+                warning(
+                    f"    Could not download bitcoin.pdf >> error: {e} [ERROR]"
+                ))
 
 
 def data_logger(use_cache=True):
@@ -1161,27 +1218,33 @@ def pickle_it(action='load', filename=None, data=None):
         except Exception:
             return ("file not found")
     else:
-        with open(filename, 'wb') as handle:
-            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            handle.close()
-            return ("saved")
+        try:
+            with open(filename, 'wb') as handle:
+                pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                handle.close()
+                return ("saved")
+        except Exception:
+            return ("failed")
 
 
 def tail(file, n=1, bs=1024):
-    f = open(file)
-    f.seek(0, 2)
-    l = 1 - f.read(1).count('\n')
-    B = f.tell()
-    while n >= l and B > 0:
-        block = min(bs, B)
-        B -= block
+    try:
+        f = open(file)
+        f.seek(0, 2)
+        l = 1 - f.read(1).count('\n')
+        B = f.tell()
+        while n >= l and B > 0:
+            block = min(bs, B)
+            B -= block
+            f.seek(B, 0)
+            l += f.read(block).count('\n')
         f.seek(B, 0)
-        l += f.read(block).count('\n')
-    f.seek(B, 0)
-    l = min(l, n)
-    lines = f.readlines()[-l:]
-    f.close()
-    return lines
+        l = min(l, n)
+        lines = f.readlines()[-l:]
+        f.close()
+        return lines
+    except Exception:
+        return None
 
 
 if __name__ == "__main__":

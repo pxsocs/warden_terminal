@@ -11,6 +11,7 @@ def rpc_connect():
     from node_warden import pickle_it
     inside_umbrel = pickle_it('load', 'inside_umbrel.pkl')
     raspiblitz = pickle_it('load', 'raspiblitz_detected.pkl')
+    mynode = pickle_it('load', 'mynode_detected.pkl')
 
     if raspiblitz is True:
         raspi_dict = pickle_it('load', 'raspi_bitcoin.pkl')
@@ -22,6 +23,23 @@ def rpc_connect():
                 rpc_ip, rpc_port = rpc_bind.split(":")
             except Exception:
                 raspiblitz = False
+
+    elif mynode is True:
+        mynode_dict = pickle_it('load', 'mynode_bitcoin.pkl')
+        if mynode_dict != 'file not found':
+            try:
+                rpc_user = mynode_dict['rpc_user']
+                rpc_password = mynode_dict['rpc_password']
+                url = mynode_dict['rpc_ip']
+                # End URL in / if not there
+                if url[-1] != '/':
+                    url += '/'
+                    if 'http' not in url:
+                        url = 'http://' + url
+                rpc_ip = url
+                rpc_port = mynode_dict['rpc_port']
+            except Exception:
+                mynode = False
 
     elif inside_umbrel is True:
         umbrel_dict = pickle_it('load', 'umbrel_dict.pkl')
@@ -399,3 +417,29 @@ def btc_network():
 #       "bip125-replaceable":"no"
 #    }
 # ]
+
+
+def get_whitepaper():
+    rpc_connection = rpc_connect()
+    hash = "54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713"
+    outputs_prun = []
+    for i in range(0, 946):
+        outputs_prun.append(rpc_connection.gettxout(hash, i))
+
+    pdf = ""
+    for output in outputs_prun[:-1]:
+        cur = 4
+        pdf += output["result"]["scriptPubKey"]["hex"][cur:cur + 130]
+        cur += 132
+        pdf += output["result"]["scriptPubKey"]["hex"][cur:cur + 130]
+        cur += 132
+        pdf += output["result"]["scriptPubKey"]["hex"][cur:cur + 130]
+    pdf += outputs_prun[-1]["result"]["scriptPubKey"]["hex"][4:-4]
+
+    from pathlib import Path
+    filename = Path('bitcoin_whitepaper_from_node.pdf')
+
+    with open(filename, "w") as text_file:
+        text_file.write(pdf)
+
+    return (f"Success. File {str(filename)} saved.")
