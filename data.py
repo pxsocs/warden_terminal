@@ -485,7 +485,7 @@ def data_btc_price(use_cache=True):
         tabs = tabulate(
             tabs,
             headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
-            colalign=["center", "right", "right", "center", "center", "right"])
+            colalign=["center", "right", "right", "center", "right"])
     except Exception:
         return (
             error(' >> Error getting data from CryptoCompare. Retrying...'))
