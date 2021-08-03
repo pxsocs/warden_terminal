@@ -4,7 +4,7 @@ import sys
 import subprocess
 import emoji
 import pickle
-import urwid
+import pathlib
 
 from requests.api import request
 import pyfiglet
@@ -295,6 +295,8 @@ def data_specter(use_cache=True):
         if '[Specter Error]' in txs:
             return 'Error getting transactions'
         pickle_it('save', 'specter_txs.pkl', txs)
+        # Save latest refresh time
+        pickle_it('save', 'specter_refresh.pkl', datetime.now())
     except Exception:
         txs = None
         return
@@ -352,6 +354,11 @@ def data_specter(use_cache=True):
 
     tx_time = datetime.fromtimestamp(last_tx_time)
     return_fig += f'\non {tx_time}\n{time_ago(tx_time)}'
+
+    refresh_time = pickle_it('load', 'specter_refresh.pkl')
+    if refresh_time != "file not found" or refresh_time != None:
+        return_fig += success(
+            f'\n\nLast server connection: {time_ago(refresh_time)}')
 
     pickle_it('save', 'data_specter.pkl', return_fig)
 

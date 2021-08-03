@@ -26,16 +26,20 @@ def rpc_connect():
 
     elif mynode is True:
         mynode_dict = pickle_it('load', 'mynode_bitcoin.pkl')
-        rpc_user = mynode_dict['rpc_user']
-        rpc_password = mynode_dict['rpc_password']
-        url = mynode_dict['rpc_ip']
-        # End URL in / if not there
-        if url[-1] != '/':
-            url += '/'
-            if 'http' not in url:
-                url = 'http://' + url
-        rpc_ip = url
-        rpc_port = mynode_dict['rpc_port']
+        if mynode_dict != 'file not found':
+            try:
+                rpc_user = mynode_dict['rpc_user']
+                rpc_password = mynode_dict['rpc_password']
+                url = mynode_dict['rpc_ip']
+                # End URL in / if not there
+                if url[-1] != '/':
+                    url += '/'
+                    if 'http' not in url:
+                        url = 'http://' + url
+                rpc_ip = url
+                rpc_port = mynode_dict['rpc_port']
+            except Exception:
+                mynode = False
 
     elif inside_umbrel is True:
         umbrel_dict = pickle_it('load', 'umbrel_dict.pkl')
