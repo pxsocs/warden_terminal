@@ -408,6 +408,11 @@ def data_btc_price(use_cache=True):
     if use_cache is True:
         cached = pickle_it('load', 'data_btc_price.pkl')
         if cached != 'file not found' and cached is not None:
+            last_price_refresh = pickle_it('load', 'last_price_refresh.pkl')
+            if last_price_refresh != 'file not found':
+                cached += (
+                    f"\n\n Last Refresh {success(time_ago(last_price_refresh))}"
+                )
             return (cached)
 
     from node_warden import load_config
@@ -466,10 +471,8 @@ def data_btc_price(use_cache=True):
 
             if fx == primary_fx:
                 fx = info(fx)
-            tabs.append([
-                u'  ' + fx, price_str, chg_str, low + ' - ' + high, market,
-                r_time
-            ])
+            tabs.append(
+                [u'  ' + fx, price_str, chg_str, low + ' - ' + high, market])
 
         except Exception as e:
             tabs.append(['error: ' + str(e)])
@@ -481,9 +484,7 @@ def data_btc_price(use_cache=True):
     try:
         tabs = tabulate(
             tabs,
-            headers=[
-                'Fiat', 'Price', '% change', '24h Range', 'Source', 'Update'
-            ],
+            headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
             colalign=["center", "right", "right", "center", "center", "right"])
     except Exception:
         return (
@@ -575,10 +576,10 @@ def data_btc_price(use_cache=True):
     except Exception:
         pass
 
-    tabs += (
-        f"\n\n Last Refresh on: {info(datetime.now().strftime('%H:%M:%S'))}")
-
     pickle_it('save', 'data_btc_price.pkl', tabs)
+
+    tabs += (f"\n\n Last Refresh {success(time_ago(last_price_refresh))}")
+
     return tabs
 
 
