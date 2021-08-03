@@ -74,7 +74,7 @@ def main_dashboard(config, tor):
         if upgrade_available is True:
             msg_add = ' [UPGRADE AVAILABLE] '
         if restart is True:
-            msg_add = ' [RESTART THE APP] '
+            msg_add = ' RESTART THE APP - press [!] '
 
         if msg_add is not None:
             txt = ' WARden Node Edition (Version: ' + version() + str(
@@ -286,6 +286,13 @@ def main_dashboard(config, tor):
 
     # Handle key presses
     def handle_input(key):
+        if key == '!':
+            # Try to restart the app
+            try:
+                import sys
+                os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+            except Exception:
+                pass
         if key == 'Q' or key == 'q':
             raise urwid.ExitMainLoop()
         if key == 'A' or key == 'a':
