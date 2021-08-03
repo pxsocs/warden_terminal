@@ -344,6 +344,7 @@ def login_tip():
         "[M]": "Force Multi Widgets (large screens)",
         "[D]": "Download Bitcoin Whitepaper",
         "[A]": "Audio On / Off",
+        "[!]": "Restart the App",
         "[Q]": "Quit the app"
     }
     string = '----------\n              Keyboard Commands:\n'
