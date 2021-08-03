@@ -986,7 +986,7 @@ def main(quiet=None):
         if rpc_running:
             data_btc_rpc_info(use_cache=False)
         data_random_satoshi(use_cache=False)
-        specter_txs = pickle_it('save', 'specter_txs.pkl')
+        specter_txs = pickle_it('load', 'specter_txs.pkl')
         if specter_txs is not None:
             data_specter(use_cache=False)
 
