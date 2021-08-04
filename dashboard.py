@@ -425,9 +425,14 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(1, mp_updater)
 
     def specter_updater(_loop, __data):
-        data = translate_text_for_urwid(data_specter())
-        specter_box.base_widget.set_text(data)
-        main_loop.set_alarm_in(1, specter_updater)
+        try:
+            data = translate_text_for_urwid(data_specter())
+            specter_box.base_widget.set_text(data)
+            main_loop.set_alarm_in(1, specter_updater)
+        except Exception:
+            data = "Error Connecting to Specter Server"
+            specter_box.base_widget.set_text(data)
+            main_loop.set_alarm_in(1, specter_updater)
 
     def sys_updater(_loop, __data):
         data = translate_text_for_urwid(data_sys())
