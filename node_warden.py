@@ -511,7 +511,7 @@ def check_mynode():
             if mynode_detected is True:
                 spinner.write(
                     success("    MyNode node detected in this machine."))
-                logging.info("[MyNode] ⚡ Running inside MyNode")
+                logging.info("[MyNode] Running inside MyNode")
 
                 # Now we can get the bitcoin RPC data
                 d = {}
@@ -629,7 +629,7 @@ def check_raspiblitz():
                 rpi_version = "<undetected>"
             spinner.ok("⚡ ")
             spinner.write(success("    RaspiBlitz Node Detected"))
-            logging.info(f"[RaspiBlitz] ⚡ Version {rpi_version}")
+            logging.info(f"[RaspiBlitz] Version {rpi_version}")
 
             config = load_config(quiet=True)
             if config['MAIN'].getboolean('output_to_monitor') is True:
@@ -791,7 +791,7 @@ def check_umbrel():
             url_parsed = ['[Hidden Onion address]']
         else:
             url_parsed = url
-        logging.info(success(f"Umbrel ☂️  running on {url_parsed}"))
+        logging.info(success(f"Umbrel running on {url_parsed}"))
         pickle_it('save', 'umbrel.pkl', inside_umbrel)
         with yaspin(text="Checking if Mempool.space app is installed",
                     color="green") as spinner:
