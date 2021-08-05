@@ -384,12 +384,11 @@ def data_specter(use_cache=True):
         sats = False
 
     if hidden is False:
-        return_fig += (balance) + ""
         if sats is True:
-            return_fig += " Sats\n"
+            return_fig += success(balance + " Sats\n")
         else:
-            return_fig = "₿ " + return_fig + "\n"
-        return_fig = yellow(return_fig)
+            return_fig += success("₿ " + balance + "\n")
+
         if fiat_balance != 0:
             return_fig += f"$ {jformat(fiat_balance, 0)}\n\n"
 
