@@ -1018,7 +1018,7 @@ def main(quiet=None):
     scheduler.add_job(node_web_grabs, 'interval', seconds=15)
     scheduler.add_job(sys_grabs, 'interval', seconds=1)
     scheduler.start()
-    print(success("✅  Background jobs running"))
+    print(success("✅  Background jobs starting. Please wait..."))
     main_dashboard(config, tor)
     scheduler.shutdown(wait=False)
 

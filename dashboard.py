@@ -232,7 +232,20 @@ def main_dashboard(config, tor):
 
     log_tor = urwid.Columns(
         [sys_box, urwid.Pile([login_box, tor_box]), mp_box])
-    bottom_box = urwid.Columns([logger_box, satoshi_box])
+
+    try:
+        specter_running = pickle_it('load', 'specter_txs.pkl')
+        if specter_running != None and specter_running != 'file not found':
+            specter_running = True
+        else:
+            specter_running = False
+    except Exception:
+        specter_running = False
+
+    if specter_running is True:
+        bottom_box = urwid.Columns([logger_box, specter_box, satoshi_box])
+    else:
+        bottom_box = urwid.Columns([logger_box, satoshi_box])
 
     try:
         rpc_running = pickle_it('load', 'rpc_running.pkl')
