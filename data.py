@@ -375,9 +375,9 @@ def data_specter(use_cache=True):
         return_fig = yellow(return_fig)
 
     else:
-        return_fig += custom_fig.renderText('<Hidden>')
+        return_fig += ('<Balance Hidden>')
         return_fig = yellow(return_fig)
-        return_fig += "Balance Hidden\nPress 'H' to display\n"
+        return_fig += "\nPress 'H' to display\n"
 
     return_fig += f'Last activity at block {jformat(last_tx_block, 0)}'
     current_block = pickle_it('load', 'block.pkl')
