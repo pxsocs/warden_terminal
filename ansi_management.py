@@ -63,7 +63,7 @@ def time_ago(time=False):
     if type(time) is str:
         try:
             time = int(time)
-        except TypeError:
+        except Exception:
             return ""
     now = datetime.now()
     if type(time) is int:
