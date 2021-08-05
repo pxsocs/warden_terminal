@@ -357,7 +357,7 @@ def data_specter(use_cache=True):
     custom_fig = pyfiglet.Figlet(font=font)
 
     return_fig = 'Specter Server Balance\n'
-    return_fig += '----------------------\n\n'
+    return_fig += '----------------------\n'
 
     if balance < 1:
         balance = jformat(balance * 100000000, 0)
@@ -377,7 +377,7 @@ def data_specter(use_cache=True):
     else:
         return_fig += ('<Balance Hidden>')
         return_fig = yellow(return_fig)
-        return_fig += "\nPress 'H' to display\n"
+        return_fig += "\nPress 'H' to display\n\n"
 
     return_fig += f'Last activity at block {jformat(last_tx_block, 0)}'
     current_block = pickle_it('load', 'block.pkl')
