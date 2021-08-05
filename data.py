@@ -384,14 +384,14 @@ def data_specter(use_cache=True):
         sats = False
 
     if hidden is False:
-        return_fig += (balance)
+        return_fig += (balance) + ""
         if sats is True:
-            return_fig += "Sats\n"
+            return_fig += " Sats\n"
         else:
-            return_fig += "Bitcoin\n"
+            return_fig = "₿ " + return_fig + "\n"
         return_fig = yellow(return_fig)
         if fiat_balance != 0:
-            return_fig += f"$ {jformat(fiat_balance, 2)}\n"
+            return_fig += f"$ {jformat(fiat_balance, 0)}\n\n"
 
     else:
         return_fig += ('<Balance Hidden>')
@@ -401,10 +401,10 @@ def data_specter(use_cache=True):
     return_fig += f'Last activity at block {jformat(last_tx_block, 0)}'
     current_block = pickle_it('load', 'block.pkl')
     if current_block != 'file not found':
-        return_fig += f'\n{jformat(current_block - last_tx_block, 0)} blocks ago'
+        return_fig += f' ({jformat(current_block - last_tx_block, 0)} blocks ago)'
 
     tx_time = datetime.fromtimestamp(last_tx_time)
-    return_fig += f'\non {tx_time}\n{time_ago(tx_time)}'
+    return_fig += f'\non {tx_time} ({time_ago(tx_time)})'
 
     # Check if txs in last 24hrs
     difference = datetime.now() - tx_time
