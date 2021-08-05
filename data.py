@@ -390,7 +390,7 @@ def data_specter(use_cache=True):
             return_fig += success("₿ " + balance + "\n")
 
         if fiat_balance != 0:
-            return_fig += f"$ {jformat(fiat_balance, 0)}\n\n"
+            return_fig += success(f"$ {jformat(fiat_balance, 0)}\n\n")
 
     else:
         return_fig += ('<Balance Hidden>')
