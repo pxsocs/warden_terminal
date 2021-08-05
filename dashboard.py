@@ -252,6 +252,9 @@ def main_dashboard(config, tor):
 
     try:
         rpc_running = pickle_it('load', 'rpc_running.pkl')
+        if rpc_running is not True:
+            from connections import is_service_running
+            rpc_running, _ = is_service_running('Bitcoin RPC Explorer')
     except Exception:
         rpc_running = False
 

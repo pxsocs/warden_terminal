@@ -380,6 +380,9 @@ def check_screen_size():
             if columns < 65 or rows < 20:
                 xs_display = True
                 config['MAIN']['large_text_font'] = 'small'
+            else:
+                xs_display = False
+                config['MAIN']['large_text_font'] = 'standard'
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
 
@@ -992,13 +995,27 @@ def main(quiet=None):
         data_tor(use_cache=False)
         rpc_running = pickle_it('load', 'rpc_running.pkl')
         if rpc_running:
-            data_btc_rpc_info(use_cache=False)
+            from rpc import pickle_rpc
+            pickle_rpc()
         data_random_satoshi(use_cache=False)
         specter_txs = pickle_it('load', 'specter_txs.pkl')
         if specter_txs is not None:
             data_specter(use_cache=False)
 
+        # Get data from BTC RPC EXPLORER
+        from connections import is_service_running
+        rpce_running = False
+        try:
+            rpce_running, _ = is_service_running('Bitcoin RPC Explorer')
+            if rpce_running is True:
+                from btcrpcexplorer_importer import crawler
+                crawler()
+        except Exception:
+            pass
+
     def lower_priority_grabs():
+        from rpc import pickle_rpc
+        pickle_rpc()
         from connections import scan_network
         scan_network()
 

@@ -990,20 +990,31 @@ def data_umbrel(umbrel=True):
 
 
 def data_btc_rpc_info(use_cache=True):
-    if use_cache is True:
-        cached = pickle_it('load', 'data_rpc.pkl')
-        if cached != 'file not found' and cached is not None:
-            return (cached)
-    # Get RPC Connection
-    from rpc import rpc_connect, btc_network
-    btc_network = btc_network()
-    rpc_connection = rpc_connect()
-    try:
-        rpc_connection.getblockchaininfo()
-    except Exception:
-        rpc_connection = None
-    if rpc_connection is None:
-        return ("Could not connect to Bitcoin RPC")
+    from node_warden import pickle_it
+    # Check if getting data from RPC or from RPC Explorer
+    rpc_connection = pickle_it('load', 'rpc_connection.pkl')
+    if rpc_connection is not None and rpc_connection != 'file not found':
+        # Get Blockchaininfo from Bitcoin RPC
+        bci = rpc_connection.getblockchaininfo()
+        network = rpc_connection.getnetworkinfo()
+        uptime = rpc_connection.uptime()
+        wallets = rpc_connection.getbalances()
+        txs = rpc_connection.listtransactions()
+    else:
+        # Let's try from RPC Explorer at port 3002
+        from connections import is_service_running
+        rpce_running, host_data = is_service_running('Bitcoin RPC Explorer')
+        if rpce_running is True:
+            # try:
+            data = pickle_it('load', 'btcrpc_json.pkl')
+            network = bci = data['node-details']
+            uptime = data['node-details']['timemillis'] / 60000000
+            uptime = datetime.now() - timedelta(minutes=uptime)
+            uptime = time_ago(uptime)
+            wallets = None
+            txs = None
+            # except Exception as e:
+            #     return (f"Error: {e}")
 
     # Check if small or large and the size of progress  bars
     rows, columns = subprocess.check_output(['stty', 'size']).split()
@@ -1012,9 +1023,6 @@ def data_btc_rpc_info(use_cache=True):
         bar_size = int(int(columns)) - 38
     else:
         bar_size = int(int(columns) / 3) - 38
-
-    # Get Blockchaininfo from Bitcoin RPC
-    bci = rpc_connection.getblockchaininfo()
 
     tabs = []
 
@@ -1042,8 +1050,7 @@ def data_btc_rpc_info(use_cache=True):
     # Uptime
 
     try:
-        uptime = rpc_connection.uptime()
-        tabs.append(["Uptime", f"{uptime} seconds"])
+        tabs.append(["Uptime", f"{uptime}"])
     except Exception:
         pass
 
@@ -1070,12 +1077,10 @@ def data_btc_rpc_info(use_cache=True):
 
     # Network Info
     tabs.append([muted("Network Info"), ""])
-    network = rpc_connect().getnetworkinfo()
     tabs.append(['Bitcoin Core Version', network['subversion']])
     tabs.append(['Connections', jformat(network['connections'], 0)])
 
     # Wallet Info
-    tabs.append([muted("Wallet Info"), ""])
     wallets = False
     try:
         any_wallets = rpc_connection.listwallets()
@@ -1083,9 +1088,6 @@ def data_btc_rpc_info(use_cache=True):
             tabs.append(["Wallets", "No Wallets Found"])
             wallets = False
         else:
-
-            wallets = rpc_connect().getbalances()
-
             try:
                 confirmed = float(wallets['mine']['trusted'])
             except Exception:
@@ -1110,11 +1112,9 @@ def data_btc_rpc_info(use_cache=True):
 
     except Exception:
         wallets = False
-        tabs.append(["Wallets", "Could not load"])
 
     # Transaction Info
     if wallets is True:
-        txs = rpc_connect().listtransactions()
         max_time = 0
         try:
             for tx in txs:
@@ -1131,8 +1131,10 @@ def data_btc_rpc_info(use_cache=True):
     return_str = tabulate(tabs,
                           colalign=["left", "right"],
                           headers=["Bitcoin Core", "Node info"])
+    # Last refresh time
+    refresh = pickle_it('load', 'btcrpc_refresh.pkl')
+    return_str += f'\n\nLast Refresh: {success(time_ago(refresh))}'
 
-    pickle_it('save', 'data_rpc.pkl', return_str)
     return (return_str)
 
 
@@ -1203,6 +1205,18 @@ def data_services(use_cache=False):
         pass
 
     return (t)
+
+
+def data_bitcoinrpcexplorer():
+    refresh = pickle_it('load', 'btcrpc_refresh.pkl')
+    exp_data = pickle_it('load', 'btcrpc_json.pkl')
+    if refresh == 'file not found' or exp_data == 'file not found':
+        return_txt = (warning(' [i] Downloading Data...'))
+        return return_txt
+
+    t = success('Node Services Detected in your Local Network\n')
+    t += '---------------------------------------------\n\n'
+    t += tabs
 
 
 def main():
