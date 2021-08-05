@@ -252,6 +252,9 @@ def main_dashboard(config, tor):
 
     try:
         rpc_running = pickle_it('load', 'rpc_running.pkl')
+        if rpc_running is not True:
+            from connections import is_service_running
+            rpc_running, _ = is_service_running('Bitcoin RPC Explorer')
     except Exception:
         rpc_running = False
 
@@ -386,7 +389,11 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(120, get_quote)
 
     def rpc_updater(_loop, __data):
-        data = translate_text_for_urwid(data_btc_rpc_info())
+        rpce_running, _ = is_service_running('Bitcoin RPC Explorer')
+        if rpce_running is True:
+            data = translate_text_for_urwid(data_btc_rpc_info())
+        else:
+            data = 'Loading...'
         rpc_box.base_widget.set_text(data)
         main_loop.set_alarm_in(1, rpc_updater)
 

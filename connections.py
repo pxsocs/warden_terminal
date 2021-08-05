@@ -161,12 +161,14 @@ def scan_network():
 
     # Now try to reach typical services
     port_list = [(80, 'Web Server'), (25441, 'Specter Server'),
-                 (3002, 'Bitcoin Explorer'), (3006, 'Mempool.space Explorer')]
+                 (3002, 'Bitcoin RPC Explorer'),
+                 (3006, 'Mempool.space Explorer'), (8082, 'Pi-Hole'),
+                 (8091, 'VSCode Server'), (8085, 'Gitea'),
+                 (3008, 'BlueWallet Lightning')]
 
     services_found = []
     for host in hosts_found:
         for port in port_list:
-
             try:
                 url = 'http://' + host[0] + ':' + str(int(port[0])) + '/'
                 result = tor_request(url)
@@ -185,8 +187,25 @@ def scan_network():
     # Sample File format saved to services_found
     # [(('umbrel.local', '192.168.1.124'), (80, 'Web Server')),
     #  (('umbrel.local', '192.168.1.124'), (25441, 'Specter Server')),
-    #  (('umbrel.local', '192.168.1.124'), (3002, 'Bitcoin Explorer')),
+    #  (('umbrel.local', '192.168.1.124'), (3002, 'Bitcoin RPC Explorer')),
     #  (('umbrel.local', '192.168.1.124'), (3006, 'Mempool.space Explorer')),
     #  (('mynode.local', '192.168.1.155'), (80, 'Web Server'))]
 
     return (services_found)
+
+
+def is_service_running(service):
+    from node_warden import pickle_it
+    services = pickle_it('load', 'services_found.pkl')
+    found = False
+    meta = []
+    if services != 'file not found' and services is not None:
+        for data in services:
+            if service in data[1][1]:
+                found = True
+                meta.append(data)
+    # Sample data return format
+    # (True,
+    #  [(('umbrel.local', '192.168.1.124'), (3002, 'Bitcoin RPC Explorer')),
+    #   (('umbrel.local', '192.168.1.124'), (3006, 'Mempool.space Explorer'))])
+    return (found, meta)
