@@ -471,8 +471,20 @@ def data_btc_price(use_cache=True):
 
             if fx == primary_fx:
                 fx = info(fx)
-            tabs.append(
-                [u'  ' + fx, price_str, chg_str, low + ' - ' + high, market])
+
+            xs_display = pickle_it('load', 'xs_display.pkl')
+            try:
+                if xs_display is True:
+                    tabs.append(
+                    [u'  ' + fx, price_str, chg_str, market])
+                else:
+                    xs_display = False
+                    tabs.append(
+                    [u'  ' + fx, price_str, chg_str, low + ' - ' + high, market])
+            except Exception:
+                xs_display = False
+                tabs.append(
+                    [u'  ' + fx, price_str, chg_str, low + ' - ' + high, market])
 
         except Exception as e:
             tabs.append(['error: ' + str(e)])
@@ -482,10 +494,16 @@ def data_btc_price(use_cache=True):
             error(' >> Error getting data from CryptoCompare. Retrying...'))
 
     try:
-        tabs = tabulate(
-            tabs,
-            headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
-            colalign=["center", "right", "right", "center", "right"])
+        if xs_display is False:
+            tabs = tabulate(
+                tabs,
+                headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
+                colalign=["center", "right", "right", "center", "right"])
+        else:
+            tabs = tabulate(
+                tabs,
+                headers=['Fiat', 'Price', '% change', 'Source'],
+                colalign=["center", "right", "right", "right"])
     except Exception:
         return (
             error(' >> Error getting data from CryptoCompare. Retrying...'))
