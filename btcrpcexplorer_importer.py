@@ -7,10 +7,9 @@ from node_warden import pickle_it
 
 
 # WebCrawler to get json info from BTC-RPC-EXPLORER web
-def crawler(url=None, port=None):
+def crawler(url='umbrel.local', port=3002):
     consolidated_dict = {}
-    url = 'umbrel.local'
-    port = 3002
+    consolidated_dict['meta'] = {'url': url, 'port': port}
 
     end_point_list = ['node-details', 'peers']
 
@@ -33,8 +32,8 @@ def crawler(url=None, port=None):
 
         consolidated_dict[endpoint] = tmp_dict
 
-    pickle_it('save', 'btcrpc_refresh.pkl', datetime.now())
-    pickle_it('save', 'btcrpc_json.pkl', consolidated_dict)
+    pickle_it('save', f'btcrpc_refresh_{url}.pkl', datetime.now())
+    pickle_it('save', f'btcrpc_json_{url}.pkl', consolidated_dict)
     return (consolidated_dict)
 
 

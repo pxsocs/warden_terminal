@@ -993,6 +993,7 @@ def data_btc_rpc_info(use_cache=True):
     from node_warden import pickle_it
     # Check if getting data from RPC or from RPC Explorer
     rpc_connection = pickle_it('load', 'rpc_connection.pkl')
+    url = None
     if rpc_connection is not None and rpc_connection != 'file not found':
         # Get Blockchaininfo from Bitcoin RPC
         bci = rpc_connection.getblockchaininfo()
@@ -1005,16 +1006,21 @@ def data_btc_rpc_info(use_cache=True):
         from connections import is_service_running
         rpce_running, host_data = is_service_running('Bitcoin RPC Explorer')
         if rpce_running is True:
-            # try:
-            data = pickle_it('load', 'btcrpc_json.pkl')
-            network = bci = data['node-details']
-            uptime = data['node-details']['timemillis'] / 60000000
-            uptime = datetime.now() - timedelta(minutes=uptime)
-            uptime = time_ago(uptime)
-            wallets = None
-            txs = None
-            # except Exception as e:
-            #     return (f"Error: {e}")
+            url = host_data[0][0][0]
+            data = pickle_it('load', f'btcrpc_json_{url}.pkl')
+            if data == 'file not found':
+                return ("Loading data...")
+            # Last refresh time
+            refresh = pickle_it('load', f'btcrpc_refresh_{url}.pkl')
+            try:
+                network = bci = data['node-details']
+                uptime = data['node-details']['timemillis'] / 60000000
+                uptime = datetime.now() - timedelta(minutes=uptime)
+                uptime = time_ago(uptime)
+                wallets = None
+                txs = None
+            except Exception as e:
+                return (f"Error getting {url} info: {e}")
 
     # Check if small or large and the size of progress  bars
     rows, columns = subprocess.check_output(['stty', 'size']).split()
@@ -1128,12 +1134,16 @@ def data_btc_rpc_info(use_cache=True):
             str_ago = time_ago(time_max)
             tabs.append([success("Latest Transaction"), success(str_ago)])
 
+    if url is not None:
+        url = success(url.strip('.local').upper())
+    else:
+        url = 'RPC Node Info'
     return_str = tabulate(tabs,
                           colalign=["left", "right"],
-                          headers=["Bitcoin Core", "Node info"])
-    # Last refresh time
-    refresh = pickle_it('load', 'btcrpc_refresh.pkl')
-    return_str += f'\n\nLast Refresh: {success(time_ago(refresh))}'
+                          headers=["Bitcoin Core", url])
+
+    if refresh is not None:
+        return_str += f'\n\nLast Refresh: {success(time_ago(refresh))}'
 
     return (return_str)
 
@@ -1205,18 +1215,6 @@ def data_services(use_cache=False):
         pass
 
     return (t)
-
-
-def data_bitcoinrpcexplorer():
-    refresh = pickle_it('load', 'btcrpc_refresh.pkl')
-    exp_data = pickle_it('load', 'btcrpc_json.pkl')
-    if refresh == 'file not found' or exp_data == 'file not found':
-        return_txt = (warning(' [i] Downloading Data...'))
-        return return_txt
-
-    t = success('Node Services Detected in your Local Network\n')
-    t += '---------------------------------------------\n\n'
-    t += tabs
 
 
 def main():

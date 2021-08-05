@@ -1006,10 +1006,11 @@ def main(quiet=None):
         from connections import is_service_running
         rpce_running = False
         try:
-            rpce_running, _ = is_service_running('Bitcoin RPC Explorer')
+            rpce_running, nodes = is_service_running('Bitcoin RPC Explorer')
             if rpce_running is True:
-                from btcrpcexplorer_importer import crawler
-                crawler()
+                for node in nodes:
+                    from btcrpcexplorer_importer import crawler
+                    crawler(url=node[0][0], port=node[1][0])
         except Exception:
             pass
 

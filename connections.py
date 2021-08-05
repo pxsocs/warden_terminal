@@ -199,7 +199,7 @@ def is_service_running(service):
     services = pickle_it('load', 'services_found.pkl')
     found = False
     meta = []
-    if services != 'file not found' and services != None:
+    if services != 'file not found' and services is not None:
         for data in services:
             if service in data[1][1]:
                 found = True
