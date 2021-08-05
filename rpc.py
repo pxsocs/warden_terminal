@@ -123,9 +123,10 @@ def pickle_rpc():
         pickle_it('save', 'btc_network.pkl', btc_network())
         pickle_it('save', 'rpc_connection.pkl', rpc_connect())
         pickle_it('sace', 'btcrpc_refresh.pkl', datetime.now())
-    except Exception:
+    except Exception as e:
         pickle_it('save', 'btc_network.pkl', None)
         pickle_it('save', 'rpc_connection.pkl', None)
+        pickle_it('sace', 'btcrpc_refresh.pkl', f'Error: {str(e)}')
 
 
 # -----------------------------------

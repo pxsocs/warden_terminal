@@ -1015,10 +1015,10 @@ def main(quiet=None):
             pass
 
     def lower_priority_grabs():
-        from rpc import pickle_rpc
-        pickle_rpc()
         from connections import scan_network
         scan_network()
+        from rpc import pickle_rpc
+        pickle_rpc()
 
     def sys_grabs():
         data_login(use_cache=False)

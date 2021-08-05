@@ -368,6 +368,14 @@ def data_specter(use_cache=True):
     return_fig = 'Specter Server Balance\n'
     return_fig += '----------------------\n'
 
+    btc = btc_price_data()
+    try:
+        btc_price = cleanfloat(btc['DISPLAY']['BTC']['USD']['PRICE'])
+    except Exception:
+        btc_price = 0
+
+    fiat_balance = btc_price * balance
+
     if balance < 1:
         balance = jformat(balance * 100000000, 0)
         sats = True
@@ -376,12 +384,14 @@ def data_specter(use_cache=True):
         sats = False
 
     if hidden is False:
-        return_fig += custom_fig.renderText(balance)
+        return_fig += (balance)
         if sats is True:
             return_fig += "Sats\n"
         else:
             return_fig += "Bitcoin\n"
         return_fig = yellow(return_fig)
+        if fiat_balance != 0:
+            return_fig += f"$ {jformat(fiat_balance, 2)}\n"
 
     else:
         return_fig += ('<Balance Hidden>')
@@ -1135,7 +1145,7 @@ def data_btc_rpc_info(use_cache=True):
             tabs.append([success("Latest Transaction"), success(str_ago)])
 
     if url is not None:
-        url = success(url.strip('.local').upper())
+        url = success(url.replace('.local', '').upper() + ' Connected')
     else:
         url = 'RPC Node Info'
     return_str = tabulate(tabs,
