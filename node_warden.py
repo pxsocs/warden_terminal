@@ -377,7 +377,7 @@ def check_screen_size():
             # the refresh variable on config.ini determines how many seconds
             # to wait between refreshes
             config['MAIN']['auto_scroll'] = 'True'
-            if columns < 50 or rows < 20:
+            if columns < 65 or rows < 20:
                 xs_display = True
                 config['MAIN']['large_text_font'] = 'small'
             with open(config_file, 'w') as configfile:

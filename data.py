@@ -301,8 +301,17 @@ def data_large_message(use_cache=True):
     except Exception:
         return None
     # If a price is provided, it won't refresh
-    custom_fig = pyfiglet.Figlet(font=font)
-    return_fig = custom_fig.renderText(message)
+    xs_display = pickle_it('load', 'xs_display.pkl')
+    try:
+        if xs_display is not True:
+            custom_fig = pyfiglet.Figlet(font=font)
+            return_fig = custom_fig.renderText(message)
+        else:
+            return_fig = message
+    except Exception:
+        custom_fig = pyfiglet.Figlet(font=font)
+        return_fig = custom_fig.renderText(message)
+
     return_fig = yellow(return_fig)
     return (return_fig)
 
@@ -475,16 +484,18 @@ def data_btc_price(use_cache=True):
             xs_display = pickle_it('load', 'xs_display.pkl')
             try:
                 if xs_display is True:
-                    tabs.append(
-                    [u'  ' + fx, price_str, chg_str, market])
+                    tabs.append([u'  ' + fx, price_str, chg_str, market])
                 else:
                     xs_display = False
-                    tabs.append(
-                    [u'  ' + fx, price_str, chg_str, low + ' - ' + high, market])
+                    tabs.append([
+                        u'  ' + fx, price_str, chg_str, low + ' - ' + high,
+                        market
+                    ])
             except Exception:
                 xs_display = False
-                tabs.append(
-                    [u'  ' + fx, price_str, chg_str, low + ' - ' + high, market])
+                tabs.append([
+                    u'  ' + fx, price_str, chg_str, low + ' - ' + high, market
+                ])
 
         except Exception as e:
             tabs.append(['error: ' + str(e)])
@@ -500,10 +511,9 @@ def data_btc_price(use_cache=True):
                 headers=['Fiat', 'Price', '% change', '24h Range', 'Source'],
                 colalign=["center", "right", "right", "center", "right"])
         else:
-            tabs = tabulate(
-                tabs,
-                headers=['Fiat', 'Price', '% change', 'Source'],
-                colalign=["center", "right", "right", "right"])
+            tabs = tabulate(tabs,
+                            headers=['Fiat', 'Price', '% change', 'Source'],
+                            colalign=["center", "right", "right", "right"])
     except Exception:
         return (
             error(' >> Error getting data from CryptoCompare. Retrying...'))
@@ -539,20 +549,13 @@ def data_btc_price(use_cache=True):
 
             gbtc_tabs.append([
                 'GBTC',
-                jformat(gbtc_data['c'], 2), chg_str,
-                jformat(gbtc_data['l'], 2) + ' - ' +
-                jformat(gbtc_data['h'], 2), premium, fairvalue,
+                jformat(gbtc_data['c'], 2), chg_str, premium, fairvalue,
                 time_ago(gbtc_data['t'])
             ])
-            gbtc_tabs = tabulate(gbtc_tabs,
-                                 headers=[
-                                     'Ticker', 'Price', '%', '24h', 'Premium',
-                                     'Fair', 'Update'
-                                 ],
-                                 colalign=[
-                                     "left", "right", "right", "center",
-                                     "right", "right", "right"
-                                 ])
+            gbtc_tabs = tabulate(
+                gbtc_tabs,
+                headers=['Ticker', 'Price', '%', 'Premium', 'Fair', 'Update'],
+                colalign=["left", "right", "right", "right", "right", "right"])
             tabs += gbtc_tabs
 
     except Exception as e:
