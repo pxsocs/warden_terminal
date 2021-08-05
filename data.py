@@ -1151,6 +1151,39 @@ def data_sync():
     return (return_fig)
 
 
+def data_services(use_cache=False):
+    services_found = pickle_it('load', 'services_found.pkl')
+    if services_found == 'file not found':
+        return_txt = (
+            warning(' [i] No Local Nodes found yet. Scanning network...'))
+        return return_txt
+    if services_found is None:
+        return_txt = (warning(
+            ' [i] No Nodes found on the local network.\nMake sure WARden is connected to the same local network as your node.'
+        ))
+        return return_txt
+
+    tabs = []
+    for service in services_found:
+        tabs.append([service[0][0], service[1][1], service[0][1]])
+
+    tabs = tabulate(tabs,
+                    headers=["Host", "Service", "IP Address"],
+                    colalign=["left", "left", "center"])
+
+    t = success('Node Services Detected in your Local Network\n')
+    t += '---------------------------------------------\n\n'
+    t += tabs
+
+    try:
+        refresh = pickle_it('load', 'services_refresh.pkl')
+        t += '\n\nLast Check: ' + success(time_ago(refresh))
+    except Exception:
+        pass
+
+    return (t)
+
+
 def main():
     arg = sys.argv[1]
     if arg == 'data_btc_rpc_info':
@@ -1179,6 +1212,8 @@ def main():
         print(data_sync())
     if arg == 'data_whitepaper':
         data_whitepaper()
+    if arg == 'data_services':
+        print(data_services())
     if arg == 'data_specter':
         print(data_specter(use_cache=False))
 
