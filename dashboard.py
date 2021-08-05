@@ -16,7 +16,7 @@ from data import (btc_price_data, data_tor, data_btc_price, data_login,
                   data_mempool, data_random_satoshi, data_large_price,
                   data_whitepaper, data_sys, pickle_it, data_logger,
                   data_large_block, data_large_message, data_btc_rpc_info,
-                  data_sync, data_specter)
+                  data_sync, data_specter, data_services)
 from dependencies.urwidhelper.urwidhelper import translate_text_for_urwid
 
 
@@ -212,6 +212,9 @@ def main_dashboard(config, tor):
     # Create the Large Price Box
     tor_box = Box(loader_text='Checking Tor Status...').line_box
 
+    # Create the Services Box
+    services_box = Box(loader_text='Scanning for Node Services...').line_box
+
     # Create user login Box
     login_box = Box(loader_text='Loading User Logins...').line_box
 
@@ -261,7 +264,7 @@ def main_dashboard(config, tor):
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
-        sys_box, large_block, large_message, moscow_time_block
+        sys_box, large_block, large_message, moscow_time_block, services_box
     ]
 
     if rpc_running is True:
@@ -437,6 +440,11 @@ def main_dashboard(config, tor):
         mp_box.base_widget.set_text(data)
         main_loop.set_alarm_in(1, mp_updater)
 
+    def services_updater(_loop, __data):
+        data = translate_text_for_urwid(data_services())
+        services_box.base_widget.set_text(data)
+        main_loop.set_alarm_in(1, services_updater)
+
     def specter_updater(_loop, __data):
         try:
             data = translate_text_for_urwid(data_specter())
@@ -514,4 +522,5 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(0, mp_updater)
     main_loop.set_alarm_in(0, get_quote)
     main_loop.set_alarm_in(0, check_screen_size)
+    main_loop.set_alarm_in(0, services_updater)
     main_loop.run()

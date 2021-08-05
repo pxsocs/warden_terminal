@@ -998,6 +998,10 @@ def main(quiet=None):
         if specter_txs is not None:
             data_specter(use_cache=False)
 
+    def lower_priority_grabs():
+        from connections import scan_network
+        scan_network()
+
     def sys_grabs():
         data_login(use_cache=False)
         data_sys(use_cache=False)
@@ -1017,6 +1021,7 @@ def main(quiet=None):
     scheduler.add_job(price_grabs, 'interval', seconds=price_refresh)
     scheduler.add_job(node_web_grabs, 'interval', seconds=15)
     scheduler.add_job(sys_grabs, 'interval', seconds=1)
+    scheduler.add_job(lower_priority_grabs, 'interval', seconds=15)
     scheduler.start()
     print(success("✅  Background jobs starting. Please wait..."))
     main_dashboard(config, tor)

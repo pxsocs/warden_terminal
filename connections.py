@@ -1,9 +1,10 @@
 import requests
+import socket
 from time import time
+from datetime import datetime
 
 
 def get_local_ip():
-    import socket
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
@@ -124,3 +125,68 @@ def tor_request(url, tor_only=False, method="get", headers=None):
             return "ConnectionError"
 
     return request
+
+
+# Check Local Network for nodes and services
+def scan_network():
+    from node_warden import pickle_it, load_config
+
+    host_list = [
+        'umbrel.local', 'mynode.local', 'raspberrypi.local', 'ronindojo.local',
+        'raspberrypi-2.local'
+    ]
+
+    # Additional node names can be added on config.ini - append here
+    config = load_config(quiet=True)
+    try:
+        config_node = config['MAIN'].get('node_url')
+        if config_node not in host_list:
+            host_list.append(config_node)
+    except Exception:
+        config_node = None
+
+    # First check which nodes receive a ping
+    hosts_found = []
+    for host in host_list:
+        try:
+            host_ip = socket.gethostbyname(host)
+            hosts_found.append((host, host_ip))
+        except Exception:
+            pass
+    pickle_it('save', 'hosts_found.pkl', hosts_found)
+    # Sample File format saved:
+    # [('umbrel.local', '192.168.1.124'), ('mynode.local', '192.168.1.155'),
+    #  ('raspberrypi.local', '192.168.1.102'),
+    #  ('raspberrypi-2.local', '192.168.1.98')]
+
+    # Now try to reach typical services
+    port_list = [(80, 'Web Server'), (25441, 'Specter Server'),
+                 (3002, 'Bitcoin Explorer'), (3006, 'Mempool.space Explorer')]
+
+    services_found = []
+    for host in hosts_found:
+        for port in port_list:
+
+            try:
+                url = 'http://' + host[0] + ':' + str(int(port[0])) + '/'
+                result = tor_request(url)
+                if not isinstance(result, requests.models.Response):
+                    raise Exception(f'Did not get a return from {url}')
+                if not result.ok:
+                    raise Exception(
+                        'Reached URL but did not get a code 200 [ok]')
+
+                services_found.append((host, port))
+            except Exception:
+                pass
+
+    pickle_it('save', 'services_found.pkl', services_found)
+    pickle_it('save', 'services_refresh.pkl', datetime.now())
+    # Sample File format saved to services_found
+    # [(('umbrel.local', '192.168.1.124'), (80, 'Web Server')),
+    #  (('umbrel.local', '192.168.1.124'), (25441, 'Specter Server')),
+    #  (('umbrel.local', '192.168.1.124'), (3002, 'Bitcoin Explorer')),
+    #  (('umbrel.local', '192.168.1.124'), (3006, 'Mempool.space Explorer')),
+    #  (('mynode.local', '192.168.1.155'), (80, 'Web Server'))]
+
+    return (services_found)
