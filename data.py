@@ -361,10 +361,6 @@ def data_specter(use_cache=True):
         if tx['time'] > last_tx_time:
             last_tx_time = tx['time']
 
-    ft_config = config['MAIN']
-    font = ft_config.get('large_text_font')
-    custom_fig = pyfiglet.Figlet(font=font)
-
     return_fig = 'Specter Server Balance\n'
     return_fig += '----------------------\n'
 
@@ -1003,6 +999,7 @@ def data_btc_rpc_info(use_cache=True):
     # Check if getting data from RPC or from RPC Explorer
     rpc_connection = pickle_it('load', 'rpc_connection.pkl')
     url = None
+    bci = None
     if rpc_connection is not None and rpc_connection != 'file not found':
         # Get Blockchaininfo from Bitcoin RPC
         bci = rpc_connection.getblockchaininfo()
@@ -1039,8 +1036,10 @@ def data_btc_rpc_info(use_cache=True):
     else:
         bar_size = int(int(columns) / 3) - 38
 
-    tabs = []
+    if bci is None:
+        return (warning("Trying to connect to local nodes..."))
 
+    tabs = []
     # Testnet, Mainnet, etc...
     tabs.append(["Chain", bci['chain']])
 

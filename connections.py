@@ -164,7 +164,8 @@ def scan_network():
                  (3002, 'Bitcoin RPC Explorer'),
                  (3006, 'Mempool.space Explorer'), (8082, 'Pi-Hole'),
                  (8091, 'VSCode Server'), (8085, 'Gitea'),
-                 (3008, 'BlueWallet Lightning')]
+                 (3008, 'BlueWallet Lightning'), (8081, 'Nextcloud'),
+                 (8083, "Home Assistant")]
 
     services_found = []
     for host in hosts_found:
