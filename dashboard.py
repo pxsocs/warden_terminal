@@ -389,11 +389,12 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(120, get_quote)
 
     def rpc_updater(_loop, __data):
+        from connections import is_service_running
         rpce_running, _ = is_service_running('Bitcoin RPC Explorer')
         if rpce_running is True:
             data = translate_text_for_urwid(data_btc_rpc_info())
         else:
-            data = 'Loading...'
+            data = 'RPC Explorer not running. Retrying...'
         rpc_box.base_widget.set_text(data)
         main_loop.set_alarm_in(1, rpc_updater)
 
