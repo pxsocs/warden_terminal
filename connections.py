@@ -161,6 +161,7 @@ def scan_network():
 
     # Now try to reach typical services
     port_list = [(80, 'Web Server'), (25441, 'Specter Server'),
+                 (3005, 'Samourai Server Dojo'),
                  (3002, 'Bitcoin RPC Explorer'),
                  (3006, 'Mempool.space Explorer'), (8082, 'Pi-Hole'),
                  (8091, 'VSCode Server'), (8085, 'Gitea'),

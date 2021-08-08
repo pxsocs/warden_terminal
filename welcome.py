@@ -44,6 +44,9 @@ def goodbye():
         fg.brightgreen(
             "    onchain: bc1q4fmyksw40vktte9n6822e0aua04uhmlez34vw5gv72zlcmrkz46qlu7aem"
         ))
+    print("")
+    print(fg.brightgreen("    payNym: +luckyhaze615"))
+    print(fg.brightgreen("    https://paynym.is/+luckyhaze615"))
 
     # print("""
     # ▄▄▄▄▄▄▄     ▄▄  ▄  ▄  ▄▄▄▄▄▄▄
