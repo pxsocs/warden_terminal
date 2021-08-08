@@ -938,10 +938,7 @@ def main(quiet=None):
         else:
             quiet = False
 
-    # if 'upgrade' in sys.argv:
     upgrade = True
-    # else:
-    # upgrade = False
 
     if quiet is False or quiet is None:
         clear_screen()
@@ -955,6 +952,10 @@ def main(quiet=None):
         logging.info(muted("Starting main program..."))
         config = load_config()
         tor = create_tor()
+        try:
+            upgrade = config['MAIN'].getboolean('auto_upgrade')
+        except Exception:
+            upgrade = True
         check_version(upgrade)
         check_screen_size()
         check_cryptocompare()

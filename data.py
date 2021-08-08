@@ -1225,10 +1225,15 @@ def data_services(use_cache=False):
     tabs = []
     for service in services_found:
         tabs.append([service[0][0], service[1][1], service[0][1]])
-
-    tabs = tabulate(tabs,
-                    headers=["Host", "Service", "IP Address"],
-                    colalign=["left", "left", "center"])
+    try:
+        tabs = tabulate(tabs,
+                        headers=["Host", "Service", "IP Address"],
+                        colalign=["left", "left", "center"])
+    except Exception:
+        return_txt = (warning(
+            ' [i] No Nodes found on the local network.\nMake sure WARden is connected to the same local network as your node.'
+        ))
+        return return_txt
 
     t = success('Node Services Detected in your Local Network\n')
     t += '---------------------------------------------\n\n'
