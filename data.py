@@ -1008,6 +1008,7 @@ def data_btc_rpc_info(use_cache=True):
     rpc_connection = pickle_it('load', 'rpc_connection.pkl')
     url = None
     bci = None
+    refresh = None
     if rpc_connection is not None and rpc_connection != 'file not found':
         # Get Blockchaininfo from Bitcoin RPC
         try:
