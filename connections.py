@@ -160,10 +160,12 @@ def scan_network():
     #  ('raspberrypi-2.local', '192.168.1.98')]
 
     # Now try to reach typical services
-    port_list = [(80, 'Web Server'), (25441, 'Specter Server'),
-                 (3005, 'Samourai Server Dojo'),
-                 (3002, 'Bitcoin RPC Explorer'),
-                 (3006, 'Mempool.space Explorer'), (8082, 'Pi-Hole'),
+    port_list = [(80, 'Web Server'), (3010, 'Ride the Lightning'),
+                 (25441, 'Specter Server'), (3005, 'Samourai Server Dojo'),
+                 (50001, 'Electrum Server'),
+                 (50002, 'Electrum Server')(3002, 'Bitcoin RPC Explorer'),
+                 (3006, 'Mempool.space Explorer', 'Umbrel'),
+                 (3006, 'Mempool.space Explorer', 'MyNode'), (8082, 'Pi-Hole'),
                  (8091, 'VSCode Server'), (8085, 'Gitea'),
                  (3008, 'BlueWallet Lightning'), (8081, 'Nextcloud'),
                  (8083, "Home Assistant")]
