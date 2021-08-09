@@ -183,7 +183,11 @@ def scan_network():
                 url = 'http://' + host[0] + ':' + str(int(port[0])) + '/'
                 result = tor_request(url)
                 if not isinstance(result, requests.models.Response):
-                    raise Exception(f'Did not get a return from {url}')
+                    # Let's try https (some services use one or the other)
+                    url = 'https://' + host[0] + ':' + str(int(port[0])) + '/'
+                    result = tor_request(url)
+                    if not isinstance(result, requests.models.Response):
+                        raise Exception(f'Did not get a return from {url}')
                 if not result.ok:
                     raise Exception(
                         'Reached URL but did not get a code 200 [ok]')
