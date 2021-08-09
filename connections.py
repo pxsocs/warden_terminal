@@ -128,6 +128,7 @@ def tor_request(url, tor_only=False, method="get", headers=None):
 
 
 # Check Local Network for nodes and services
+# Need to optimize this to run several threads instead of sequentially
 def scan_network():
     from node_warden import pickle_it, load_config
 
@@ -164,11 +165,16 @@ def scan_network():
                  (25441, 'Specter Server'), (3005, 'Samourai Server Dojo'),
                  (50001, 'Electrum Server'), (50002, 'Electrum Server'),
                  (3002, 'Bitcoin RPC Explorer'),
-                 (3006, 'Mempool.space Explorer', 'Umbrel'),
-                 (3006, 'Mempool.space Explorer', 'MyNode'), (8082, 'Pi-Hole'),
-                 (8091, 'VSCode Server'), (8085, 'Gitea'),
-                 (3008, 'BlueWallet Lightning'), (8081, 'Nextcloud'),
-                 (8083, "Home Assistant")]
+                 (3006, 'Mempool.space Explorer'),
+                 (3006, 'Mempool.space Explorer'),
+                 (3008, 'BlueWallet Lightning')]
+
+    # Additional Services (from Umbrel mostly - add this later)
+    # (8082, 'Pi-Hole'),
+    # (8091, 'VSCode Server'),
+    # (8085, 'Gitea'),
+    # (8081, 'Nextcloud'),
+    # (8083, "Home Assistant")
 
     services_found = []
     for host in hosts_found:
