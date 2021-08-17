@@ -134,7 +134,7 @@ def scan_network():
 
     host_list = [
         'umbrel.local', 'mynode.local', 'raspberrypi.local', 'ronindojo.local',
-        'raspberrypi-2.local'
+        'raspberrypi-2.local', 'umbrel-2.local', 'umbrel-3.local'
     ]
 
     # Additional node names can be added on config.ini - append here
