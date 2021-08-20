@@ -1,18 +1,24 @@
 # Upon the first import of non standard libraries, if not found
+import subprocess
+import requests
+import os
+import sys
+try:
+    import pyttsx3
+    from yaspin import yaspin
+except ModuleNotFoundError:
+    subprocess.run("pip3 install -r requirements.txt", shell=True)
+    # Restart
+    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+
 from pathlib import Path
 from pickle import load
-import pyttsx3
-import requests
-from yaspin import yaspin
 
 import configparser
-import subprocess
 from data import (data_btc_rpc_info, data_large_block, data_logger, data_login,
                   data_mempool, data_random_satoshi, data_sys, data_tor,
                   data_btc_price, data_specter)
 import logging
-import os
-import sys
 
 import json
 from random import randrange

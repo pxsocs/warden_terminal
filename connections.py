@@ -166,7 +166,6 @@ def scan_network():
                  (50001, 'Electrum Server'), (50002, 'Electrum Server'),
                  (3002, 'Bitcoin RPC Explorer'),
                  (3006, 'Mempool.space Explorer'),
-                 (3006, 'Mempool.space Explorer'),
                  (3008, 'BlueWallet Lightning')]
 
     # Additional Services (from Umbrel mostly - add this later)
