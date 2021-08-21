@@ -44,9 +44,9 @@ def data_tor(tor=None, use_cache=True):
     if not config['MAIN'].getboolean('hide_private_info'):
         tor_string = f"""   {success('TOR Connected')}
     Running on port {info(bold(tor['port']))}
-    Tor IP Address {warning(tor['post_proxy']['origin'])}
+    Tor IP Address {warning(tor['post_proxy']['ip'])}
     Ping Time {tor['post_proxy_ping']}
-    Global IP Address {warning(tor['pre_proxy']['origin'])}
+    Global IP Address {warning(tor['pre_proxy']['ip'])}
     Ping Time {muted(tor['pre_proxy_ping'])}
     Local IP Address {warning(local_ip)}
     """
@@ -183,7 +183,7 @@ def data_large_price(price=None, change=None, chg_str=None, moscow_time=False):
 
     position = 0
     try:
-        if config['MAIN'].get('hide_private_info') is True:
+        if config['MAIN'].getboolean('hide_private_info') is True:
             raise Exception('Not displaying position - hidden')
         position = config['PORTFOLIO'].getfloat('position_btc')
         if position == '' or position is None:
@@ -577,7 +577,7 @@ def data_btc_price(use_cache=True):
 
     position = 0
     try:
-        if config['MAIN'].get('hide_private_info') is True:
+        if config['MAIN'].getboolean('hide_private_info') is True:
             raise Exception('Not displaying position - hidden')
         position = config['PORTFOLIO'].getfloat('position_btc')
         if position == '' or position is None:
@@ -841,9 +841,10 @@ def data_mempool(use_cache=True):
 
     tabs = list(mp_fee.values())
     tabs = [[str(x) + ' sats/Vb' for x in tabs]]
-    tabs = tabulate(tabs,
-                    headers=["Fastest Fee", "30 min fee", "1 hour fee"],
-                    colalign=["center", "center", "center"])
+    tabs = tabulate(
+        tabs,
+        headers=["Fastest Fee", "30 min fee", "1 hour fee", "Min Fee"],
+        colalign=["center", "center", "center"])
     try:
         block_height = tor_request(url + '/api/blocks/tip/height').json()
     except Exception:
@@ -1122,11 +1123,11 @@ def data_btc_rpc_info(use_cache=True):
             wallets = False
         else:
             try:
-                confirmed = float(wallets['mine']['trusted'])
+                confirmed = float(any_wallets['mine']['trusted'])
             except Exception:
                 confirmed = 0
             try:
-                unconfirmed = float(wallets['mine']['immature'])
+                unconfirmed = float(any_wallets['mine']['immature'])
             except Exception:
                 unconfirmed = 0
             from node_warden import load_config

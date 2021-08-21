@@ -17,7 +17,7 @@ def test_tor():
     session = requests.session()
     try:
         time_before = time()  # Save Ping time to compare
-        r = session.get("http://httpbin.org/ip")
+        r = session.get("https://api.myip.com")
         time_after = time()
         pre_proxy_ping = time_after - time_before
         pre_proxy = r.json()
@@ -35,20 +35,20 @@ def test_tor():
         try:
             failed = False
             time_before = time()  # Save Ping time to compare
-            r = session.get("http://httpbin.org/ip")
+            r = session.get("https://api.myip.com")
             time_after = time()
             post_proxy_ping = time_after - time_before
-            post_proxy_difference = post_proxy_ping / pre_proxy_ping
+            post_proxy_ratio = post_proxy_ping / pre_proxy_ping
             post_proxy = r.json()
 
-            if pre_proxy["origin"] != post_proxy["origin"]:
+            if pre_proxy["ip"] != post_proxy["ip"]:
                 response = {
                     "pre_proxy": pre_proxy,
                     "post_proxy": post_proxy,
                     "post_proxy_ping":
                     "{0:.2f} seconds".format(post_proxy_ping),
                     "pre_proxy_ping": "{0:.2f} seconds".format(pre_proxy_ping),
-                    "difference": "{0:.2f}".format(post_proxy_difference),
+                    "difference": "{0:.2f}".format(post_proxy_ratio),
                     "status": True,
                     "port": PORT
                 }
@@ -128,12 +128,13 @@ def tor_request(url, tor_only=False, method="get", headers=None):
 
 
 # Check Local Network for nodes and services
+# Need to optimize this to run several threads instead of sequentially
 def scan_network():
     from node_warden import pickle_it, load_config
 
     host_list = [
         'umbrel.local', 'mynode.local', 'raspberrypi.local', 'ronindojo.local',
-        'raspberrypi-2.local'
+        'raspberrypi-2.local', 'umbrel-2.local', 'umbrel-3.local'
     ]
 
     # Additional node names can be added on config.ini - append here
@@ -160,13 +161,19 @@ def scan_network():
     #  ('raspberrypi-2.local', '192.168.1.98')]
 
     # Now try to reach typical services
-    port_list = [(80, 'Web Server'), (25441, 'Specter Server'),
-                 (3005, 'Samourai Server Dojo'),
+    port_list = [(80, 'Web Server'), (3010, 'Ride the Lightning'),
+                 (25441, 'Specter Server'), (3005, 'Samourai Server Dojo'),
+                 (50001, 'Electrum Server'), (50002, 'Electrum Server'),
                  (3002, 'Bitcoin RPC Explorer'),
-                 (3006, 'Mempool.space Explorer'), (8082, 'Pi-Hole'),
-                 (8091, 'VSCode Server'), (8085, 'Gitea'),
-                 (3008, 'BlueWallet Lightning'), (8081, 'Nextcloud'),
-                 (8083, "Home Assistant")]
+                 (3006, 'Mempool.space Explorer'),
+                 (3008, 'BlueWallet Lightning')]
+
+    # Additional Services (from Umbrel mostly - add this later)
+    # (8082, 'Pi-Hole'),
+    # (8091, 'VSCode Server'),
+    # (8085, 'Gitea'),
+    # (8081, 'Nextcloud'),
+    # (8083, "Home Assistant")
 
     services_found = []
     for host in hosts_found:
@@ -175,7 +182,11 @@ def scan_network():
                 url = 'http://' + host[0] + ':' + str(int(port[0])) + '/'
                 result = tor_request(url)
                 if not isinstance(result, requests.models.Response):
-                    raise Exception(f'Did not get a return from {url}')
+                    # Let's try https (some services use one or the other)
+                    url = 'https://' + host[0] + ':' + str(int(port[0])) + '/'
+                    result = tor_request(url)
+                    if not isinstance(result, requests.models.Response):
+                        raise Exception(f'Did not get a return from {url}')
                 if not result.ok:
                     raise Exception(
                         'Reached URL but did not get a code 200 [ok]')
