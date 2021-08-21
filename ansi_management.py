@@ -23,7 +23,7 @@ def yellow(s):
 
 
 def info(s):
-    return (fg.boldblue(s))
+    return (fg.boldgreen(s))
 
 
 def muted(s):

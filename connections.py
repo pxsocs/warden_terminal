@@ -17,7 +17,7 @@ def test_tor():
     session = requests.session()
     try:
         time_before = time()  # Save Ping time to compare
-        r = session.get("http://httpbin.org/ip")
+        r = session.get("https://api.myip.com")
         time_after = time()
         pre_proxy_ping = time_after - time_before
         pre_proxy = r.json()
@@ -35,20 +35,20 @@ def test_tor():
         try:
             failed = False
             time_before = time()  # Save Ping time to compare
-            r = session.get("http://httpbin.org/ip")
+            r = session.get("https://api.myip.com")
             time_after = time()
             post_proxy_ping = time_after - time_before
-            post_proxy_difference = post_proxy_ping / pre_proxy_ping
+            post_proxy_ratio = post_proxy_ping / pre_proxy_ping
             post_proxy = r.json()
 
-            if pre_proxy["origin"] != post_proxy["origin"]:
+            if pre_proxy["ip"] != post_proxy["ip"]:
                 response = {
                     "pre_proxy": pre_proxy,
                     "post_proxy": post_proxy,
                     "post_proxy_ping":
                     "{0:.2f} seconds".format(post_proxy_ping),
                     "pre_proxy_ping": "{0:.2f} seconds".format(pre_proxy_ping),
-                    "difference": "{0:.2f}".format(post_proxy_difference),
+                    "difference": "{0:.2f}".format(post_proxy_ratio),
                     "status": True,
                     "port": PORT
                 }
