@@ -1114,6 +1114,8 @@ def main(quiet=None):
         greetings()
 
     else:
+        launch_logger()
+        logging.getLogger("apscheduler.scheduler").setLevel(logging.ERROR)
         config = load_config(True)
         tor = {
             "pre_proxy": 'Restarting...',

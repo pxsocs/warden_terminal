@@ -1,3 +1,4 @@
+from node_warden import pickle_it
 import os
 from pathlib import Path
 
@@ -40,3 +41,15 @@ class Config:
     # Do not start new job until the last one is done
     SCHEDULER_JOB_DEFAULTS = {'coalesce': False, 'max_instances': 1}
     SCHEDULER_API_ENABLED = True
+
+
+def node_finder():
+    # Will look for nodes in local network
+    node_finder = {
+        'progress': 0,
+        'latest_message': '',
+        'success_messages': [],
+        'fail_messages': [],
+        'finished': False
+    }
+    pickle_it('save', 'node_finder.pkl', node_finder)
