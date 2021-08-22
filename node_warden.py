@@ -929,9 +929,145 @@ def store_local_ip():
     try:
         from connections import get_local_ip
         ip = get_local_ip()
+        return (ip)
         pickle_it('save', 'ip.pkl', ip)
     except Exception:
         pickle_it('save', 'ip.pkl', None)
+
+
+def create_app():
+    info_pickle = ''
+    conf = load_config(quiet=True)
+    # Check for debug or reloader on sys args
+    debug = False
+    reloader = False
+    if "debug" in sys.argv:
+        info_pickle += ("\n")
+        info_pickle += (yellow("  [i] DEBUG MODE: ON\n"))
+        debug = True
+    if "reloader" in sys.argv:
+        info_pickle += ("\n")
+        info_pickle += (yellow("  [i] RELOAD MODE: ON\n"))
+        reloader = True
+
+    # Create App
+    from config import Config
+
+    # Check if home folder exists, if not create
+    home = str(Path.home())
+    home_path = os.path.join(home, 'warden/')
+    try:
+        os.makedirs(os.path.dirname(home_path))
+    except Exception:
+        pass
+
+    # Launch app
+    from flask import Flask
+    app = Flask(__name__)
+    app.config.from_object(Config)
+
+    # Get Version
+    try:
+        version_file = Config.version_file
+        with open(version_file, 'r') as file:
+            current_version = file.read().replace('\n', '')
+    except Exception:
+        current_version = 'Unknown'
+    with app.app_context():
+        app.version = current_version
+
+    # TOR Server through Onion Address --
+    # USE WITH CAUTION - ONION ADDRESSES CAN BE EXPOSED!
+    # WARden needs to implement authentication (coming soon)
+    if conf['SERVER'].getboolean('onion_server'):
+        from stem.control import Controller
+        from urllib.parse import urlparse
+        app.tor_port = conf['SERVER'].getint('onion_port')
+        app.port = conf['SERVER'].getint('port')
+        from config import home_path
+        toraddr_file = os.path.join(home_path, "onion.txt")
+        app.save_tor_address_to = toraddr_file
+        proxy_url = "socks5h://localhost:9050"
+        tor_control_port = ""
+        try:
+            tor_control_address = urlparse(proxy_url).netloc.split(":")[0]
+            if tor_control_address == "localhost":
+                tor_control_address = "127.0.0.1"
+            app.controller = Controller.from_port(
+                address=tor_control_address,
+                port=int(tor_control_port) if tor_control_port else "default",
+            )
+        except Exception:
+            app.controller = None
+        from tor import start_hidden_service
+        start_hidden_service(app)
+
+    # START BLUEPRINTS
+    from routes.warden import warden
+    from errors.handlers import errors
+    app.register_blueprint(warden)
+    app.register_blueprint(errors)
+
+    #  Build Strings for main page
+    def onion_string():
+        if conf['SERVER'].getboolean('onion_server'):
+            return (f"""[i] Tor Onion server running at:
+ {yellow(app.tor_service_id + '.onion')}
+                """)
+        else:
+            return ('')
+
+    def local_network_string():
+        host = conf['SERVER'].get('host')
+        if host == '0.0.0.0':
+            return (f"""
+ Or through your network at address:
+ {yellow('http://')}{yellow(store_local_ip())}{yellow(':5000/')}
+                """)
+
+    info_pickle += (success(" WARden Web Server is Running \n"))
+
+    info_pickle += (f"""
+ Open your browser and navigate to one of these addresses:
+ {yellow('http://localhost:5000/')}
+ {yellow('http://127.0.0.1:5000/')}
+ {local_network_string()}
+ {onion_string()}
+    """)
+
+    # Store Messages
+    pickle_it('save', 'webserver.pkl', info_pickle)
+
+    # Store app
+    pickle_it('save', 'app.pkl', app)
+
+    # Hide Flask Launch message
+    import logging
+    import click
+    log = logging.getLogger('werkzeug')
+    os.environ['WERKZEUG_RUN_MAIN'] = 'true'
+    log.setLevel(logging.ERROR)
+
+    def secho(text, file=None, nl=None, err=None, color=None, **styles):
+        pass
+
+    def echo(text, file=None, nl=None, err=None, color=None, **styles):
+        pass
+
+    click.echo = echo
+    click.secho = secho
+
+    app.run(debug=debug,
+            threaded=True,
+            host=conf['SERVER'].get('host'),
+            port=conf['SERVER'].getint('port'),
+            use_reloader=reloader)
+
+    if conf['SERVER'].getboolean('onion_server'):
+        from tor import stop_hidden_services
+        stop_hidden_services(app)
+
+    return app
 
 
 def main(quiet=None):
@@ -956,6 +1092,7 @@ def main(quiet=None):
             pass
         launch_logger()
         logging.info(muted("Starting main program..."))
+        logging.getLogger("apscheduler.scheduler").setLevel(logging.ERROR)
         config = load_config()
         tor = create_tor()
         try:
@@ -1043,6 +1180,7 @@ def main(quiet=None):
 
     job_defaults = {'coalesce': False, 'max_instances': 1}
     scheduler = BackgroundScheduler(job_defaults=job_defaults)
+    scheduler.add_job(create_app)
     scheduler.add_job(price_grabs, 'interval', seconds=price_refresh)
     scheduler.add_job(node_web_grabs, 'interval', seconds=15)
     scheduler.add_job(sys_grabs, 'interval', seconds=1)

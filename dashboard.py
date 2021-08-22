@@ -230,6 +230,9 @@ def main_dashboard(config, tor):
     # Create the Satoshi Quotes Box
     satoshi_box = Box(loader_text='Loading Satoshi Wisdom...').line_box
 
+    # Create the Web Server Info Box
+    webserver_box = Box(loader_text='Loading Web Server Status...').line_box
+
     # Assemble the widgets
     header = 'Loading...'
 
@@ -267,7 +270,8 @@ def main_dashboard(config, tor):
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
-        sys_box, large_block, large_message, moscow_time_block, services_box
+        sys_box, large_block, large_message, moscow_time_block, services_box,
+        webserver_box
     ]
 
     if rpc_running is True:
@@ -382,6 +386,12 @@ def main_dashboard(config, tor):
             pass
 
         main_loop.set_alarm_in(1, check_for_pump)
+
+    def webserver_info(_loop, _data):
+        web_data = pickle_it('load', 'webserver.pkl')
+        webserver_txt = translate_text_for_urwid(web_data)
+        webserver_box.base_widget.set_text(webserver_txt)
+        main_loop.set_alarm_in(10, webserver_info)
 
     def get_quote(_loop, _data):
         quote = translate_text_for_urwid(data_random_satoshi())
@@ -531,4 +541,5 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(0, get_quote)
     main_loop.set_alarm_in(0, check_screen_size)
     main_loop.set_alarm_in(0, services_updater)
+    main_loop.set_alarm_in(0, webserver_info)
     main_loop.run()
