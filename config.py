@@ -45,6 +45,8 @@ class Config:
 
 def node_finder():
     # Will look for nodes in local network
+    # node_finder is the broacaster dict that
+    # is displayed in realtime
     node_finder = {
         'progress': 0,
         'latest_message': '',
@@ -52,4 +54,21 @@ def node_finder():
         'fail_messages': [],
         'finished': False
     }
+
+    pickle_it('save', 'node_finder.pkl', node_finder)
+
+    # --------------------------------------------
+    # Check Tor
+    # --------------------------------------------
+    from connections import test_tor
+    # Kick off Message
+    node_finder['latest_message'] = 'Checking Tor...'
+    pickle_it('save', 'node_finder.pkl', node_finder)
+    # Run the test...
+    tor = test_tor()
+    node_finder['latest_message'] = 'Finished Testing Tor'
+    if tor['status']:
+        node_finder['success_messages'].append('✅ Tor Connected')
+    else:
+        node_finder['fail_messages'].append('💥 Tor NOT Connected')
     pickle_it('save', 'node_finder.pkl', node_finder)

@@ -73,19 +73,50 @@
                 <h1 class="text-center mb-2">welcome to<br>the WARden</h1>
                 <br>
 
-                <h3> Finding Nodes.... </h3>
+                <div class='row'>
+                    <div id='alertsection' class='col-12'>
+                        <div class="text-center alert alert-info">
+                            <span id='latest_message'></span>
+                        </div>
+                    </div>
+                </div>
 
-                <h4><span id='info_setup'></span></h4>
+                <div class='row'>
+                    <div id='alertsection' class='col-12'>
+                        <div class="text-center alert alert-success">
+                            <span id='success_messages'></span>
+                        </div>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div id='alertsection' class='col-12'>
+                        <div class="text-center alert alert-danger">
+                            <span id='fail_messages'></span>
+                        </div>
+                    </div>
+                    <div id='alertsection' class='col-12'>
+                        <div class="text-center alert alert-danger">
+                            <span id='finished'></span>
+                        </div>
+                    </div>
 
+                </div>
             </div>
-        </main>
+
+    </div>
+    </main>
     </div>
 </body>
 <!-- GETS DATA in realtime showing setup status -->
 <script>
     setInterval(function () {
         $.get('/broadcast?data=node_finder', function (data) {
-            $('#info_setup').html(data['progress']);
+            $('#progress').html(data['progress']);
+            $('#latest_message').html(data['latest_message']);
+            $('#success_messages').html(data['success_messages']);
+            $('#fail_messages').html(data['fail_messages']);
+            $('#finished').html(data['finished']);
+
         });
     }, 1000);
 </script>
