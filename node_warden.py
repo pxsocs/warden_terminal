@@ -943,11 +943,11 @@ def create_app():
     reloader = False
     if "debug" in sys.argv:
         info_pickle += ("\n")
-        info_pickle += (yellow("  [i] DEBUG MODE: ON\n"))
+        info_pickle += (yellow(" [i] DEBUG MODE: ON\n"))
         debug = True
     if "reloader" in sys.argv:
         info_pickle += ("\n")
-        info_pickle += (yellow("  [i] RELOAD MODE: ON\n"))
+        info_pickle += (yellow(" [i] RELOAD MODE: ON\n"))
         reloader = True
 
     # Create App

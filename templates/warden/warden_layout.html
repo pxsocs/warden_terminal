@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="icon" href="{{url_for('static', filename='images/favicon-bitcoin.ico')}}" class="invert">
+
+<head>
+    <!-- Style Sheets -->
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='dependencies/bootstrap/css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='dependencies/font-awesome/css/all.css')}}">
+    <!-- JQuery UI -->
+    <link rel="stylesheet" href="{{url_for('static', filename='dependencies/jquery/themes/flicker.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/warden_main.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/warden_layout.css')}}">
+
+    <!-- End Style Sheets -->
+
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% if title %}
+    <title>The WARden | {{ title }}</title>
+    {% else %}
+    <title>The WARden</title>
+    {% endif %}
+</head>
+
+<body>
+    <!-- JavaScript Loaders -->
+    <!-- JQuery -->
+    <script src="{{url_for('static', filename='dependencies/jquery/jquery-3.4.1.js')}}"></script>
+    <!-- Popper -->
+    <script src="{{url_for('static', filename='dependencies/popper/popper.js')}}">
+    </script>
+    <script src="{{url_for('static', filename='dependencies/popper/tooltip.js')}}">
+    </script>
+    <!-- Bootstrap -->
+    <script src="{{url_for('static', filename='dependencies/jquery-ui/jquery-ui.js')}}"></script>
+    <script src="{{url_for('static', filename='dependencies/bootstrap/js/bootstrap.js')}}"></script>
+
+    <!-- END JavaScript Loaders -->
+
+    <header>
+        <nav class="navbar navbar-dark bg-steel navbar-expand-lg navbar-font justify-content-end">
+            <a class="navbar-brand" href="/"> <img src="{{url_for('static', filename='images/logo_flat.png')}}"
+                    width="180" height="40" alt="Home">
+            </a>
+
+            <div class="rightfloater">
+
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm statusbox text-white">
+                        WARden Status
+                    </button>
+                    <button id="status" type="button"
+                        class="btn btn-sm statusbox text-white dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown">
+                    </button>
+                    <div class="dropdown-menu scrollable-menu dropdown-menu-right text-muted">
+                        <span>
+
+                            <!-- CHECK TOR -->
+                            {%if current_app.tor%}
+                            <a class="dropdown-item" href='/tor_services'>
+                                <i class="fas fa-check-square text-success"></i>&nbsp;
+                                Tor Running</a>
+                            {%else%}
+                            <a class="dropdown-item">
+                                <i class="fas fa-exclamation-triangle text-warning"></i>&nbsp;
+                                Tor Unavailable</a>
+                            {%endif%}
+
+                            <!-- Check Onion -->
+                            {%if current_app.tor_service_id%}
+                            <a class="dropdown-item" href='/tor_services'>
+                                <i class="fas fa-user-secret text-success"></i>&nbsp;
+                                Onion Server Running</a>
+                            {%endif%}
+
+
+
+                        </span>
+                    </div>
+                </div>
+
+
+
+                {%if current_app.tor%}
+                <span class="btn btn-sm statusbox text-white">
+                    <span id="btc_usd">
+                        <span class="loadanim small">loading</span>
+                    </span>&nbsp;$/₿
+                </span>
+
+                {%if current_app.fx['code'] != "USD"%}
+                <span class="btn btn-sm statusbox text-white">
+                    <span id="btc_fx">
+                        <span class="loadanim small">loading</span>
+                    </span>&nbsp;{{current_app.fx['symbol']}}/₿
+                </span>
+                <span class="btn btn-sm statusbox text-white">
+                    <span id="fx_rate">
+                        <span class="loadanim small">loading</span>
+                    </span>&nbsp;{{current_app.fx['symbol']}}/$
+                </span>
+                {%endif%}
+
+                <div class="btn-group">
+                    <button type="button" id='fiat_change' class="btn btn-sm statusbox text-white">
+                        All values in
+                        {{current_app.fx['name_plural'].title()}} ({{current_app.fx['symbol']}})
+                    </button>
+                    <button id="list_fx" type="button"
+                        class="btn btn-sm statusbox text-white dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown">
+                    </button>
+                    <div class="dropdown-menu scrollable-menu dropdown-menu-right">
+                        <span id='fx_sel'>
+                            <a class="dropdown-item">Loading....</a>
+                        </span>
+                    </div>
+                </div>
+
+                {%endif%}
+            </div>
+        </nav>
+    </header>
+
+
+    <body>
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav small">
+
+                <!-- TRANSACTIONS MENU + SUBMENUS -->
+                <li>
+                    <a data-toggle="collapse" href="#collapse_transactions" role="button" aria-expanded="true"
+                        aria-controls="collapse_transactions">
+                        <i class="fas fa-coins fa-lg"></i>
+                        &nbsp;&nbsp;&nbsp;&nbsp;Nodes
+                        <i class="fas fa-caret-down"></i></a>
+                </li>
+                <div class="collapse show" id="collapse_transactions"">
+                    <div class=" list-group bg-transparent text-white">
+                    <a class="sidebar-subitem" href="/"><i class="fas fa-table fa-lg"></i>&nbsp;&nbsp;Dashboard</a>
+                </div>
+        </div>
+
+
+        <li>
+            <a data-toggle="collapse" href="#collapse_settings" role="button" aria-expanded="true"
+                aria-controls="collapse_transactions">
+                <i class="fas fa-users-cog fa-lg"></i>
+                &nbsp;&nbsp;&nbsp;&nbsp;System
+                <i class="fas fa-caret-down"></i></a>
+        </li>
+
+
+        <div class="collapse show" id="collapse_settings"">
+                    <div class=" list-group bg-transparent text-white">
+
+            <a class="sidebar-subitem" href="/config_ini"><i class="fas fa-edit fa-lg"></i>&nbsp;&nbsp;Edit
+                Settings</a>
+
+
+            <a class="sidebar-subitem" href="https://github.com/pxsocs/warden_terminal" target='new_page'
+                class="text-muted">
+                <i class="fas fa-question fa-lg"></i>&nbsp;&nbsp;&nbsp;&nbsp;Report Issue
+                <i class="fas fa-external-link-alt text-muted"></i>
+            </a>
+
+            <a class="sidebar-subitem text-muted" href="/show_log"><i class="fas fa-bug fa-lg"></i>&nbsp;&nbsp;Debug
+                Log</a>
+        </div>
+
+
+
+        <li class="text-center">
+            <div style='color: #DFE0E1; padding-left: 10px; padding-top: 40px;'>
+                <h6>Status</h6>
+                <span class=" btn btn-secondary btn-block" role="button" class="btn btn-light btn-sm">
+                    <span id="tor_span" data-html="true">
+                        <span class="loadanim small">Checking TOR</span>
+                    </span>
+                </span>
+
+            </div>
+        </li>
+
+        </ul>
+
+
+        </div>
+
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Main Content -->
+        <div id="page-content-wrapper">
+            <main role=" main">
+                <div style='padding-top: 0px; padding-bottom: 200px;'>
+
+
+                    <div class='row'>
+                        <div id='alertsection' class='col-12'>
+
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                            {% for category, message in messages %}
+                            <div id="messagealert" class="alert alert-{{ category }}">
+                                {{message}}
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                            {% endwith %}
+
+                        </div>
+                    </div>
+
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </main>
+        </div>
+
+
+        <!-- Footer -->
+        <footer class="site-footer bg-steel small fixed-bottom">
+
+            <div class="row text-white">
+                <div class="col-sm-4 text-left float-left">
+                    <i class="fab fa-github fa-lg text-white"></i>
+                    &nbsp;&nbsp;<a class='text-white' style="text-decoration : none"
+                        href='https://github.com/pxsocs/warden/'>
+                        Open Source code available at GitHub</a>
+                </div>
+
+                <div class="col-sm-4 text-center">
+                    <i class="fab fa-bitcoin fa-lg text-white"></i>
+                    Not Your Keys, Not Your Coins
+                    <i class="fab fa-bitcoin fa-lg text-white"></i>
+                    Si vis pacem, para bellum
+                    <i class="fab fa-bitcoin fa-lg text-white"></i>
+                </div>
+
+                <div class="col-sm-4 text-center float-right">
+                    <a class='text-white' style="text-decoration : none" href="https://twitter.com/alphaazeta"> <i
+                            class="fab fa-twitter fa-lg"></i>
+                        <span class="text-white">@AlphaaZeta&nbsp;</span></a>
+                </div>
+            </div>
+
+
+        </footer>
+
+        <!-- END OF WRAPPER -->
+
+
+
+    </body>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content" style="height: 1200px; margin-top: -200px; width:600px;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Contribute to the WARden</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="width: auto; height: auto; max-height: 100%;">
+                    <h6 class="text-info">New features will be added as we get sats</h6>
+                    <h6>This is a community based software. We believe Open Source is the future of development for
+                        bitcoin. There is no other way when transparency and privacy are critical.</h6>
+
+                    <iframe src="https://hexawallet.io/donate/?donationid=f2f801d86997e87" width="100%"
+                        style="height: 800px;" frameborder="0" style="border: 0px;"></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    {%block modals%}
+
+    {%endblock%}
+    <script src="{{url_for('static', filename='js/warden_layout.js')}}"></script>
+
+</html>
