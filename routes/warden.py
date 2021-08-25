@@ -12,10 +12,10 @@ warden = Blueprint('warden', __name__)
 def warden_page():
     first_time = pickle_it('load', 'first_time.pkl')
     if first_time == 'file not found':
+        pickle_it('save', 'first_time.pkl', False)
         return render_template("warden/welcome.html",
                                title="Welcome to the WARden")
     else:
-        pickle_it('save', 'first_time.pkl', False)
         return redirect(url_for("warden.dashboard"))
 
 
