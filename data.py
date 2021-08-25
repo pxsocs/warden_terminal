@@ -257,7 +257,7 @@ def data_large_block(use_cache=True):
                         clr_txt += '\nThis is a VERY slow block.\n120min blocks are expected to happen\nonly once every 3 years'
                     txt = f"\n\n Block mined {clr_txt}"
                     cached += txt
-
+                    pickle_it('save', 'data_large_block.pkl', return_fig)
             return (cached)
 
     from node_warden import load_config
@@ -271,8 +271,6 @@ def data_large_block(use_cache=True):
     return_fig = custom_fig.renderText(jformat(latest_block, 0))
     return_fig = yellow(return_fig)
     return_fig += muted("Block Height")
-
-    pickle_it('save', 'data_large_block.pkl', return_fig)
 
     if block_time is not None:
         if block_time != 'file not found':
