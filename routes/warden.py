@@ -15,7 +15,7 @@ def warden_page():
         return render_template("warden/welcome.html",
                                title="Welcome to the WARden")
     else:
-        # pickle_it('save', 'first_time.pkl', False)
+        pickle_it('save', 'first_time.pkl', False)
         return redirect(url_for("warden.dashboard"))
 
 
