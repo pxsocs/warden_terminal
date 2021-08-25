@@ -231,35 +231,6 @@ def data_large_price(price=None, change=None, chg_str=None, moscow_time=False):
 
 def data_large_block(use_cache=True):
     block_time = pickle_it('load', 'recent_block.pkl')
-
-    if use_cache is True:
-        cached = pickle_it('load', 'data_large_block.pkl')
-        if cached != 'file not found' and cached is not None:
-            if block_time is not None:
-                if block_time != 'file not found':
-                    minutes_ago = (datetime.now() -
-                                   datetime.fromtimestamp(block_time))
-                    minutes_ago = minutes_ago.seconds // 60 % 60
-                    # Source for these ranges:
-                    # https://www.reddit.com/r/btc/comments/6v5ee7/block_times_and_probabilities/
-                    clr_txt = ''
-                    if minutes_ago < 10:
-                        clr_txt = success(time_ago(block_time))
-                    elif (minutes_ago >= 10) and (minutes_ago <= 20):
-                        clr_txt = warning(time_ago(block_time))
-                    elif minutes_ago > 20:
-                        clr_txt = error(time_ago(block_time))
-                    elif minutes_ago > 50 and minutes_ago < 90:
-                        clr_txt += '\nThis is a slow block but expected to happen once a day'
-                    elif minutes_ago >= 90 and minutes_ago < 120:
-                        clr_txt += '\nThis is a slow block.\n90min blocks are expected to happen\nonly once every 2 months'
-                    elif minutes_ago >= 120:
-                        clr_txt += '\nThis is a VERY slow block.\n120min blocks are expected to happen\nonly once every 3 years'
-                    txt = f"\n\n Block mined {clr_txt}"
-                    cached += txt
-                    pickle_it('save', 'data_large_block.pkl', return_fig)
-            return (cached)
-
     from node_warden import load_config
     config = load_config(quiet=True)
     ft_config = config['MAIN']
