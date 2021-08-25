@@ -1,10 +1,8 @@
 import logging
-import pickle
+import sys
 import emoji
 import urwid
 import subprocess
-import ast
-import gc
 import os
 import configparser
 from contextlib import suppress
@@ -111,7 +109,6 @@ def main_dashboard(config, tor):
 
     def refresh_menu(layout):
         config = load_config()
-
         audio = config['MAIN']['sound']
         auto_scroll = config['MAIN'].getboolean('auto_scroll')
         multi = pickle_it('load', 'multi_toggle.pkl')
@@ -129,6 +126,7 @@ def main_dashboard(config, tor):
 
         lst_menu.append([f'(M) to toggle multi view [{multi_str}] |  '])
         lst_menu.append(['(Q) to quit'])
+
         if small_display is True:
             layout.footer = None
             return None
@@ -439,7 +437,7 @@ def main_dashboard(config, tor):
         try:
             data = translate_text_for_urwid(data_tor())
         except Exception:
-            pass
+            data = 'Error Updating Tor. Retrying...'
         tor_box.base_widget.set_text(data)
         main_loop.set_alarm_in(1, tor_updater)
 
@@ -503,6 +501,7 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(1, check_screen_size)
 
     def refresh(_loop, _data):
+        # pickle_it('save', 'current_display.pkl', main_loop.draw_screen())
         config = load_config()
         auto_scroll = config['MAIN'].getboolean('auto_scroll')
         if auto_scroll:

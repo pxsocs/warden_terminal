@@ -1,6 +1,7 @@
 from node_warden import pickle_it
 import os
 from pathlib import Path
+from datetime import datetime
 
 home_path = Path.home()
 # make directory to store all private data at /home/warden
@@ -41,34 +42,3 @@ class Config:
     # Do not start new job until the last one is done
     SCHEDULER_JOB_DEFAULTS = {'coalesce': False, 'max_instances': 1}
     SCHEDULER_API_ENABLED = True
-
-
-def node_finder():
-    # Will look for nodes in local network
-    # node_finder is the broacaster dict that
-    # is displayed in realtime
-    node_finder = {
-        'progress': 0,
-        'latest_message': '',
-        'success_messages': [],
-        'fail_messages': [],
-        'finished': False
-    }
-
-    pickle_it('save', 'node_finder.pkl', node_finder)
-
-    # --------------------------------------------
-    # Check Tor
-    # --------------------------------------------
-    from connections import test_tor
-    # Kick off Message
-    node_finder['latest_message'] = 'Checking Tor...'
-    pickle_it('save', 'node_finder.pkl', node_finder)
-    # Run the test...
-    tor = test_tor()
-    node_finder['latest_message'] = 'Finished Testing Tor'
-    if tor['status']:
-        node_finder['success_messages'].append('✅ Tor Connected')
-    else:
-        node_finder['fail_messages'].append('💥 Tor NOT Connected')
-    pickle_it('save', 'node_finder.pkl', node_finder)

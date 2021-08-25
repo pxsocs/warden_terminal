@@ -33,7 +33,7 @@ def data_tor(tor=None, use_cache=True):
     from node_warden import load_config
     config = load_config(quiet=True)
     if not tor:
-        tor = test_tor()
+        tor = pickle_it('load', 'tor.pkl')
 
     import socket
     try:
@@ -224,6 +224,7 @@ def data_large_price(price=None, change=None, chg_str=None, moscow_time=False):
         else:
             return_fig += (f"\n\n")
 
+    pickle_it('save', 'data_large_price.pkl', return_fig)
     return (return_fig)
 
 
@@ -294,6 +295,7 @@ def data_large_block(use_cache=True):
             txt = f"\n\n Block mined {clr_txt}"
             return_fig += txt
 
+    pickle_it('save', 'data_large_block.pkl', return_fig)
     return (return_fig)
 
 
@@ -321,6 +323,7 @@ def data_large_message(use_cache=True):
         return_fig = custom_fig.renderText(message)
 
     return_fig = yellow(return_fig)
+    pickle_it('save', 'data_large_message.pkl', return_fig)
     return (return_fig)
 
 
@@ -1000,6 +1003,7 @@ def data_umbrel(umbrel=True):
     umbrel_info = f"\n\t    \nUmbrel Node Running\nurl: {url} \nsynched: 100%"
     tabs = [[umbrel_logo, umbrel_info]]
     tabs = tabulate(tabs, colalign=["none", "right"], tablefmt="plain")
+    pickle_it('save', 'data_umbrel.pkl', tabs)
     return (tabs)
 
 
@@ -1173,6 +1177,7 @@ def data_btc_rpc_info(use_cache=True):
     if refresh is not None:
         return_str += f'\n\nLast Refresh: {success(time_ago(refresh))}'
 
+    pickle_it('save', 'data_rpc.pkl', return_str)
     return (return_str)
 
 
@@ -1208,6 +1213,8 @@ def data_sync():
 
     if raspiblitz is True:
         return_fig += success('Raspiblitz Node Running\n')
+
+    pickle_it('save', 'data_sync.pkl', return_fig)
 
     return (return_fig)
 
@@ -1247,6 +1254,7 @@ def data_services(use_cache=False):
     except Exception:
         pass
 
+    pickle_it('save', 'data_services.pkl', t)
     return (t)
 
 

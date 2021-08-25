@@ -48,82 +48,6 @@
             </a>
 
             <div class="rightfloater">
-
-
-                <div class="btn-group">
-                    <button type="button" class="btn btn-sm statusbox text-white">
-                        WARden Status
-                    </button>
-                    <button id="status" type="button"
-                        class="btn btn-sm statusbox text-white dropdown-toggle dropdown-toggle-split"
-                        data-toggle="dropdown">
-                    </button>
-                    <div class="dropdown-menu scrollable-menu dropdown-menu-right text-muted">
-                        <span>
-
-                            <!-- CHECK TOR -->
-                            {%if current_app.tor%}
-                            <a class="dropdown-item" href='/tor_services'>
-                                <i class="fas fa-check-square text-success"></i>&nbsp;
-                                Tor Running</a>
-                            {%else%}
-                            <a class="dropdown-item">
-                                <i class="fas fa-exclamation-triangle text-warning"></i>&nbsp;
-                                Tor Unavailable</a>
-                            {%endif%}
-
-                            <!-- Check Onion -->
-                            {%if current_app.tor_service_id%}
-                            <a class="dropdown-item" href='/tor_services'>
-                                <i class="fas fa-user-secret text-success"></i>&nbsp;
-                                Onion Server Running</a>
-                            {%endif%}
-
-
-
-                        </span>
-                    </div>
-                </div>
-
-
-
-                {%if current_app.tor%}
-                <span class="btn btn-sm statusbox text-white">
-                    <span id="btc_usd">
-                        <span class="loadanim small">loading</span>
-                    </span>&nbsp;$/₿
-                </span>
-
-                {%if current_app.fx['code'] != "USD"%}
-                <span class="btn btn-sm statusbox text-white">
-                    <span id="btc_fx">
-                        <span class="loadanim small">loading</span>
-                    </span>&nbsp;{{current_app.fx['symbol']}}/₿
-                </span>
-                <span class="btn btn-sm statusbox text-white">
-                    <span id="fx_rate">
-                        <span class="loadanim small">loading</span>
-                    </span>&nbsp;{{current_app.fx['symbol']}}/$
-                </span>
-                {%endif%}
-
-                <div class="btn-group">
-                    <button type="button" id='fiat_change' class="btn btn-sm statusbox text-white">
-                        All values in
-                        {{current_app.fx['name_plural'].title()}} ({{current_app.fx['symbol']}})
-                    </button>
-                    <button id="list_fx" type="button"
-                        class="btn btn-sm statusbox text-white dropdown-toggle dropdown-toggle-split"
-                        data-toggle="dropdown">
-                    </button>
-                    <div class="dropdown-menu scrollable-menu dropdown-menu-right">
-                        <span id='fx_sel'>
-                            <a class="dropdown-item">Loading....</a>
-                        </span>
-                    </div>
-                </div>
-
-                {%endif%}
             </div>
         </nav>
     </header>
@@ -135,62 +59,25 @@
         <div id="sidebar-wrapper">
             <ul class="sidebar-nav small">
 
-                <!-- TRANSACTIONS MENU + SUBMENUS -->
-                <li>
-                    <a data-toggle="collapse" href="#collapse_transactions" role="button" aria-expanded="true"
-                        aria-controls="collapse_transactions">
-                        <i class="fas fa-coins fa-lg"></i>
-                        &nbsp;&nbsp;&nbsp;&nbsp;Nodes
-                        <i class="fas fa-caret-down"></i></a>
-                </li>
+                <br>
+
                 <div class="collapse show" id="collapse_transactions"">
                     <div class=" list-group bg-transparent text-white">
                     <a class="sidebar-subitem" href="/"><i class="fas fa-table fa-lg"></i>&nbsp;&nbsp;Dashboard</a>
                 </div>
-        </div>
 
 
-        <li>
-            <a data-toggle="collapse" href="#collapse_settings" role="button" aria-expanded="true"
-                aria-controls="collapse_transactions">
-                <i class="fas fa-users-cog fa-lg"></i>
-                &nbsp;&nbsp;&nbsp;&nbsp;System
-                <i class="fas fa-caret-down"></i></a>
-        </li>
+                <br>
 
 
-        <div class="collapse show" id="collapse_settings"">
-                    <div class=" list-group bg-transparent text-white">
-
-            <a class="sidebar-subitem" href="/config_ini"><i class="fas fa-edit fa-lg"></i>&nbsp;&nbsp;Edit
-                Settings</a>
-
-
-            <a class="sidebar-subitem" href="https://github.com/pxsocs/warden_terminal" target='new_page'
-                class="text-muted">
-                <i class="fas fa-question fa-lg"></i>&nbsp;&nbsp;&nbsp;&nbsp;Report Issue
-                <i class="fas fa-external-link-alt text-muted"></i>
-            </a>
-
-            <a class="sidebar-subitem text-muted" href="/show_log"><i class="fas fa-bug fa-lg"></i>&nbsp;&nbsp;Debug
-                Log</a>
-        </div>
+                <a class="sidebar-subitem" href="https://github.com/pxsocs/warden_terminal" target='new_page'
+                    class="text-muted">
+                    <i class="fas fa-question fa-lg"></i>&nbsp;&nbsp;&nbsp;&nbsp;Report Issue
+                    <i class="fas fa-external-link-alt text-muted"></i>
+                </a>
 
 
-
-        <li class="text-center">
-            <div style='color: #DFE0E1; padding-left: 10px; padding-top: 40px;'>
-                <h6>Status</h6>
-                <span class=" btn btn-secondary btn-block" role="button" class="btn btn-light btn-sm">
-                    <span id="tor_span" data-html="true">
-                        <span class="loadanim small">Checking TOR</span>
-                    </span>
-                </span>
-
-            </div>
-        </li>
-
-        </ul>
+            </ul>
 
 
         </div>
@@ -238,11 +125,11 @@
                 </div>
 
                 <div class="col-sm-4 text-center">
-                    <i class="fab fa-bitcoin fa-lg text-white"></i>
+
                     Not Your Keys, Not Your Coins
-                    <i class="fab fa-bitcoin fa-lg text-white"></i>
+                    |
                     Si vis pacem, para bellum
-                    <i class="fab fa-bitcoin fa-lg text-white"></i>
+
                 </div>
 
                 <div class="col-sm-4 text-center float-right">

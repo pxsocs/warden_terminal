@@ -672,182 +672,6 @@ def check_raspiblitz():
         pickle_it('save', 'raspiblitz_detected.pkl', raspiblitz_detected)
 
 
-def check_umbrel():
-    # Let's check if running inside an Umbrel OS System
-    # This is done by trying to access the getumbrel/manager container
-    # and getting the environment variables inside that container
-    print("")
-    pickle_it('save', 'umbrel_detected.pkl', False)
-    with yaspin(text="Checking if running inside Umbrel OS Node",
-                color="green") as spinner:
-
-        try:
-            exec_command = [
-                'docker', 'exec', 'middleware', 'sh', '-c', '"export"'
-            ]
-            result = subprocess.run(exec_command,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
-            if result.returncode != 0:
-                raise KeyError
-            # Create a list split by ENTER
-            result = result.stdout.decode('utf-8').split('\n')
-
-            finder_list = [
-                'BITCOIN_HOST', 'RPC_PASSWORD', 'RPC_PORT', 'RPC_USER',
-                'HOSTNAME', 'DEVICE_HOSTS', 'PORT', 'LND_HOST', 'LND_NETWORK',
-                'YARN_VERSION'
-            ]
-            # Ex:
-            # declare -x BITCOIN_P2P_PORT="18444"
-            finder_dict = {}
-            for element in result:
-                if any(env_var in element for env_var in finder_list):
-                    elem_list = element.split('=', 1)
-                    try:
-                        elem_list[1] = elem_list[1].replace('"', '')
-                        elem_list[1] = elem_list[1].replace("'", "")
-                    except Exception:
-                        pass
-                    # Get the last item in the first string separated by space
-                    # like BITCOIN_P2P_PORT above
-                    value_item = elem_list[1]
-                    key_item = elem_list[0].split(' ')[-1]
-                    # Device hosts are usually split by commas:
-                    if key_item == 'DEVICE_HOSTS':
-                        value_item = value_item.split(',')
-                    finder_dict[key_item] = value_item
-            inside_umbrel = True
-            pickle_it('save', 'umbrel_dict.pkl', finder_dict)
-            spinner.ok("✅ ")
-            spinner.write(success("    Running Umbrel OS"))
-            logging.info("[Umbrel] Running Umbrel OS")
-            config = load_config(True)
-            if config['MAIN'].getboolean('output_to_monitor') is True:
-                spinner.write(
-                    success("    Switching Output to Umbrel Monitor..."))
-                try:
-                    tty = '/dev/tty1'
-                    redirect_tty(tty)
-                except Exception as e:
-                    logging.info(
-                        error(
-                            "[UMBREL] [IMPORTANT] Could not redirect output to the default monitor."
-                        ))
-                    logging.info(error(f"[UMBREL] [IMPORTANT] Error: {e}"))
-                    logging.info(
-                        error(f"[UMBREL] [IMPORTANT] Run at Terminal:"))
-                    logging.info(
-                        error(
-                            "[UMBREL] [IMPORTANT] $ sudo chmod 666 /dev/tty1"))
-                    logging.info(
-                        error(
-                            "[UMBREL] [IMPORTANT] to grant access and restart app."
-                        ))
-
-        except Exception:
-            inside_umbrel = False
-            spinner.fail("[i] ")
-            spinner.write(warning("     Umbrel OS not found"))
-
-        pickle_it('save', 'inside_umbrel.pkl', inside_umbrel)
-
-    #  Try to ping umbrel.local and check for installed apps
-    print("")
-    pickle_it('save', 'umbrel.pkl', inside_umbrel)
-    mempool = False
-    config = load_config(True)
-    config_file = os.path.join(basedir, 'config.ini')
-    try:
-        if inside_umbrel is True:
-            try:
-                for host in finder_dict['DEVICE_HOSTS']:
-                    if 'umbrel' in host:
-                        url = host
-                        break
-                url = finder_dict['DEVICE_HOSTS'][1]
-                # End URL in / if not there
-                if url[-1] != '/':
-                    url += '/'
-                    if 'http' not in url:
-                        url = 'http://' + url
-            except Exception:
-                url = config['UMBREL']['url']
-        else:
-            url = config['UMBREL']['url']
-    except Exception:
-        # As a last alternative, try the default
-        url = 'http://umbrel.local/'
-
-    with yaspin(text=f"Checking if Umbrel @ {url} is reachable",
-                color="green") as spinner:
-        # Test if this url can be reached
-        try:
-            result = tor_request(url)
-            if not isinstance(result, requests.models.Response):
-                raise Exception(f'Did not get a return from {url}')
-            if not result.ok:
-                raise Exception(f'Reached {url} but an error occured.')
-            spinner.ok("✅ ")
-            spinner.write(success(f"    Umbrel ☂️  found on {url}"))
-            inside_umbrel = True
-        except Exception as e:
-            spinner.fail("[i] ")
-            spinner.write(warning("     Umbrel not found:" + str(e)))
-
-    if inside_umbrel:
-        if 'onion' in url:
-            url_parsed = ['[Hidden Onion address]']
-        else:
-            url_parsed = url
-        logging.info(success(f"Umbrel running on {url_parsed}"))
-        pickle_it('save', 'umbrel.pkl', inside_umbrel)
-        with yaspin(text="Checking if Mempool.space app is installed",
-                    color="green") as spinner:
-            finder_dict = pickle_it('load', 'umbrel_dict.pkl')
-            try:
-                for host in finder_dict['DEVICE_HOSTS']:
-                    if 'umbrel' in host:
-                        url = host
-                        break
-                url = finder_dict['DEVICE_HOSTS'][1]
-                # End URL in / if not there
-                url += ':3006/'
-                if 'http' not in url:
-                    url = 'http://' + url
-            except Exception:
-                url = config['MEMPOOL']['url']
-
-            try:
-                result = tor_request(url)
-                if not isinstance(result, requests.models.Response):
-                    logging.error("[MEMPOOL] Could not connect to {url}")
-                    raise Exception(f'Did not get a return from {url}')
-                if not result.ok:
-                    logging.error("[MEMPOOL] Could not connect to {url}")
-                    raise Exception(
-                        'Reached Mempool app but an error occured.')
-
-                block_height = tor_request(url +
-                                           '/api/blocks/tip/height').json()
-                spinner.ok("✅ ")
-                spinner.write(
-                    success(
-                        f"    Mempool.space app found on {url}. Latest block is: {block_height}"
-                    ))
-                logging.info(f"[MEMPOOL] Connected at {url}")
-                mempool = True
-            except Exception as e:
-                logging.error("[MEMPOOL] Error {e}")
-                spinner.fail("[i] ")
-                spinner.write(warning("    " + str(e)))
-
-    if mempool:
-        config['MEMPOOL']['url'] = 'http://umbrel.local:3006/'
-        with open(config_file, 'w') as configfile:
-            config.write(configfile)
-
-
 def check_specter():
     # CURRENTLY ONLY WORKS WHERE NO AUTH IS NEEDED
     # DEFAULT FOR UMBREL FOR EXAMPLE
@@ -884,6 +708,28 @@ def check_os():
     os_info = {'uname': os.uname(), 'rpi': rasp_info}
     # Save for later
     pickle_it('save', 'os_info.pkl', os_info)
+
+
+def stout_to_file():
+    class Logger(object):
+        def __init__(self):
+            self.terminal = sys.stdout
+
+        def isatty(tty_var):
+            return True
+
+        def write(self, message):
+            with open("logfile.log", "a", encoding='utf-8') as self.log:
+                self.log.write(message)
+            self.terminal.write(message)
+
+        def flush(self):
+            #this flush method is needed for python 3 compatibility.
+            #this handles the flush command by doing nothing.
+            #you might want to specify some extra behavior here.
+            pass
+
+    sys.stdout = Logger()
 
 
 # Function to load and save data into pickles
@@ -1081,6 +927,7 @@ def main(quiet=None):
             quiet = False
 
     upgrade = True
+    pickle_it('save', 'webserver.pkl', "Starting WARden Web Interface...")
 
     if quiet is False or quiet is None:
         clear_screen()
@@ -1102,14 +949,6 @@ def main(quiet=None):
         check_version(upgrade)
         check_screen_size()
         check_cryptocompare()
-        # Find if a node is present
-        check_umbrel()
-        check_raspiblitz()
-        check_mynode()
-        check_nodetype()
-        check_specter()
-        check_os()
-        check_btc_rpc()
         login_tip()
         greetings()
 
@@ -1124,7 +963,8 @@ def main(quiet=None):
             "pre_proxy_ping": 'Restarting...',
             "difference": 'Restarting...',
             "status": True,
-            "port": 'Restarting...'
+            "port": 'Restarting...',
+            "last_refresh": None
         }
 
     # Execute all data calls and save results locally so the main
@@ -1165,11 +1005,17 @@ def main(quiet=None):
         scan_network()
         from rpc import pickle_rpc
         pickle_rpc()
+        test_tor()
 
     def sys_grabs():
         data_login(use_cache=False)
         data_sys(use_cache=False)
         data_logger(use_cache=False)
+
+    def run_once_at_startup():
+        # These methods don't need to run several times
+        from connections import check_umbrel
+        check_umbrel()
 
     # Kick off data upgrades as background jobs
     try:
@@ -1183,6 +1029,7 @@ def main(quiet=None):
     job_defaults = {'coalesce': False, 'max_instances': 1}
     scheduler = BackgroundScheduler(job_defaults=job_defaults)
     scheduler.add_job(create_app)
+    scheduler.add_job(run_once_at_startup)
     scheduler.add_job(price_grabs, 'interval', seconds=price_refresh)
     scheduler.add_job(node_web_grabs, 'interval', seconds=15)
     scheduler.add_job(sys_grabs, 'interval', seconds=1)
@@ -1213,5 +1060,6 @@ if __name__ == '__main__':
             ))
         logging.error(f"[ERROR] Could not connect to {tty}. Error {e}.")
 
+    pickle_it('save', 'tty.pkl')
     main()
     goodbye()
