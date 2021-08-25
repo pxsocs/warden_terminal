@@ -289,6 +289,7 @@ def main_dashboard(config, tor):
     except Exception:
         small_display = False
 
+    pickle_it('save', 'widget_list.pkl', widget_list)
     cycle = pickle_it('load', 'cycle.pkl')
 
     if not isinstance(cycle, int):
@@ -504,9 +505,9 @@ def main_dashboard(config, tor):
         # pickle_it('save', 'current_display.pkl', main_loop.draw_screen())
         config = load_config()
         auto_scroll = config['MAIN'].getboolean('auto_scroll')
+        cycle = pickle_it('load', 'cycle.pkl')
+        small_display = pickle_it('load', 'small_display.pkl')
         if auto_scroll:
-            cycle = pickle_it('load', 'cycle.pkl')
-            small_display = pickle_it('load', 'small_display.pkl')
             if small_display:
                 layout.body = widget_list[cycle]
                 cycle += 1
@@ -519,6 +520,19 @@ def main_dashboard(config, tor):
             small_display = pickle_it('load', 'small_display.pkl')
             if small_display:
                 layout.body = widget_list[cycle]
+
+        # Save this data locally so the web app can get it later
+        # Below we save the name of the widget being called
+        import inspect
+        for fi in reversed(inspect.stack()):
+            names = [
+                var_name for var_name, var_val in fi.frame.f_locals.items()
+                if var_val is widget_list[cycle]
+            ]
+            if len(names) > 0:
+                widget = names[0]
+
+        pickle_it('save', 'current_widget.pkl', widget)
 
         # Will wait 5 seconds per screen beforing cycling
         refresh_time = config['MAIN'].getint('refresh')

@@ -156,6 +156,7 @@ def data_large_price(price=None, change=None, chg_str=None, moscow_time=False):
         return_fig = yellow(custom_fig.renderText(jformat(moscow_price, 0)))
         return_fig += muted('\nSats per dollar\n')
         # return_fig += muted('Moscow Time')
+        pickle_it('save', 'data_moscow_time.pkl', return_fig)
         return (return_fig)
 
     return_fig = custom_fig.renderText('$  ' + jformat(btc_price, 0))
@@ -426,6 +427,7 @@ def data_specter(use_cache=True):
         return_fig += success(
             f'\n\nLast server connection: {time_ago(refresh_time)}')
 
+    pickle_it('save', 'data_specter.pkl', return_fig)
     return (return_fig)
 
 

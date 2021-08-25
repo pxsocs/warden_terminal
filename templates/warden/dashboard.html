@@ -3,7 +3,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col">
+        <div class="col-4">
             <div class="card border-dark mb-3" style="max-width: 18rem;">
 
                 {%if 'tor' in status%}
@@ -44,28 +44,32 @@
                                 <tr>
                                     <td class='text-left'>IP Address</td>
                                     <td class='text-right'>
-                                        {{status['tor']['pre_proxy']['ip'] | shorten(18, '[..]') | safe}}</td>
+                                        {{status['tor']['pre_proxy']['ip'] | shorten(18, '[..]') | safe | sensitive}}
+                                    </td>
                                 </tr>
 
                                 <tr>
                                     <td class='text-left'>Country</td>
                                     <td class='text-right'>
-                                        {{status['tor']['pre_proxy']['country'] | shorten(18, '[..]') | safe}}</td>
+                                        {{status['tor']['pre_proxy']['country'] | shorten(18, '[..]') | safe | sensitive}}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class='text-left'>Tor IP Address</td>
                                     <td class='text-right'>
-                                        {{status['tor']['post_proxy']['ip'] | shorten(18, '[..]') | safe}}</td>
+                                        {{status['tor']['post_proxy']['ip'] | shorten(18, '[..]') | safe | sensitive}}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class='text-left'>Port</td>
                                     <td class='text-right'>
-                                        {{status['tor']['port'] | shorten(18, '[..]') | safe}}</td>
+                                        {{status['tor']['port'] | shorten(18, '[..]') | safe | sensitive}}</td>
                                 </tr>
                                 <tr>
                                     <td class='text-left'>Country</td>
                                     <td class='text-right'>
-                                        {{status['tor']['post_proxy']['country'] | shorten(15, '[..]') | safe}}</td>
+                                        {{status['tor']['post_proxy']['country'] | shorten(15, '[..]') | safe | sensitive}}
+                                    </td>
                                 </tr>
 
                                 {%endif%}
@@ -79,9 +83,6 @@
 
             <div class="card border-dark mb-3" style="max-width: 18rem;">
                 <div class="card-header">Price Feeds
-                    <span class='float-right small'>
-
-                    </span>
 
                 </div>
                 <div class="card-body text-dark">
@@ -90,6 +91,7 @@
 
                         <table class="table table-striped≠ small">
                             <thead class="thead-dark">
+                                {%if 'DISPLAY' in status['multi_price']%}
                                 <tr>
                                     <td class='text-left'>Last Check</td>
                                     <td class='text-right'>{{status['last_price_refresh'] | time_ago}}</td>
@@ -111,6 +113,11 @@
                                         {{status['multi_price']['DISPLAY']['BTC']['USD']['LASTMARKET']}}
                                     </td>
                                 </tr>
+                                {%else%}
+                                <tr>
+                                    <td class='text-left text-warning'>Error getting price data</td>
+                                </tr>
+                                {%endif%}
                             </thead>
                         </table>
                     </span>
@@ -118,22 +125,21 @@
             </div>
 
         </div>
-    </div>
-</div>
 
-
-
-
-<div class="container">
-    <div class="row">
-        {%for element in status.items()%}
-        <div class="col">
-            {{element}}
+        <div class="col-8">
+            <h5>Terminal Output</h5>
+            <div id='terminal' style='height:650px;'>
+                <pre class=' codetext'> Loading... </pre>
+            </div>
         </div>
-        {%endfor%}
     </div>
 </div>
 
+
+
+
+
+<script src="{{url_for('static', filename='js/dashboard.js')}}"></script>
 
 
 {% endblock content %}

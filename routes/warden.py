@@ -59,12 +59,59 @@ def broadcast():
     return jsonify(broadcaster)
 
 
+@warden.route("/widget_broadcast", methods=['GET'])
+def widget_broadcast():
+    from node_warden import pickle_it
+    current_widget = pickle_it('load', 'current_widget.pkl')
+    if current_widget == 'multiwidget':
+        current_widget = 'large_price'
+
+    function_finder = {
+        "large_price": 'data_large_price',
+        'quote_box': 'data_btc_price',
+        'mp_box': 'data_mempool',
+        'tor_box': 'data_tor',
+        'logger_box': 'data_logger',
+        'satoshi_box': 'data_satoshi',
+        'sys_box': 'data_sys',
+        'large_block': 'data_large_block',
+        'large_message': 'data_large_message',
+        'moscow_time_block': 'data_moscow_time',
+        'services_box': 'data_services',
+        'webserver_box': 'webserver',
+        'sync_block': 'data_sync',
+        'rpc_box': 'data_rpc',
+        'specter_box': 'da_specter'
+    }
+
+    try:
+        broadcaster = pickle_it('load',
+                                function_finder[current_widget] + '.pkl')
+    except Exception as e:
+        broadcaster = f'{current_widget} Error : {e}'
+
+    from ansi_management import ansi_to_html
+    broadcaster = ansi_to_html(broadcaster)
+    return broadcaster
+
+
 # -------------------------------------------------
 #  START JINJA 2 Filters
 # -------------------------------------------------
 # Jinja2 filter to format time to a nice string
 # Formating function, takes self +
 # number of decimal places + a divisor
+
+
+@jinja2.contextfilter
+@warden.app_template_filter()
+def sensitive(context, txt):
+    from node_warden import load_config
+    config = load_config(quiet=True)
+    if config['MAIN'].getboolean('hide_private_info') is True:
+        return '[Hidden]'
+    else:
+        return txt
 
 
 @jinja2.contextfilter

@@ -122,14 +122,13 @@ def ansi_to_html(text):
     import re
 
     COLOR_DICT = {
-        '0': [(255, 0, 0), (128, 0, 0)],
-        '31': [(255, 0, 0), (128, 0, 0)],
-        '32': [(0, 255, 0), (0, 128, 0)],
-        '33': [(255, 255, 0), (128, 128, 0)],
+        '0': [(255, 255, 255), (240, 240, 240)],
+        '31': [(255, 255, 255), (220, 220, 220)],
+        '32': [(41, 254, 57), (41, 240, 57)],
+        '33': [(190, 190, 70), (190, 190, 90)],
         '34': [(0, 0, 255), (0, 0, 128)],
         '35': [(255, 0, 255), (128, 0, 128)],
-        '36': [(0, 255, 255), (0, 128, 128)],
-        '37': [(0, 255, 255), (0, 128, 128)]
+        '36': [(255, 255, 255), (240, 240, 240)]
     }
 
     COLOR_REGEX = re.compile(
@@ -138,8 +137,10 @@ def ansi_to_html(text):
     BOLD_TEMPLATE = '<span style="color: rgb{}; font-weight: bolder">'
     LIGHT_TEMPLATE = '<span style="color: rgb{}">'
 
+    if '\n' in text:
+        text = text[1:]
+        text = text.replace('\n', '<br>')
     text = "<pre class='codetext'>" + text + '</pre>'
-    text = text.replace('\n', '<br>')
     text = text.replace('[m', '</span>')
 
     def single_sub(match):
