@@ -825,28 +825,32 @@ def create_app():
     # TOR Server through Onion Address --
     # USE WITH CAUTION - ONION ADDRESSES CAN BE EXPOSED!
     # WARden needs to implement authentication (coming soon)
-    if conf['SERVER'].getboolean('onion_server'):
-        from stem.control import Controller
-        from urllib.parse import urlparse
-        app.tor_port = conf['SERVER'].getint('onion_port')
-        app.port = conf['SERVER'].getint('port')
-        from config import home_path
-        toraddr_file = os.path.join(home_path, "onion.txt")
-        app.save_tor_address_to = toraddr_file
-        proxy_url = "socks5h://localhost:9050"
-        tor_control_port = ""
-        try:
-            tor_control_address = urlparse(proxy_url).netloc.split(":")[0]
-            if tor_control_address == "localhost":
-                tor_control_address = "127.0.0.1"
-            app.controller = Controller.from_port(
-                address=tor_control_address,
-                port=int(tor_control_port) if tor_control_port else "default",
-            )
-        except Exception:
-            app.controller = None
-        from tor import start_hidden_service
-        start_hidden_service(app)
+    try:
+        if conf['SERVER'].getboolean('onion_server'):
+            from stem.control import Controller
+            from urllib.parse import urlparse
+            app.tor_port = conf['SERVER'].getint('onion_port')
+            app.port = conf['SERVER'].getint('port')
+            from config import home_path
+            toraddr_file = os.path.join(home_path, "onion.txt")
+            app.save_tor_address_to = toraddr_file
+            proxy_url = "socks5h://localhost:9050"
+            tor_control_port = ""
+            try:
+                tor_control_address = urlparse(proxy_url).netloc.split(":")[0]
+                if tor_control_address == "localhost":
+                    tor_control_address = "127.0.0.1"
+                app.controller = Controller.from_port(
+                    address=tor_control_address,
+                    port=int(tor_control_port)
+                    if tor_control_port else "default",
+                )
+            except Exception:
+                app.controller = None
+            from tor import start_hidden_service
+            start_hidden_service(app)
+    except Exception:
+        pass
 
     # START BLUEPRINTS
     from routes.warden import warden

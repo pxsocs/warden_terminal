@@ -41,76 +41,59 @@
 
     <!-- END JavaScript Loaders -->
 
-    <header>
-        <nav class="navbar navbar-dark bg-steel navbar-expand-lg navbar-font justify-content-end">
-            <a class="navbar-brand" href="/"> <img src="{{url_for('static', filename='images/logo_flat.png')}}"
-                    width="180" height="40" alt="Home">
-            </a>
 
-            <div class="rightfloater">
-            </div>
+
+
+    <header>
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-steel">
+
+            <ul class="nav justify-content-end">
+                <a style='padding-left: 20px;' class="navbar-brand" href="/">
+                    <img src="{{url_for('static', filename='images/logo_flat.png')}}" alt="WARden" width="180"
+                        height="40">
+                </a>
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Dashboard</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="https://github.com/pxsocs/warden_terminal">Report an Issue</a>
+                </li>
+            </ul>
+
         </nav>
     </header>
 
 
     <body>
 
-        <!-- Sidebar -->
-        <div id="sidebar-wrapper">
-            <ul class="sidebar-nav small">
-
-                <br>
-
-                <div class="collapse show" id="collapse_transactions"">
-                    <div class=" list-group bg-transparent text-white">
-                    <a class="sidebar-subitem" href="/"><i class="fas fa-table fa-lg"></i>&nbsp;&nbsp;Dashboard</a>
-                </div>
-
-
-                <br>
-
-
-                <a class="sidebar-subitem" href="https://github.com/pxsocs/warden_terminal" target='new_page'
-                    class="text-muted">
-                    <i class="fas fa-question fa-lg"></i>&nbsp;&nbsp;&nbsp;&nbsp;Report Issue
-                    <i class="fas fa-external-link-alt text-muted"></i>
-                </a>
-
-
-            </ul>
-
-
-        </div>
-
-        <!-- /#sidebar-wrapper -->
-
         <!-- Main Content -->
-        <div id="page-content-wrapper">
-            <main role=" main">
-                <div style='padding-top: 0px; padding-bottom: 200px;'>
+
+        <main role=" main">
 
 
-                    <div class='row'>
-                        <div id='alertsection' class='col-12'>
+            <div class=' row' style='padding-top:20px;'>
+                <div id='alertsection' class='col-12'>
 
-                            {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                            {% for category, message in messages %}
-                            <div id="messagealert" class="alert alert-{{ category }}">
-                                {{message}}
-                            </div>
-                            {% endfor %}
-                            {% endif %}
-                            {% endwith %}
-
-                        </div>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div id="messagealert" class="alert alert-{{ category }}">
+                        {{message}}
                     </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
 
-                    {% block content %}
-                    {% endblock %}
                 </div>
-            </main>
-        </div>
+            </div>
+
+            {% block content %}
+            {% endblock %}
+            </div>
+        </main>
+
 
 
         <!-- Footer -->
