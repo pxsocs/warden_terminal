@@ -116,3 +116,52 @@ def cleanfloat(text):  # Function to clean CSV fields - leave only digits and .
             str = str + char
     str = float(str)
     return (str)
+
+
+def ansi_to_html(text):
+    import re
+
+    COLOR_DICT = {
+        '0': [(255, 255, 255), (240, 240, 240)],
+        '31': [(255, 255, 255), (220, 220, 220)],
+        '32': [(41, 254, 57), (41, 240, 57)],
+        '33': [(190, 190, 70), (190, 190, 90)],
+        '34': [(0, 0, 255), (0, 0, 128)],
+        '35': [(255, 0, 255), (128, 0, 128)],
+        '36': [(255, 255, 255), (240, 240, 240)]
+    }
+
+    COLOR_REGEX = re.compile(
+        r'\[(?P<arg_1>\d+)(;(?P<arg_2>\d+)(;(?P<arg_3>\d+))?)?m')
+
+    BOLD_TEMPLATE = '<span style="color: rgb{}; font-weight: bolder">'
+    LIGHT_TEMPLATE = '<span style="color: rgb{}">'
+
+    if '\n' in text:
+        text = text[1:]
+        text = text.replace('\n', '<br>')
+    text = "<pre class='codetext'>" + text + '</pre>'
+    text = text.replace('[m', '</span>')
+
+    def single_sub(match):
+        argsdict = match.groupdict()
+        if argsdict['arg_3'] is None:
+            if argsdict['arg_2'] is None:
+                color, bold = argsdict['arg_1'], 0
+            else:
+                color, bold = argsdict['arg_1'], int(argsdict['arg_2'])
+        else:
+            color, bold = argsdict['arg_2'], int(argsdict['arg_3'])
+
+        if bold:
+            try:
+                return BOLD_TEMPLATE.format(COLOR_DICT[color][1])
+            except KeyError:
+                return BOLD_TEMPLATE.format(COLOR_DICT['0'][1])
+
+        try:
+            return LIGHT_TEMPLATE.format(COLOR_DICT[color][0])
+        except KeyError:
+            return LIGHT_TEMPLATE.format(COLOR_DICT['0'][0])
+
+    return COLOR_REGEX.sub(single_sub, text)

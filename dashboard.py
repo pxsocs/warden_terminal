@@ -1,10 +1,8 @@
 import logging
-import pickle
+import sys
 import emoji
 import urwid
 import subprocess
-import ast
-import gc
 import os
 import configparser
 from contextlib import suppress
@@ -111,7 +109,6 @@ def main_dashboard(config, tor):
 
     def refresh_menu(layout):
         config = load_config()
-
         audio = config['MAIN']['sound']
         auto_scroll = config['MAIN'].getboolean('auto_scroll')
         multi = pickle_it('load', 'multi_toggle.pkl')
@@ -129,6 +126,7 @@ def main_dashboard(config, tor):
 
         lst_menu.append([f'(M) to toggle multi view [{multi_str}] |  '])
         lst_menu.append(['(Q) to quit'])
+
         if small_display is True:
             layout.footer = None
             return None
@@ -230,6 +228,9 @@ def main_dashboard(config, tor):
     # Create the Satoshi Quotes Box
     satoshi_box = Box(loader_text='Loading Satoshi Wisdom...').line_box
 
+    # Create the Web Server Info Box
+    webserver_box = Box(loader_text='Loading Web Server Status...').line_box
+
     # Assemble the widgets
     header = 'Loading...'
 
@@ -267,7 +268,8 @@ def main_dashboard(config, tor):
 
     widget_list = [
         large_price, quote_box, mp_box, tor_box, logger_box, satoshi_box,
-        sys_box, large_block, large_message, moscow_time_block, services_box
+        sys_box, large_block, large_message, moscow_time_block, services_box,
+        webserver_box
     ]
 
     if rpc_running is True:
@@ -287,6 +289,7 @@ def main_dashboard(config, tor):
     except Exception:
         small_display = False
 
+    pickle_it('save', 'widget_list.pkl', widget_list)
     cycle = pickle_it('load', 'cycle.pkl')
 
     if not isinstance(cycle, int):
@@ -383,6 +386,12 @@ def main_dashboard(config, tor):
 
         main_loop.set_alarm_in(1, check_for_pump)
 
+    def webserver_info(_loop, _data):
+        web_data = pickle_it('load', 'webserver.pkl')
+        webserver_txt = translate_text_for_urwid(web_data)
+        webserver_box.base_widget.set_text(webserver_txt)
+        main_loop.set_alarm_in(10, webserver_info)
+
     def get_quote(_loop, _data):
         quote = translate_text_for_urwid(data_random_satoshi())
         satoshi_box.base_widget.set_text(quote)
@@ -429,7 +438,7 @@ def main_dashboard(config, tor):
         try:
             data = translate_text_for_urwid(data_tor())
         except Exception:
-            pass
+            data = 'Error Updating Tor. Retrying...'
         tor_box.base_widget.set_text(data)
         main_loop.set_alarm_in(1, tor_updater)
 
@@ -493,11 +502,12 @@ def main_dashboard(config, tor):
         main_loop.set_alarm_in(1, check_screen_size)
 
     def refresh(_loop, _data):
+        # pickle_it('save', 'current_display.pkl', main_loop.draw_screen())
         config = load_config()
         auto_scroll = config['MAIN'].getboolean('auto_scroll')
+        cycle = pickle_it('load', 'cycle.pkl')
+        small_display = pickle_it('load', 'small_display.pkl')
         if auto_scroll:
-            cycle = pickle_it('load', 'cycle.pkl')
-            small_display = pickle_it('load', 'small_display.pkl')
             if small_display:
                 layout.body = widget_list[cycle]
                 cycle += 1
@@ -510,6 +520,19 @@ def main_dashboard(config, tor):
             small_display = pickle_it('load', 'small_display.pkl')
             if small_display:
                 layout.body = widget_list[cycle]
+
+        # Save this data locally so the web app can get it later
+        # Below we save the name of the widget being called
+        import inspect
+        for fi in reversed(inspect.stack()):
+            names = [
+                var_name for var_name, var_val in fi.frame.f_locals.items()
+                if var_val is widget_list[cycle]
+            ]
+            if len(names) > 0:
+                widget = names[0]
+
+        pickle_it('save', 'current_widget.pkl', widget)
 
         # Will wait 5 seconds per screen beforing cycling
         refresh_time = config['MAIN'].getint('refresh')
@@ -531,4 +554,5 @@ def main_dashboard(config, tor):
     main_loop.set_alarm_in(0, get_quote)
     main_loop.set_alarm_in(0, check_screen_size)
     main_loop.set_alarm_in(0, services_updater)
+    main_loop.set_alarm_in(0, webserver_info)
     main_loop.run()

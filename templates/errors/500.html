@@ -1,0 +1,47 @@
+{% extends "warden/warden_layout.html" %}
+{% block content %}
+
+
+<div class="row">
+    <div class="col-sm-2">
+
+        <i class="fas fa-capsules fa-4x"></i>
+
+    </div>
+
+    <div class="col-sm-8">
+        <h1>
+            {{error}}
+        </h1>
+        <hr>
+
+        <h4>
+            Seems like there is a bug in the Matrix. </h4>
+        <h5>Did you take your red pills today?
+        </h5> </br>
+
+        <blockquote class="blockquote">
+            <p class="mb-0">You take the blue pill: the story ends, you wake up in your bed and believe whatever you
+                want to believe.</p>
+            <p> You take the red pill: you stay in Wonderland, and I show you how deep the rabbit
+                hole goes. </p>
+            <p>Remember: all I'm offering is the truth. Nothing more.</p>
+            <footer class="blockquote-footer">Morpheus</footer>
+        </blockquote>
+        <br>
+        <span class='lead'>
+            Please report this error at the <a href='https://github.com/pxsocs/warden/issues'>Github repository
+                issues page</a>.
+            <br>
+
+            <div class='content-section'>
+                Traceback Information:
+                <hr>
+                <pre><code>{{ traceback }}</code></pre>
+            </div>
+        </span>
+    </div>
+
+</div>
+
+{% endblock content %}

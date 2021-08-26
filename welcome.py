@@ -68,6 +68,8 @@ def goodbye():
 
     print("")
     print(fg.boldyellow("    [i] Shutting down. Please wait..... "))
+    print(
+        fg.boldyellow("    [i] If this takes too long, you can press CTRL+C"))
     print("")
 
 

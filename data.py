@@ -33,7 +33,7 @@ def data_tor(tor=None, use_cache=True):
     from node_warden import load_config
     config = load_config(quiet=True)
     if not tor:
-        tor = test_tor()
+        tor = pickle_it('load', 'tor.pkl')
 
     import socket
     try:
@@ -156,6 +156,7 @@ def data_large_price(price=None, change=None, chg_str=None, moscow_time=False):
         return_fig = yellow(custom_fig.renderText(jformat(moscow_price, 0)))
         return_fig += muted('\nSats per dollar\n')
         # return_fig += muted('Moscow Time')
+        pickle_it('save', 'data_moscow_time.pkl', return_fig)
         return (return_fig)
 
     return_fig = custom_fig.renderText('$  ' + jformat(btc_price, 0))
@@ -224,40 +225,12 @@ def data_large_price(price=None, change=None, chg_str=None, moscow_time=False):
         else:
             return_fig += (f"\n\n")
 
+    pickle_it('save', 'data_large_price.pkl', return_fig)
     return (return_fig)
 
 
 def data_large_block(use_cache=True):
     block_time = pickle_it('load', 'recent_block.pkl')
-
-    if use_cache is True:
-        cached = pickle_it('load', 'data_large_block.pkl')
-        if cached != 'file not found' and cached is not None:
-            if block_time is not None:
-                if block_time != 'file not found':
-                    minutes_ago = (datetime.now() -
-                                   datetime.fromtimestamp(block_time))
-                    minutes_ago = minutes_ago.seconds // 60 % 60
-                    # Source for these ranges:
-                    # https://www.reddit.com/r/btc/comments/6v5ee7/block_times_and_probabilities/
-                    clr_txt = ''
-                    if minutes_ago < 10:
-                        clr_txt = success(time_ago(block_time))
-                    elif (minutes_ago >= 10) and (minutes_ago <= 20):
-                        clr_txt = warning(time_ago(block_time))
-                    elif minutes_ago > 20:
-                        clr_txt = error(time_ago(block_time))
-                    elif minutes_ago > 50 and minutes_ago < 90:
-                        clr_txt += '\nThis is a slow block but expected to happen once a day'
-                    elif minutes_ago >= 90 and minutes_ago < 120:
-                        clr_txt += '\nThis is a slow block.\n90min blocks are expected to happen\nonly once every 2 months'
-                    elif minutes_ago >= 120:
-                        clr_txt += '\nThis is a VERY slow block.\n120min blocks are expected to happen\nonly once every 3 years'
-                    txt = f"\n\n Block mined {clr_txt}"
-                    cached += txt
-
-            return (cached)
-
     from node_warden import load_config
     config = load_config(quiet=True)
     ft_config = config['MAIN']
@@ -269,8 +242,6 @@ def data_large_block(use_cache=True):
     return_fig = custom_fig.renderText(jformat(latest_block, 0))
     return_fig = yellow(return_fig)
     return_fig += muted("Block Height")
-
-    pickle_it('save', 'data_large_block.pkl', return_fig)
 
     if block_time is not None:
         if block_time != 'file not found':
@@ -294,6 +265,7 @@ def data_large_block(use_cache=True):
             txt = f"\n\n Block mined {clr_txt}"
             return_fig += txt
 
+    pickle_it('save', 'data_large_block.pkl', return_fig)
     return (return_fig)
 
 
@@ -321,6 +293,7 @@ def data_large_message(use_cache=True):
         return_fig = custom_fig.renderText(message)
 
     return_fig = yellow(return_fig)
+    pickle_it('save', 'data_large_message.pkl', return_fig)
     return (return_fig)
 
 
@@ -423,6 +396,7 @@ def data_specter(use_cache=True):
         return_fig += success(
             f'\n\nLast server connection: {time_ago(refresh_time)}')
 
+    pickle_it('save', 'data_specter.pkl', return_fig)
     return (return_fig)
 
 
@@ -1000,6 +974,7 @@ def data_umbrel(umbrel=True):
     umbrel_info = f"\n\t    \nUmbrel Node Running\nurl: {url} \nsynched: 100%"
     tabs = [[umbrel_logo, umbrel_info]]
     tabs = tabulate(tabs, colalign=["none", "right"], tablefmt="plain")
+    pickle_it('save', 'data_umbrel.pkl', tabs)
     return (tabs)
 
 
@@ -1173,6 +1148,7 @@ def data_btc_rpc_info(use_cache=True):
     if refresh is not None:
         return_str += f'\n\nLast Refresh: {success(time_ago(refresh))}'
 
+    pickle_it('save', 'data_rpc.pkl', return_str)
     return (return_str)
 
 
@@ -1208,6 +1184,8 @@ def data_sync():
 
     if raspiblitz is True:
         return_fig += success('Raspiblitz Node Running\n')
+
+    pickle_it('save', 'data_sync.pkl', return_fig)
 
     return (return_fig)
 
@@ -1247,6 +1225,7 @@ def data_services(use_cache=False):
     except Exception:
         pass
 
+    pickle_it('save', 'data_services.pkl', t)
     return (t)
 
 

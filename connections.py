@@ -1,4 +1,5 @@
 import requests
+import subprocess
 import socket
 from time import time
 from datetime import datetime
@@ -13,6 +14,7 @@ def get_local_ip():
 
 
 def test_tor():
+    from node_warden import pickle_it
     response = {}
     session = requests.session()
     try:
@@ -50,8 +52,10 @@ def test_tor():
                     "pre_proxy_ping": "{0:.2f} seconds".format(pre_proxy_ping),
                     "difference": "{0:.2f}".format(post_proxy_ratio),
                     "status": True,
-                    "port": PORT
+                    "port": PORT,
+                    "last_refresh": datetime.now()
                 }
+                pickle_it('save', 'tor.pkl', response)
                 return response
         except Exception as e:
             failed = True
@@ -68,8 +72,11 @@ def test_tor():
         "pre_proxy_ping": pre_proxy_ping,
         "difference": "-",
         "status": False,
-        "port": "failed"
+        "port": "failed",
+        "last_refresh": None,
     }
+
+    pickle_it('save', 'tor.pkl', response)
     return response
 
 
@@ -222,3 +229,50 @@ def is_service_running(service):
     #  [(('umbrel.local', '192.168.1.124'), (3002, 'Bitcoin RPC Explorer')),
     #   (('umbrel.local', '192.168.1.124'), (3006, 'Mempool.space Explorer'))])
     return (found, meta)
+
+
+def check_umbrel():
+    # Let's check if running inside an Umbrel OS System
+    # This is done by trying to access the getumbrel/manager container
+    # and getting the environment variables inside that container
+    try:
+        exec_command = ['docker', 'exec', 'middleware', 'sh', '-c', '"export"']
+        result = subprocess.run(exec_command,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        if result.returncode != 0:
+            raise KeyError
+        # Create a list split by ENTER
+        result = result.stdout.decode('utf-8').split('\n')
+
+        finder_list = [
+            'BITCOIN_HOST', 'RPC_PASSWORD', 'RPC_PORT', 'RPC_USER', 'HOSTNAME',
+            'DEVICE_HOSTS', 'PORT', 'LND_HOST', 'LND_NETWORK', 'YARN_VERSION'
+        ]
+        # Ex:
+        # declare -x BITCOIN_P2P_PORT="18444"
+        finder_dict = {}
+        for element in result:
+            if any(env_var in element for env_var in finder_list):
+                elem_list = element.split('=', 1)
+                try:
+                    elem_list[1] = elem_list[1].replace('"', '')
+                    elem_list[1] = elem_list[1].replace("'", "")
+                except Exception:
+                    pass
+                # Get the last item in the first string separated by space
+                # like BITCOIN_P2P_PORT above
+                value_item = elem_list[1]
+                key_item = elem_list[0].split(' ')[-1]
+                # Device hosts are usually split by commas:
+                if key_item == 'DEVICE_HOSTS':
+                    value_item = value_item.split(',')
+                finder_dict[key_item] = value_item
+        pickle_it('save', 'umbrel_detected.pkl', True)
+        pickle_it('save', 'umbrel_dict.pkl', finder_dict)
+        return ("success")
+
+    except Exception as e:
+        pickle_it('save', 'umbrel_detected.pkl', False)
+        pickle_it('save', 'umbrel_dict.pkl', None)
+        return (f"Error: {str(e)}")

@@ -1,0 +1,37 @@
+<link rel="stylesheet" href="{{url_for('static', filename='css/welcome.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='dependencies/font-awesome/css/all.css')}}">
+
+<title>The WARDen | Welcome</title>
+<link rel="icon" href="{{url_for('static', filename='images/favicon-bitcoin.ico')}}" class="invert">
+
+<div id="container">
+    <section class="showcase" class='slide_div_out'>
+        <div class="video-container">
+            <video src="{{url_for('static', filename='videos/EarthMoonZoom.mov')}}" autoplay muted></video>
+        </div>
+        <div class="content">
+            <h1>Welcome to the WARden</h1>
+            <h2>Personal Node Monitor</h2>
+            <h4 style='color: rgb(224, 224, 224);'>Open Source | Private | Sovereign</h4>
+            <a href="/dashboard" class="btn">Get Started</a>
+        </div>
+    </section>
+</div>
+
+<section id="about">
+
+    <h2>Open Source</h2>
+    <p style='color:darkgray;'>
+        This is an Open Source project</br></br>
+        We believe Open Source is the future of development for bitcoin. There is no other way when transparency and
+        privacy are critical.</br></br>
+        <code style='color: darkgreen;'>The code is not compiled so it's easy to audit</code>
+        </br>
+        </br>
+        <a href='https://github.com/pxsocs/warden_terminal'>
+            <i class="fab fa-github"></i>
+            Check out the GitHub Page</a>
+    </p>
+
+
+</section>

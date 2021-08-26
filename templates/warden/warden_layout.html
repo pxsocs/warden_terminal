@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="icon" href="{{url_for('static', filename='images/favicon-bitcoin.ico')}}" class="invert">
+
+<head>
+    <!-- Style Sheets -->
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='dependencies/bootstrap/css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='dependencies/font-awesome/css/all.css')}}">
+    <!-- JQuery UI -->
+    <link rel="stylesheet" href="{{url_for('static', filename='dependencies/jquery/themes/flicker.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/warden_main.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/warden_layout.css')}}">
+
+    <!-- End Style Sheets -->
+
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% if title %}
+    <title>The WARden | {{ title }}</title>
+    {% else %}
+    <title>The WARden</title>
+    {% endif %}
+</head>
+
+<body>
+    <!-- JavaScript Loaders -->
+    <!-- JQuery -->
+    <script src="{{url_for('static', filename='dependencies/jquery/jquery-3.4.1.js')}}"></script>
+    <!-- Popper -->
+    <script src="{{url_for('static', filename='dependencies/popper/popper.js')}}">
+    </script>
+    <script src="{{url_for('static', filename='dependencies/popper/tooltip.js')}}">
+    </script>
+    <!-- Bootstrap -->
+    <script src="{{url_for('static', filename='dependencies/jquery-ui/jquery-ui.js')}}"></script>
+    <script src="{{url_for('static', filename='dependencies/bootstrap/js/bootstrap.js')}}"></script>
+
+    <!-- END JavaScript Loaders -->
+
+    <header>
+        <nav class="navbar navbar-dark bg-steel navbar-expand-lg navbar-font justify-content-end">
+            <a class="navbar-brand" href="/"> <img src="{{url_for('static', filename='images/logo_flat.png')}}"
+                    width="180" height="40" alt="Home">
+            </a>
+
+            <div class="rightfloater">
+            </div>
+        </nav>
+    </header>
+
+
+    <body>
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav small">
+
+                <br>
+
+                <div class="collapse show" id="collapse_transactions"">
+                    <div class=" list-group bg-transparent text-white">
+                    <a class="sidebar-subitem" href="/"><i class="fas fa-table fa-lg"></i>&nbsp;&nbsp;Dashboard</a>
+                </div>
+
+
+                <br>
+
+
+                <a class="sidebar-subitem" href="https://github.com/pxsocs/warden_terminal" target='new_page'
+                    class="text-muted">
+                    <i class="fas fa-question fa-lg"></i>&nbsp;&nbsp;&nbsp;&nbsp;Report Issue
+                    <i class="fas fa-external-link-alt text-muted"></i>
+                </a>
+
+
+            </ul>
+
+
+        </div>
+
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Main Content -->
+        <div id="page-content-wrapper">
+            <main role=" main">
+                <div style='padding-top: 0px; padding-bottom: 200px;'>
+
+
+                    <div class='row'>
+                        <div id='alertsection' class='col-12'>
+
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                            {% for category, message in messages %}
+                            <div id="messagealert" class="alert alert-{{ category }}">
+                                {{message}}
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                            {% endwith %}
+
+                        </div>
+                    </div>
+
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </main>
+        </div>
+
+
+        <!-- Footer -->
+        <footer class="site-footer bg-steel small fixed-bottom">
+
+            <div class="row text-white">
+                <div class="col-sm-4 text-left float-left">
+                    <i class="fab fa-github fa-lg text-white"></i>
+                    &nbsp;&nbsp;<a class='text-white' style="text-decoration : none"
+                        href='https://github.com/pxsocs/warden/'>
+                        Open Source code available at GitHub</a>
+                </div>
+
+                <div class="col-sm-4 text-center">
+
+                    Not Your Keys, Not Your Coins
+                    |
+                    Si vis pacem, para bellum
+
+                </div>
+
+                <div class="col-sm-4 text-center float-right">
+                    <a class='text-white' style="text-decoration : none" href="https://twitter.com/alphaazeta"> <i
+                            class="fab fa-twitter fa-lg"></i>
+                        <span class="text-white">@AlphaaZeta&nbsp;</span></a>
+                </div>
+            </div>
+
+
+        </footer>
+
+        <!-- END OF WRAPPER -->
+
+
+
+    </body>
+
+
+    </div>
+
+
+    {%block modals%}
+
+    {%endblock%}
+    <script src="{{url_for('static', filename='js/warden_layout.js')}}"></script>
+
+</html>
