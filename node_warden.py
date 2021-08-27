@@ -79,7 +79,7 @@ def launch_logger():
         # Config of Logging
         if "debug" in sys.argv:
             level = logging.DEBUG
-            formatter = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+            formatter = "[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s"
         else:
             level = logging.INFO
             formatter = "[%(asctime)s] %(message)s"
@@ -239,9 +239,8 @@ def check_cryptocompare():
                 baseURL = (
                     "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
                     + "&tsyms=USD&api_key=" + api_key)
-                request = tor_request(baseURL)
-                data = request.json()
-                data = request.json()
+                req = requests.get(baseURL)
+                data = req.json()
                 btc_price = (data['DISPLAY']['BTC']['USD']['PRICE'])
                 spinner.text = (success(f"BTC price is: {btc_price}"))
                 spinner.ok("✅ ")
@@ -251,6 +250,7 @@ def check_cryptocompare():
                 data = {'Response': 'Error', 'Message': 'No API Key is set'}
         except Exception as e:
             data = {'Response': 'Error', 'Message': str(e)}
+            logging.error(data)
 
         try:
             if data['Response'] == 'Error':
@@ -280,7 +280,7 @@ def check_cryptocompare():
                         try:
                             data = None
                             logging.debug(f"Trying API Key {legacy_key}")
-                            request = tor_request(baseURL)
+                            request = requests.get(baseURL)
                             data = request.json()
                             btc_price = (
                                 data['DISPLAY']['BTC']['USD']['PRICE'])
@@ -797,8 +797,12 @@ def store_local_ip():
 
 
 def create_app():
+    import logging
+
+    logging.debug("Launching Flask App")
     info_pickle = ''
     conf = load_config(quiet=True)
+    logging.debug("Launching Flask App - config loaded")
     # Check for debug or reloader on sys args
     debug = False
     reloader = False
@@ -806,10 +810,6 @@ def create_app():
         info_pickle += ("\n")
         info_pickle += (yellow(" [i] DEBUG MODE: ON\n"))
         debug = True
-    if "reloader" in sys.argv:
-        info_pickle += ("\n")
-        info_pickle += (yellow(" [i] RELOAD MODE: ON\n"))
-        reloader = True
 
     # Create App
     from config import Config
@@ -826,6 +826,7 @@ def create_app():
     from flask import Flask
     app = Flask(__name__)
     app.config.from_object(Config)
+    logging.debug("Launching Flask app - App created")
 
     # Get Version
     try:
@@ -837,9 +838,25 @@ def create_app():
     with app.app_context():
         app.version = current_version
 
+    logging.debug(f"Launching Flask App - version loaded {current_version}")
+
     # TOR Server through Onion Address --
     # USE WITH CAUTION - ONION ADDRESSES CAN BE EXPOSED!
     # WARden needs to implement authentication (coming soon)
+    try:
+        conf['SERVER'].getboolean('onion_server')
+    except Exception as e:
+        logging.debug(f"Launching Flask App - Could not load SERVER info {e}")
+        conf.add_section('SERVER')
+        conf.set('SERVER', 'host', '0.0.0.0')
+        conf.set('SERVER', 'port', '5000')
+        conf.set('SERVER', 'onion_server', 'True')
+        conf.set('SERVER', 'onion_port', '80')
+        config_file = os.path.join(basedir, 'config.ini')
+        with open(config_file, 'w') as configfile:
+            conf.write(configfile)
+        logging.debug(f"Launching Flask App - Server set")
+
     try:
         if conf['SERVER'].getboolean('onion_server'):
             from stem.control import Controller

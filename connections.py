@@ -86,7 +86,14 @@ def tor_request(url, tor_only=False, method="get", headers=None):
     # tor_only:  request will only be executed if tor is available
     # method:    'get or' 'post'
     # Store TOR Status here to avoid having to check on all http requests
-    TOR = test_tor()
+    from node_warden import pickle_it
+    TOR = pickle_it('load', 'tor.pkl')
+    if TOR == 'file not found':
+        TOR = {
+            "status": False,
+            "port": "failed",
+            "last_refresh": None,
+        }
     if '.local' in url:
         try:
             if method == "get":
@@ -235,6 +242,7 @@ def check_umbrel():
     # Let's check if running inside an Umbrel OS System
     # This is done by trying to access the getumbrel/manager container
     # and getting the environment variables inside that container
+    from node_warden import pickle_it
     try:
         exec_command = ['docker', 'exec', 'middleware', 'sh', '-c', '"export"']
         result = subprocess.run(exec_command,
