@@ -881,10 +881,9 @@ def create_app():
                 app.controller = None
             from tor import start_hidden_service
             app = start_hidden_service(app)
-    except Exception:
-        pass
+    except Exception as e:
+        logging.debug(f"Error: {e}")
 
-    logging.debug(f"Launching Flask App - Starting Blueprints")
     # START BLUEPRINTS
     from routes.warden import warden
     from errors.handlers import errors

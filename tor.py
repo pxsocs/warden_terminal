@@ -7,6 +7,9 @@ from ansi_management import success
 
 
 def start_hidden_service(app):
+    if app.controller is None:
+        app.tor_service_id = None
+        return (app)
     app.controller.reconnect()
     key_path = os.path.abspath(os.path.join(home_path, ".tor_service_key"))
     app.tor_service_id = None
