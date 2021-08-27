@@ -278,6 +278,8 @@ def check_cryptocompare():
                             + "&tsyms=USD&api_key=" + legacy_key)
 
                         try:
+                            data = None
+                            logging.debug(f"Trying API Key {legacy_key}")
                             request = tor_request(baseURL)
                             data = request.json()
                             btc_price = (
@@ -285,10 +287,14 @@ def check_cryptocompare():
                             spinner.text = (
                                 success(f"BTC price is: {btc_price}"))
                             spinner.ok("✅ ")
+                            logging.debug(f"API Key {legacy_key} Success")
                             pickle_it('save', 'cryptocompare_api.pkl',
                                       legacy_key)
                             return
-                        except Exception:
+                        except Exception as e:
+                            logging.debug(f"API Key {legacy_key} ERROR: {e}")
+                            logging.debug(
+                                f"API Key {legacy_key} Returned: {data}")
                             spinner.text = "Didn't work... Trying another."
 
                 except Exception:
