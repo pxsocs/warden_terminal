@@ -1,18 +1,21 @@
 # Upon the first import of non standard libraries, if not found
 import subprocess
-import requests
 import os
 import sys
 try:
+    import requests
     import pyttsx3
     from yaspin import yaspin
 except ModuleNotFoundError:
+    print("------------------------------------------")
+    print("[i] Some required libraries were not found")
+    print("    Starting installation...")
+    print("------------------------------------------")
     subprocess.run("pip3 install -r requirements.txt", shell=True)
     # Restart
     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
 
 from pathlib import Path
-from pickle import load
 
 import configparser
 from data import (data_btc_rpc_info, data_large_block, data_logger, data_login,
@@ -74,14 +77,20 @@ def load_config(quiet=False):
 def launch_logger():
     try:
         # Config of Logging
-        formatter = "[%(asctime)s] %(message)s"
+        if "debug" in sys.argv:
+            level = logging.DEBUG
+            formatter = "[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s"
+        else:
+            level = logging.INFO
+            formatter = "[%(asctime)s] %(message)s"
+
         logging.basicConfig(handlers=[
             RotatingFileHandler(filename=debug_file,
                                 mode='w',
                                 maxBytes=120,
                                 backupCount=0)
         ],
-                            level=logging.INFO,
+                            level=level,
                             format=formatter,
                             datefmt='%I:%M:%S %p')
         logging.getLogger('apscheduler').setLevel(logging.CRITICAL)
@@ -230,9 +239,8 @@ def check_cryptocompare():
                 baseURL = (
                     "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC"
                     + "&tsyms=USD&api_key=" + api_key)
-                request = tor_request(baseURL)
-                data = request.json()
-                data = request.json()
+                req = requests.get(baseURL)
+                data = req.json()
                 btc_price = (data['DISPLAY']['BTC']['USD']['PRICE'])
                 spinner.text = (success(f"BTC price is: {btc_price}"))
                 spinner.ok("✅ ")
@@ -242,6 +250,7 @@ def check_cryptocompare():
                 data = {'Response': 'Error', 'Message': 'No API Key is set'}
         except Exception as e:
             data = {'Response': 'Error', 'Message': str(e)}
+            logging.error(data)
 
         try:
             if data['Response'] == 'Error':
@@ -269,17 +278,23 @@ def check_cryptocompare():
                             + "&tsyms=USD&api_key=" + legacy_key)
 
                         try:
-                            request = tor_request(baseURL)
+                            data = None
+                            logging.debug(f"Trying API Key {legacy_key}")
+                            request = requests.get(baseURL)
                             data = request.json()
                             btc_price = (
                                 data['DISPLAY']['BTC']['USD']['PRICE'])
                             spinner.text = (
                                 success(f"BTC price is: {btc_price}"))
                             spinner.ok("✅ ")
+                            logging.debug(f"API Key {legacy_key} Success")
                             pickle_it('save', 'cryptocompare_api.pkl',
                                       legacy_key)
                             return
-                        except Exception:
+                        except Exception as e:
+                            logging.debug(f"API Key {legacy_key} ERROR: {e}")
+                            logging.debug(
+                                f"API Key {legacy_key} Returned: {data}")
                             spinner.text = "Didn't work... Trying another."
 
                 except Exception:
@@ -782,8 +797,12 @@ def store_local_ip():
 
 
 def create_app():
+    import logging
+
+    logging.debug("Launching Flask App")
     info_pickle = ''
     conf = load_config(quiet=True)
+    logging.debug("Launching Flask App - config loaded")
     # Check for debug or reloader on sys args
     debug = False
     reloader = False
@@ -791,10 +810,6 @@ def create_app():
         info_pickle += ("\n")
         info_pickle += (yellow(" [i] DEBUG MODE: ON\n"))
         debug = True
-    if "reloader" in sys.argv:
-        info_pickle += ("\n")
-        info_pickle += (yellow(" [i] RELOAD MODE: ON\n"))
-        reloader = True
 
     # Create App
     from config import Config
@@ -811,6 +826,7 @@ def create_app():
     from flask import Flask
     app = Flask(__name__)
     app.config.from_object(Config)
+    logging.debug("Launching Flask app - App created")
 
     # Get Version
     try:
@@ -822,9 +838,25 @@ def create_app():
     with app.app_context():
         app.version = current_version
 
+    logging.debug(f"Launching Flask App - version loaded {current_version}")
+
     # TOR Server through Onion Address --
     # USE WITH CAUTION - ONION ADDRESSES CAN BE EXPOSED!
     # WARden needs to implement authentication (coming soon)
+    try:
+        conf['SERVER'].getboolean('onion_server')
+    except Exception as e:
+        logging.debug(f"Launching Flask App - Could not load SERVER info {e}")
+        conf.add_section('SERVER')
+        conf.set('SERVER', 'host', '0.0.0.0')
+        conf.set('SERVER', 'port', '5000')
+        conf.set('SERVER', 'onion_server', 'True')
+        conf.set('SERVER', 'onion_port', '80')
+        config_file = os.path.join(basedir, 'config.ini')
+        with open(config_file, 'w') as configfile:
+            conf.write(configfile)
+        logging.debug(f"Launching Flask App - Server set")
+
     try:
         if conf['SERVER'].getboolean('onion_server'):
             from stem.control import Controller
@@ -848,9 +880,9 @@ def create_app():
             except Exception:
                 app.controller = None
             from tor import start_hidden_service
-            start_hidden_service(app)
-    except Exception:
-        pass
+            app = start_hidden_service(app)
+    except Exception as e:
+        logging.debug(f"Error: {e}")
 
     # START BLUEPRINTS
     from routes.warden import warden
@@ -860,11 +892,15 @@ def create_app():
 
     #  Build Strings for main page
     def onion_string():
-        if conf['SERVER'].getboolean('onion_server'):
+        if conf['SERVER'].getboolean(
+                'onion_server') and app.tor_service_id is not None:
+            pickle_it('save', 'onion_address.pkl',
+                      app.tor_service_id + '.onion')
             return (f"""[i] Tor Onion server running at:
- {yellow(app.tor_service_id + '.onion')}
-                """)
+    {yellow(app.tor_service_id + '.onion')}
+                    """)
         else:
+            pickle_it('save', 'onion_address.pkl', None)
             return ('')
 
     def local_network_string():
@@ -887,6 +923,8 @@ def create_app():
 
     # Store Messages
     pickle_it('save', 'webserver.pkl', info_pickle)
+    logging.debug("Web Server message below")
+    logging.debug(info_pickle)
 
     # Store app
     pickle_it('save', 'app.pkl', app)
@@ -915,8 +953,9 @@ def create_app():
 
     if conf['SERVER'].getboolean('onion_server'):
         from tor import stop_hidden_services
-        stop_hidden_services(app)
+        app = stop_hidden_services(app)
 
+    logging.debug("Finished creating flask app")
     return app
 
 
@@ -1067,3 +1106,4 @@ if __name__ == '__main__':
     pickle_it('save', 'tty.pkl')
     main()
     goodbye()
+    os._exit(1)

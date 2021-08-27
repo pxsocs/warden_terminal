@@ -23,6 +23,7 @@ debug*.*
 debug.log
 *.pkl
 .dockerignore
+myenv/
 
 # Packages #
 ############

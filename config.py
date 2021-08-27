@@ -25,7 +25,7 @@ class Config:
         home_dir, "warden.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    debug_file = os.path.join(home_dir, 'debug.log')
+    debug_file = os.path.join(basedir, 'debug.log')
 
     version_file = os.path.join(basedir, 'version.txt')
 
