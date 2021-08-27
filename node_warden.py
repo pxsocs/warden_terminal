@@ -876,10 +876,13 @@ def create_app():
     #  Build Strings for main page
     def onion_string():
         if conf['SERVER'].getboolean('onion_server'):
+            pickle_it('save', 'onion_address.pkl',
+                      app.tor_service_id + '.onion')
             return (f"""[i] Tor Onion server running at:
  {yellow(app.tor_service_id + '.onion')}
                 """)
         else:
+            pickle_it('save', 'onion_address.pkl', None)
             return ('')
 
     def local_network_string():
@@ -902,6 +905,8 @@ def create_app():
 
     # Store Messages
     pickle_it('save', 'webserver.pkl', info_pickle)
+    logging.debug("Web Server message below")
+    logging.debug(info_pickle)
 
     # Store app
     pickle_it('save', 'app.pkl', app)
@@ -932,6 +937,7 @@ def create_app():
         from tor import stop_hidden_services
         stop_hidden_services(app)
 
+    logging.debug("Finished creating flask app")
     return app
 
 
