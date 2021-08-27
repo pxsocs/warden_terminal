@@ -892,12 +892,13 @@ def create_app():
 
     #  Build Strings for main page
     def onion_string():
-        if conf['SERVER'].getboolean('onion_server'):
+        if conf['SERVER'].getboolean(
+                'onion_server') and app.tor_service_id is not None:
             pickle_it('save', 'onion_address.pkl',
                       app.tor_service_id + '.onion')
             return (f"""[i] Tor Onion server running at:
- {yellow(app.tor_service_id + '.onion')}
-                """)
+    {yellow(app.tor_service_id + '.onion')}
+                    """)
         else:
             pickle_it('save', 'onion_address.pkl', None)
             return ('')
