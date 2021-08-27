@@ -880,10 +880,11 @@ def create_app():
             except Exception:
                 app.controller = None
             from tor import start_hidden_service
-            start_hidden_service(app)
+            app = start_hidden_service(app)
     except Exception:
         pass
 
+    logging.debug(f"Launching Flask App - Starting Blueprints")
     # START BLUEPRINTS
     from routes.warden import warden
     from errors.handlers import errors
@@ -952,7 +953,7 @@ def create_app():
 
     if conf['SERVER'].getboolean('onion_server'):
         from tor import stop_hidden_services
-        stop_hidden_services(app)
+        app = stop_hidden_services(app)
 
     logging.debug("Finished creating flask app")
     return app

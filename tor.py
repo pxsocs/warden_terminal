@@ -39,6 +39,7 @@ def start_hidden_service(app):
             f.write("%s.onion" % app.tor_service_id)
     app.tor_service_id = app.tor_service_id
     app.tor_enabled = True
+    return (app)
 
 
 def stop_hidden_services(app):
@@ -54,5 +55,7 @@ def stop_hidden_services(app):
         else:
             print(" * Hidden services were shut down successfully")
             app.tor_service_id = None
+        return (app)
     except Exception:
+        return (app)
         pass  # we tried...
