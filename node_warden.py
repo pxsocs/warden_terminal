@@ -1,18 +1,21 @@
 # Upon the first import of non standard libraries, if not found
 import subprocess
-import requests
 import os
 import sys
 try:
+    import requests
     import pyttsx3
     from yaspin import yaspin
 except ModuleNotFoundError:
+    print("------------------------------------------")
+    print("[i] Some required libraries were not found")
+    print("    Starting installation...")
+    print("------------------------------------------")
     subprocess.run("pip3 install -r requirements.txt", shell=True)
     # Restart
     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
 
 from pathlib import Path
-from pickle import load
 
 import configparser
 from data import (data_btc_rpc_info, data_large_block, data_logger, data_login,
@@ -74,14 +77,20 @@ def load_config(quiet=False):
 def launch_logger():
     try:
         # Config of Logging
-        formatter = "[%(asctime)s] %(message)s"
+        if "debug" in sys.argv:
+            level = logging.DEBUG
+            formatter = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+        else:
+            level = logging.INFO
+            formatter = "[%(asctime)s] %(message)s"
+
         logging.basicConfig(handlers=[
             RotatingFileHandler(filename=debug_file,
                                 mode='w',
                                 maxBytes=120,
                                 backupCount=0)
         ],
-                            level=logging.INFO,
+                            level=level,
                             format=formatter,
                             datefmt='%I:%M:%S %p')
         logging.getLogger('apscheduler').setLevel(logging.CRITICAL)
@@ -1067,3 +1076,4 @@ if __name__ == '__main__':
     pickle_it('save', 'tty.pkl')
     main()
     goodbye()
+    os._exit(1)

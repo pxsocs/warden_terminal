@@ -449,7 +449,10 @@ def main_dashboard(config, tor):
 
     def logger_updater(_loop, __data):
         data = translate_text_for_urwid(data_logger())
-        logger_box.base_widget.set_text(data)
+        try:
+            logger_box.base_widget.set_text(data)
+        except Exception as e:
+            logger_box.base_widget.set_text(f"Error: {e}\nString: {str(data)}")
         main_loop.set_alarm_in(1, logger_updater)
 
     def mp_updater(_loop, __data):
