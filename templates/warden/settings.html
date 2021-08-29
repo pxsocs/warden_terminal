@@ -1,0 +1,20 @@
+{% extends "warden/warden_layout.html" %} {% block content %}
+
+
+
+{{ form.hidden_tag() }}
+{% from "warden/_formhelpers.html" import render_field %}
+
+
+<form method=post>
+    <div>{{ form.refresh.label }}: {{ form.refresh(class="css_class") }}</div>
+    <div>{{ form.price_refresh.label }}: {{ form.price_refresh() }}</div>
+    <div>{{ form.asc_font.label }}: {{ form.asc_font() }}</div>
+    <small>For a list of fonts see <a href='http://www.figlet.org/examples.html'>here</a>
+    </small>
+    {{form.submit(class="btn btn-outline-dark btn-block") }}
+</form>
+
+
+
+{% endblock content %}

@@ -934,7 +934,7 @@ def create_app():
     import click
     log = logging.getLogger('werkzeug')
     os.environ['WERKZEUG_RUN_MAIN'] = 'true'
-    log.setLevel(logging.ERROR)
+    log.setLevel(logging.DEBUG)
 
     def secho(text, file=None, nl=None, err=None, color=None, **styles):
         pass
@@ -1069,9 +1069,20 @@ def main(quiet=None):
     except Exception:
         price_refresh = 15
 
+    def catch_exception(func, exception):
+        def wrapper():
+            try:
+                func()
+            except exception as e:
+                string = (f'WARDen Server got an error: {e}')
+                pickle_it('save', 'webserver.pkl', string)
+
+        return wrapper
+
     job_defaults = {'coalesce': False, 'max_instances': 1}
     scheduler = BackgroundScheduler(job_defaults=job_defaults)
-    scheduler.add_job(create_app)
+
+    scheduler.add_job(catch_exception(create_app, Exception))
     scheduler.add_job(run_once_at_startup)
     scheduler.add_job(price_grabs, 'interval', seconds=price_refresh)
     scheduler.add_job(node_web_grabs, 'interval', seconds=15)

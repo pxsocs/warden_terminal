@@ -16,27 +16,29 @@ def warden_page():
         return render_template("warden/welcome.html",
                                title="Welcome to the WARden")
     else:
-        return redirect(url_for("warden.dashboard"))
+        return redirect(url_for("warden.terminal"))
 
 
-@warden.route("/dashboard", methods=['GET'])
-def dashboard():
-    # Get data to send to page - this data is being updated in background
-    # and saved on pickle files locally, so a page refresh will get the latest data
-    load_files = [
-        'tor', 'app', 'block', 'btc_network', 'btcrpc_refresh', 'hosts_found',
-        'last_price_refresh', 'recent_block', 'services_found', 'upgrade',
-        'webserver', 'multi_price', 'services_refresh'
-    ]
+@warden.route("/terminal", methods=['GET'])
+def terminal():
+    # # Get data to send to page - this data is being updated in background
+    # # and saved on pickle files locally, so a page refresh will get the latest data
+    # load_files = [
+    #     'tor', 'app', 'block', 'btc_network', 'btcrpc_refresh', 'hosts_found',
+    #     'last_price_refresh', 'recent_block', 'services_found', 'upgrade',
+    #     'webserver', 'multi_price', 'services_refresh'
+    # ]
 
-    status = {}
-    for file in load_files:
-        status[file] = pickle_it('load', file + '.pkl')
-
-    return render_template("warden/dashboard.html",
-                           title="Dashboard",
-                           status=status,
+    return render_template("warden/terminal.html",
+                           title="Terminal View",
                            current_app=pickle_it('load', 'app.pkl'))
+
+
+@warden.route("/settings", methods=['GET'])
+def settings():
+    from routes.forms import Settings
+    form = Settings()
+    return render_template("warden/settings.html", title="Settings", form=form)
 
 
 # Main Method to display Pickle Files in real time
@@ -93,6 +95,13 @@ def widget_broadcast():
     from ansi_management import ansi_to_html
     broadcaster = ansi_to_html(broadcaster)
     return broadcaster
+
+
+@warden.route("/get_widget", methods=['GET'])
+def get_widget():
+    from dashboard_elements import progress_bar
+    pb = progress_bar('Test it', 20, 100, 0, True, True, 'bg-danger')
+    return pb
 
 
 # -------------------------------------------------
