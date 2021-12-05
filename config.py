@@ -41,4 +41,5 @@ class Config:
 
     # Do not start new job until the last one is done
     SCHEDULER_JOB_DEFAULTS = {'coalesce': False, 'max_instances': 1}
+    SCHEDULER_TIMEZONE = "Europe/Berlin"
     SCHEDULER_API_ENABLED = True

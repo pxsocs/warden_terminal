@@ -1086,7 +1086,8 @@ def main(quiet=None):
         return wrapper
 
     job_defaults = {'coalesce': False, 'max_instances': 1}
-    scheduler = BackgroundScheduler(job_defaults=job_defaults)
+    scheduler = BackgroundScheduler(
+        job_defaults=job_defaults, timezone="Europe/Berlin")
 
     scheduler.add_job(catch_exception(create_app, Exception))
     scheduler.add_job(run_once_at_startup)
