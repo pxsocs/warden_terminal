@@ -90,9 +90,9 @@ def launch_logger():
                                 maxBytes=120,
                                 backupCount=0)
         ],
-                            level=level,
-                            format=formatter,
-                            datefmt='%I:%M:%S %p')
+            level=level,
+            format=formatter,
+            datefmt='%I:%M:%S %p')
         logging.getLogger('apscheduler').setLevel(logging.CRITICAL)
 
     except Exception:
@@ -720,7 +720,11 @@ def check_os():
             rasp_info = myfile.readlines()
     except Exception:
         rasp_info = 'Not a Raspberry Pi'
-    os_info = {'uname': os.uname(), 'rpi': rasp_info}
+
+    try:
+        os_info = {'uname': os.uname(), 'rpi': rasp_info}
+    except Exception:
+        os_info = {'uname': 'Unidentified OS', 'rpi': 'Unidentified RPi Model'}
     # Save for later
     pickle_it('save', 'os_info.pkl', os_info)
 
@@ -739,9 +743,9 @@ def stout_to_file():
             self.terminal.write(message)
 
         def flush(self):
-            #this flush method is needed for python 3 compatibility.
-            #this handles the flush command by doing nothing.
-            #you might want to specify some extra behavior here.
+            # this flush method is needed for python 3 compatibility.
+            # this handles the flush command by doing nothing.
+            # you might want to specify some extra behavior here.
             pass
 
     sys.stdout = Logger()
