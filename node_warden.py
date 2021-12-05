@@ -964,6 +964,8 @@ def create_app():
 
 
 def main(quiet=None):
+    # Checks OS Version
+    check_os()
     # Store Local IP Address
     store_local_ip()
     # Main Variables
