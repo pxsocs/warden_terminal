@@ -284,3 +284,20 @@ def check_umbrel():
         pickle_it('save', 'umbrel_detected.pkl', False)
         pickle_it('save', 'umbrel_dict.pkl', None)
         return (f"Error: {str(e)}")
+
+
+# Searches for nodes locally and includes onion addresses that were
+# previously saved
+def node_list():
+    from node_warden import pickle_it
+    hosts = pickle_it('load', 'hosts_found.pkl')
+    if hosts == 'file not found' or hosts == [] or hosts is None:
+        nodes = None
+    else:
+        nodes = hosts
+    nodes_onion = pickle_it('load', 'hosts_onion.pkl')
+    if nodes_onion != 'file not found':
+        nodes.append(nodes_onion)
+
+    pickle_it('save', 'found_nodes.pkl', nodes)
+    return (nodes)

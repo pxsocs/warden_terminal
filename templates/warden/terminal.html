@@ -1,0 +1,20 @@
+{% extends "warden/warden_layout.html" %} {% block content %}
+
+
+<div class="row">
+    <div class="col-12">
+        <h5>Terminal Output</h5>
+        <div id='terminal' style='height:650px;'>
+            <pre class=' codetext'> Loading... </pre>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<script src="{{url_for('static', filename='js/dashboard.js')}}"></script>
+
+
+{% endblock content %}

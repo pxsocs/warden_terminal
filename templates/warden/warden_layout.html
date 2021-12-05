@@ -1,32 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
-<link rel="icon" href="{{url_for('static', filename='images/favicon-bitcoin.ico')}}" class="invert">
+<html style="--vh100:450px;" lang="en">
 
 <head>
+    <link rel="icon" href="{{url_for('static', filename='images/favicon-bitcoin.ico')}}" class="invert">
     <!-- Style Sheets -->
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{url_for('static', filename='dependencies/bootstrap/css/bootstrap.min.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='dependencies/font-awesome/css/all.css')}}">
     <!-- JQuery UI -->
-    <link rel="stylesheet" href="{{url_for('static', filename='dependencies/jquery/themes/flicker.css')}}">
+    <!-- <link rel="stylesheet" href="{{url_for('static', filename='dependencies/jquery/themes/flicker.css')}}"> -->
     <link rel="stylesheet" href="{{url_for('static', filename='css/warden_main.css')}}">
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/warden_layout.css')}}">
 
     <!-- End Style Sheets -->
 
-
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {% if title %}
     <title>The WARden | {{ title }}</title>
     {% else %}
     <title>The WARden</title>
     {% endif %}
+
 </head>
 
-<body>
+
+
+
+<body class="d-flex flex-column h-100">
+
+    <noscript><strong>We're sorry but WARden doesn't work properly without JavaScript enabled.
+            Please enable it to continue.</strong></noscript>
     <!-- JavaScript Loaders -->
     <!-- JQuery -->
     <script src="{{url_for('static', filename='dependencies/jquery/jquery-3.4.1.js')}}"></script>
@@ -40,104 +49,72 @@
     <script src="{{url_for('static', filename='dependencies/bootstrap/js/bootstrap.js')}}"></script>
 
     <!-- END JavaScript Loaders -->
-
-
-
-
     <header>
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">WARden</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/terminal">Terminal</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/settings" tabindex="-1">Settings</a>
+                        </li>
+                    </ul>
 
-        <nav class="navbar navbar-expand-lg navbar-light bg-steel">
-
-            <ul class="nav justify-content-end">
-                <a style='padding-left: 20px;' class="navbar-brand" href="/">
-                    <img src="{{url_for('static', filename='images/logo_flat.png')}}" alt="WARden" width="180"
-                        height="40">
-                </a>
-                <li class="nav-item">
-                    <a class="nav-link" href="/">Dashboard</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="https://github.com/pxsocs/warden_terminal">Report an Issue</a>
-                </li>
-            </ul>
-
+                    <form class="d-flex">
+                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-outline-success" type="submit">Search</button>
+                    </form>
+                </div>
+            </div>
         </nav>
     </header>
+    <main class='flex-shrink-0' style='padding: 20px; padding-top: 80px;'>
 
-
-    <body>
-
-        <!-- Main Content -->
-
-        <main role=" main">
-
-
-            <div class=' row' style='padding-top:20px;'>
-                <div id='alertsection' class='col-12'>
-
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                    {% for category, message in messages %}
-                    <div id="messagealert" class="alert alert-{{ category }}">
-                        {{message}}
-                    </div>
-                    {% endfor %}
-                    {% endif %}
-                    {% endwith %}
-
-                </div>
+        <div id=' alertsection' class='col-12'>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div id="messagealert" class="alert alert-{{ category }}">
+                {{message}}
             </div>
-
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+        <div class='col-12'>
             {% block content %}
             {% endblock %}
-            </div>
-        </main>
+        </div>
+        </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class='container'>
+            <p><small><a href="https://github.com/pxsocs/warden_terminal" target="_blank">WARden</a> |
+                    <a href="https://twitter.com/alphaazeta" target="_blank">AlphaZeta</a></small></p>
+        </div>
+    </footer>
+
+</body>
 
 
 
-        <!-- Footer -->
-        <footer class="site-footer bg-steel small fixed-bottom">
+{%block modals%}
 
-            <div class="row text-white">
-                <div class="col-sm-4 text-left float-left">
-                    <i class="fab fa-github fa-lg text-white"></i>
-                    &nbsp;&nbsp;<a class='text-white' style="text-decoration : none"
-                        href='https://github.com/pxsocs/warden/'>
-                        Open Source code available at GitHub</a>
-                </div>
-
-                <div class="col-sm-4 text-center">
-
-                    Not Your Keys, Not Your Coins
-                    |
-                    Si vis pacem, para bellum
-
-                </div>
-
-                <div class="col-sm-4 text-center float-right">
-                    <a class='text-white' style="text-decoration : none" href="https://twitter.com/alphaazeta"> <i
-                            class="fab fa-twitter fa-lg"></i>
-                        <span class="text-white">@AlphaaZeta&nbsp;</span></a>
-                </div>
-            </div>
-
-
-        </footer>
-
-        <!-- END OF WRAPPER -->
-
-
-
-    </body>
-
-
-    </div>
-
-
-    {%block modals%}
-
-    {%endblock%}
-    <script src="{{url_for('static', filename='js/warden_layout.js')}}"></script>
+{%endblock%}
+<script src="{{url_for('static', filename='js/warden_layout.js')}}"></script>
 
 </html>
