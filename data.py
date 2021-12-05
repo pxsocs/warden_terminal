@@ -647,8 +647,7 @@ def data_sys(use_cache=True):
             iteration=temp_result,
             total=80,
             prefix='CPU Temperature',
-            suffix=
-            f'{temp_result}°C\n                 (ideal range = 0°C to 70°C)',
+            suffix=f'{temp_result}°C\n                 (ideal range = 0°C to 70°C)',
             length=bar_size,
             unit='°C',
             perc=False,
@@ -685,8 +684,7 @@ def data_sys(use_cache=True):
             iteration=round(mem_result.percent, 2),
             total=100,
             prefix='Memory Usage   ',
-            suffix=
-            f'{round(mem_result.percent, 2)}%\n                 Total Memory {round(mem_result.total/1000000000,0)} GB',
+            suffix=f'{round(mem_result.percent, 2)}%\n                 Total Memory {round(mem_result.total/1000000000,0)} GB',
             length=bar_size,
             perc=True,
             printEnd='',
@@ -715,10 +713,9 @@ def data_sys(use_cache=True):
                     iteration=round(perc_c, 2),
                     total=100,
                     prefix=prefix,
-                    suffix=
-                    (f'{round(perc_c, 2)}%' +
-                     f'\n                 {round(free / (10**9), 2)} GB available of {round(total / (10 ** 9), 2)} GB'
-                     ),
+                    suffix=(f'{round(perc_c, 2)}%' +
+                            f'\n                 {round(free / (10**9), 2)} GB available of {round(total / (10 ** 9), 2)} GB'
+                            ),
                     length=bar_size,
                     perc=True,
                     printEnd='',
