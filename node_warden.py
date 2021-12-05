@@ -908,15 +908,15 @@ def create_app():
         if host == '0.0.0.0':
             return (f"""
  Or through your network at address:
- {yellow('http://')}{yellow(store_local_ip())}{yellow(':5000/')}
+ {yellow('http://')}{yellow(store_local_ip())}{yellow(":"+conf['SERVER'].get('port')+"/")}
                 """)
 
     info_pickle += (success(" WARden Web Server is Running \n"))
 
     info_pickle += (f"""
  Open your browser and navigate to one of these addresses:
- {yellow('http://localhost:5000/')}
- {yellow('http://127.0.0.1:5000/')}
+ {yellow('http://localhost:')}{yellow(conf['SERVER'].get('port')+"/")}
+ {yellow('http://127.0.0.1:')}{yellow(conf['SERVER'].get('port')+"/")}
  {local_network_string()}
  {onion_string()}
     """)
