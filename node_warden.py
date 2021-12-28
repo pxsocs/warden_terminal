@@ -510,6 +510,18 @@ def check_nodetype():
     # CHECK MyNode ------------------------
     try:
         if mynode_detected is True:
+            try:
+                specter_port = config['SPECTER']['specter_port']
+            except Exception:
+                specter_port = '25441'
+
+            if local_ip is not None:
+                specter_ip = clean_url(local_ip, specter_port)
+                pickle_it('save', 'specter_ip.pkl', specter_ip)
+            elif config['MYNODE']['url'] != 'None':
+                mynode_ip = config['MYNODE']['url']
+                specter_ip = clean_url(mynode_ip, specter_port)
+                pickle_it('save', 'specter_ip.pkl', specter_ip)
             node = "mynode"
     except Exception:
         pass
@@ -1065,6 +1077,7 @@ def main(quiet=None):
         # These methods don't need to run several times
         from connections import check_umbrel
         check_umbrel()
+        check_mynode()
 
     # Kick off data upgrades as background jobs
     try:
