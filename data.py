@@ -599,7 +599,7 @@ def data_sys(use_cache=True):
 
     tabs = []
     os_info = pickle_it('load', 'os_info.pkl')
-    umbrel = pickle_it('load', 'umbrel.pkl')
+    umbrel = pickle_it('load', 'umbrel_detected.pkl')
     mynode = pickle_it('load', 'mynode_detected.pkl')
 
     if os_info == 'file not found':
