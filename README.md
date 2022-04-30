@@ -26,10 +26,12 @@ Clone the git repository into any directory:
 git clone https://github.com/pxsocs/warden_terminal
 ```
 
-Install Requirements:
+Setup Virtual Environment and Install Requirements:
 
 ```bash
 cd warden_terminal
+virtualenv ENV
+source ENV/bin/activate
 pip3 install -r requirements.txt
 ```
 
