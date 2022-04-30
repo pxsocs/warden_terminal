@@ -599,7 +599,8 @@ def data_sys(use_cache=True):
 
     tabs = []
     os_info = pickle_it('load', 'os_info.pkl')
-    umbrel = pickle_it('load', 'umbrel.pkl')
+    umbrel = pickle_it('load', 'umbrel_detected.pkl')
+    mynode = pickle_it('load', 'mynode_detected.pkl')
 
     if os_info == 'file not found':
         return "Error Getting Files"
@@ -611,6 +612,8 @@ def data_sys(use_cache=True):
     ])
     if os_info["rpi"] != 'Not a Raspberry Pi':
         tabs.append([" Raspberry Pi", os_info["rpi"][0]])
+    if mynode:
+        tabs.append([" myNode found @", 'http://mynode.local/'])
     if umbrel:
         tabs.append([" Umbrel Node found @", 'http://umbrel.local/'])
 

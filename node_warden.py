@@ -510,6 +510,18 @@ def check_nodetype():
     # CHECK MyNode ------------------------
     try:
         if mynode_detected is True:
+            try:
+                specter_port = config['SPECTER']['specter_port']
+            except Exception:
+                specter_port = '25441'
+
+            if local_ip is not None:
+                specter_ip = clean_url(local_ip, specter_port)
+                pickle_it('save', 'specter_ip.pkl', specter_ip)
+            elif config['MYNODE']['url'] != 'None':
+                mynode_ip = config['MYNODE']['url']
+                specter_ip = clean_url(mynode_ip, specter_port)
+                pickle_it('save', 'specter_ip.pkl', specter_ip)
             node = "mynode"
     except Exception:
         pass
@@ -528,69 +540,61 @@ def check_mynode():
     mynode_detected = False
     print("")
     config = load_config(quiet=True)
-    with yaspin(text="Checking if running MyNode ⚡", color="green") as spinner:
-        try:
-            # Check if the path /var/www/mynode exists
-            mynode_detected = Path('/var/www/mynode').is_dir()
-            if mynode_detected is True:
-                spinner.write(
-                    success("    MyNode node detected in this machine."))
-                logging.info("[MyNode] Running inside MyNode")
-
-                # Now we can get the bitcoin RPC data
-                d = {}
-                d['rpc_user'] = 'mynode'
-                try:
-                    with open("/mnt/hdd/mynode/settings/.btcrpc_environment",
-                              "r") as f:
-                        for line in f:
-                            if "=" in line:
-                                key, val = map(str.strip, line.split("="))
-                                d[key] = val
-                                if 'PASSWORD' in line:
-                                    d['rpc_password'] = val
-                except Exception:
-                    d['rpc_password'] = "error_getting_password"
-
-                d['rpc_port'] = 8332
-                d['rpc_ip'] = '127.0.0.1'
-
-                # Save this for later
-                pickle_it('save', 'mynode_bitcoin.pkl', d)
-
-            else:
-                raise Exception("MyNode not detected")
-
-        except Exception:
-            mynode_detected = False
-
-        # May not be running inside mynode but let's check if a MyNode
-        # is present in local network.
-        try:
-            url = config['MYNODE'].get('url')
-        except Exception:
-            url = 'http://mynode.local/'
-
-        # Test if this url can be reached
-        try:
-            result = tor_request(url)
-            if not isinstance(result, requests.models.Response):
-                raise Exception(f'Did not get a return from {url}')
-            if not result.ok:
-                raise Exception(f'Reached {url} but an error occured.')
-            mynode_detected = True
-            spinner.ok("✅ ")
-            spinner.write(success(f"    MyNode found on {url}"))
-
-        except Exception as e:
-            spinner.fail("[i] ")
+    try:
+        # Check if the path /var/www/mynode exists
+        mynode_detected = Path('/var/www/mynode').is_dir()
+        if mynode_detected is True:
             spinner.write(
-                warning(
-                    f"     MyNode node not detected and not reachable. Error {e}"
-                ))
-            mynode_detected = False
+                success("    MyNode node detected in this machine."))
+            logging.info("[MyNode] Running inside MyNode")
 
-        pickle_it('save', 'mynode_detected.pkl', mynode_detected)
+            # Now we can get the bitcoin RPC data
+            d = {}
+            d['rpc_user'] = 'mynode'
+            try:
+                with open("/mnt/hdd/mynode/settings/.btcrpc_environment",
+                            "r") as f:
+                    for line in f:
+                        if "=" in line:
+                            key, val = map(str.strip, line.split("="))
+                            d[key] = val
+                            if 'PASSWORD' in line:
+                                d['rpc_password'] = val
+            except Exception:
+                d['rpc_password'] = "error_getting_password"
+
+            d['rpc_port'] = 8332
+            d['rpc_ip'] = '127.0.0.1'
+
+            # Save this for later
+            pickle_it('save', 'mynode_bitcoin.pkl', d)
+
+        else:
+            raise Exception("MyNode not detected")
+
+    except Exception:
+        mynode_detected = False
+
+    # May not be running inside mynode but let's check if a MyNode
+    # is present in local network.
+    try:
+        url = config['MYNODE'].get('url')
+    except Exception:
+        url = 'http://mynode.local/'
+
+    # Test if this url can be reached
+    try:
+        result = tor_request(url)
+        if not isinstance(result, requests.models.Response):
+            raise Exception(f'Did not get a return from {url}')
+        if not result.ok:
+            raise Exception(f'Reached {url} but an error occured.')
+        mynode_detected = True
+
+    except Exception as e:
+        mynode_detected = False
+
+    pickle_it('save', 'mynode_detected.pkl', mynode_detected)
 
 
 def check_raspiblitz():
@@ -1065,6 +1069,7 @@ def main(quiet=None):
         # These methods don't need to run several times
         from connections import check_umbrel
         check_umbrel()
+        check_mynode()
 
     # Kick off data upgrades as background jobs
     try:
